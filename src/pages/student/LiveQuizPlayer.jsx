@@ -25,7 +25,7 @@ const LiveQuizPlayer = () => {
   const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5000', { withCredentials: true });
+    const newSocket = io('https://ssms-be.onrender.com', { withCredentials: true });
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

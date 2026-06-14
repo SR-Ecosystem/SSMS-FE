@@ -48,7 +48,7 @@ const BatchChat = () => {
     if (!activeBatchId) return;
 
     // Connect to Socket
-    socketRef.current = io('http://localhost:5000', { withCredentials: true });
+    socketRef.current = io('https://ssms-be.onrender.com', { withCredentials: true });
     const socket = socketRef.current;
 
     // Fetch message history for the active batch

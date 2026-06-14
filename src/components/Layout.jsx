@@ -229,7 +229,7 @@ const Layout = () => {
   useEffect(() => {
     let socket = null;
     if (user?.role === 'student') {
-      socket = io('http://localhost:5000', { withCredentials: true });
+      socket = io('https://ssms-be.onrender.com', { withCredentials: true });
       socket.on('connect', () => {
         socket.emit('student-listen-quizzes', { studentId: user._id });
       });
