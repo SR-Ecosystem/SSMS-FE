@@ -215,58 +215,65 @@ const BatchTracker = () => {
       </div>
 
       {/* Advanced Filter Bar */}
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/50 flex flex-nowrap items-center gap-4 overflow-x-auto custom-scrollbar">
+      <div className="bg-white dark:bg-slate-800 p-2.5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/50 flex flex-nowrap items-center justify-between gap-3 text-sm">
         
-        {/* Search Inputs */}
-        <div className="flex-none flex items-center gap-3">
-          <input 
-            type="text" 
-            placeholder="Search student name..." 
-            value={filterName}
-            onChange={(e) => setFilterName(e.target.value)}
-            className="input-field w-[200px]"
-          />
-          <input 
-            type="text" 
-            placeholder="Search roll number..." 
-            value={filterRoll}
-            onChange={(e) => setFilterRoll(e.target.value)}
-            className="input-field w-[160px]"
-          />
-        </div>
-
-        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 flex-none hidden lg:block"></div>
-
-        {/* Action Controls */}
-        <div className="flex flex-nowrap items-center gap-3 flex-none">
-          {/* Date Filter */}
-          <div className="flex items-center gap-1">
+        {/* Scrollable Left Side (Inputs) */}
+        <div className="flex flex-nowrap items-center gap-3 overflow-x-auto custom-scrollbar flex-1 pb-1 -mb-1">
+          {/* Search Inputs */}
+          <div className="flex-none flex items-center gap-3">
             <input 
-              type="date"
-              className="input-field cursor-pointer"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
+              type="text" 
+              placeholder="Search student name..." 
+              value={filterName}
+              onChange={(e) => setFilterName(e.target.value)}
+              className="input-field w-[180px] py-1.5 px-3 text-sm"
+            />
+            <input 
+              type="text" 
+              placeholder="Search roll number..." 
+              value={filterRoll}
+              onChange={(e) => setFilterRoll(e.target.value)}
+              className="input-field w-[140px] py-1.5 px-3 text-sm"
             />
           </div>
-          
-          <select 
-            className="input-field min-w-[180px] font-medium"
-            value={selectedBatch}
-            onChange={(e) => setSelectedBatch(e.target.value)}
-          >
-            {batches.map(b => (
-              <option key={b._id} value={b._id}>{b.batchName}</option>
-            ))}
-          </select>
+
+          <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 flex-none hidden lg:block"></div>
+
+          {/* Date & Batch */}
+          <div className="flex flex-nowrap items-center gap-2.5 flex-none">
+            {/* Date Filter */}
+            <div className="flex items-center gap-1">
+              <input 
+                type="date"
+                className="input-field cursor-pointer py-1.5 px-3 text-sm"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+              />
+            </div>
+            
+            <select 
+              className="input-field min-w-[160px] font-medium py-1.5 px-3 text-sm"
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+            >
+              {batches.map(b => (
+                <option key={b._id} value={b._id}>{b.batchName}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Fixed Right Side (Buttons) */}
+        <div className="flex items-center gap-2.5 flex-none border-l border-slate-200 dark:border-slate-700 pl-3">
 
           {/* Column Visibility Dropdown */}
           <div className="relative">
             <button 
               onClick={() => setShowColumnFilters(!showColumnFilters)}
-              className="px-4 py-2 flex items-center gap-2 font-medium text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100 dark:border-indigo-800/50"
+              className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 transition-colors border border-indigo-100 dark:border-indigo-800/50 whitespace-nowrap"
               title="Filter Columns"
             >
-              <Filter size={16} /> Filter Columns
+              <Filter size={14} /> Filter Columns
             </button>
             {showColumnFilters && (
               <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-3 z-[60]">
@@ -290,18 +297,18 @@ const BatchTracker = () => {
 
           <button 
             onClick={clearAllFilters}
-            className="px-4 py-2 flex items-center gap-2 font-medium text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50"
+            className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap"
             title="Reset All Filters"
           >
-            <XCircle size={16} /> Reset
+            <XCircle size={14} /> Reset
           </button>
 
           <button 
             onClick={fetchTrackerData}
-            className="p-2.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 transition-colors shadow-sm"
+            className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 transition-colors shadow-sm"
             title="Reload Data"
           >
-            <RotateCcw size={18} className={loading ? 'animate-spin' : ''} />
+            <RotateCcw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>
