@@ -155,12 +155,11 @@ const Layout = () => {
       let lastTick = Date.now();
       timerIntervalRef.current = setInterval(() => {
         const now = Date.now();
-        if (now - lastTick > 10000) {
-          endSession(sessionSecondsRef.current);
-          return;
+        const delta = Math.floor((now - lastTick) / 1000);
+        if (delta > 0) {
+          setSessionSeconds(prev => prev + delta);
+          lastTick = now;
         }
-        lastTick = now;
-        setSessionSeconds(prev => prev + 1);
       }, 1000);
     } catch (error) {
       console.error('Checkin failed:', error);
@@ -170,19 +169,7 @@ const Layout = () => {
   };
 
   useEffect(() => {
-    const handleUnload = () => {
-      if (sessionActive && attendanceIdRef.current) {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-          const u = JSON.parse(userStr);
-          navigator.sendBeacon(`https://ssms-be.onrender.com/api/attendance/checkout/${attendanceIdRef.current}?userId=${u._id}&totalSeconds=${sessionSecondsRef.current}`);
-        }
-      }
-    };
-    window.addEventListener('beforeunload', handleUnload);
-
     return () => {
-      window.removeEventListener('beforeunload', handleUnload);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
   }, [sessionActive]);
@@ -225,9 +212,19 @@ const Layout = () => {
             
             if (todayRecords.length > 0) {
               const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
-              setSessionSeconds(totalTodaySeconds);
-              
               const activeRecord = todayRecords.find(r => r.isActive);
+              
+              let additionalSeconds = 0;
+              if (activeRecord && activeRecord.lastCheckInTime) {
+                const now = Date.now();
+                const lastCheckIn = new Date(activeRecord.lastCheckInTime).getTime();
+                if (now > lastCheckIn) {
+                  additionalSeconds = Math.floor((now - lastCheckIn) / 1000);
+                }
+              }
+              
+              setSessionSeconds(totalTodaySeconds + additionalSeconds);
+              
               if (activeRecord) {
                 setSessionActive(true);
                 setAttendanceId(activeRecord._id);
@@ -238,12 +235,11 @@ const Layout = () => {
                   let lastTick = Date.now();
                   timerIntervalRef.current = setInterval(() => {
                     const now = Date.now();
-                    if (now - lastTick > 10000) {
-                      endSession(sessionSecondsRef.current);
-                      return;
+                    const delta = Math.floor((now - lastTick) / 1000);
+                    if (delta > 0) {
+                      setSessionSeconds(prev => prev + delta);
+                      lastTick = now;
                     }
-                    lastTick = now;
-                    setSessionSeconds(prev => prev + 1);
                   }, 1000);
                 }
               }
