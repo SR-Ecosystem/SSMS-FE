@@ -16,7 +16,10 @@ const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Dark mode state
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return savedTheme !== 'light'; // Default to dark
+  });
   
   // Attendance state
   const [sessionActive, setSessionActive] = useState(false);
@@ -85,9 +88,15 @@ const Layout = () => {
 
   // Initialize Dark Mode & Close Notifications on Outside Click
   useEffect(() => {
-    // Force dark mode for admin and student panels by default
-    document.documentElement.classList.add('dark');
-    setDarkMode(true);
+    // Apply saved theme or default to dark
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+      setDarkMode(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      setDarkMode(true);
+    }
     
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
@@ -102,9 +111,11 @@ const Layout = () => {
     if (darkMode) {
       document.documentElement.classList.remove('dark');
       setDarkMode(false);
+      localStorage.setItem('theme', 'light');
     } else {
       document.documentElement.classList.add('dark');
       setDarkMode(true);
+      localStorage.setItem('theme', 'dark');
     }
   };
 
