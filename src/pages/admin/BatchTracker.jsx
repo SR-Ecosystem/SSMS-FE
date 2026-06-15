@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Swal from 'sweetalert2';
 import Loader from '../../components/Loader';
-import { Check, Loader2 } from 'lucide-react';
 
 const BatchTracker = () => {
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [trackerData, setTrackerData] = useState({ students: [], tasks: [], submissions: [] });
-  const [toggling, setToggling] = useState(null); // { studentId, taskId }
+  const [trackerData, setTrackerData] = useState({ 
+    students: [], 
+    tasks: [], 
+    submissions: [],
+    leetcodeProblems: [],
+    leetcodeSubmissions: [] 
+  });
+  const [filterDate, setFilterDate] = useState(''); // YYYY-MM-DD
 
   useEffect(() => {
     const fetchBatches = async () => {
@@ -35,7 +39,15 @@ const BatchTracker = () => {
       setLoading(true);
       try {
         const res = await axios.get(`/tasks/tracker/${selectedBatch}`);
-        setTrackerData(res.data);
+        // Ensure defaults for backward compatibility
+        const data = {
+          students: res.data.students || [],
+          tasks: res.data.tasks || [],
+          submissions: res.data.submissions || [],
+          leetcodeProblems: res.data.leetcodeProblems || [],
+          leetcodeSubmissions: res.data.leetcodeSubmissions || []
+        };
+        setTrackerData(data);
       } catch (error) {
         console.error('Failed to fetch tracker data', error);
       } finally {
@@ -45,38 +57,38 @@ const BatchTracker = () => {
     fetchTrackerData();
   }, [selectedBatch]);
 
-  const handleToggle = async (studentId, taskId, isCurrentlyCompleted) => {
-    setToggling(`${studentId}-${taskId}`);
-    try {
-      await axios.post('/tasks/tracker/toggle', {
-        studentId,
-        taskId,
-        completed: !isCurrentlyCompleted
-      });
-      
-      // Optimistically update UI
-      setTrackerData(prev => {
-        let newSubs;
-        if (!isCurrentlyCompleted) {
-          // Add fake submission
-          newSubs = [...prev.submissions, { studentId, taskId, status: 'graded' }];
-        } else {
-          // Remove submission
-          newSubs = prev.submissions.filter(s => !(s.studentId === studentId && s.taskId === taskId));
-        }
-        return { ...prev, submissions: newSubs };
-      });
-    } catch (error) {
-      Swal.fire('Error', 'Failed to update submission status', 'error');
-    } finally {
-      setToggling(null);
-    }
-  };
+  // Merge tasks and leetcode into a single array
+  let allActivities = [
+    ...trackerData.tasks.map(t => ({
+      ...t, 
+      isLeetCode: false,
+      dateVal: new Date(t.dueDate)
+    })),
+    ...trackerData.leetcodeProblems.map(l => ({
+      ...l,
+      isLeetCode: true,
+      category: 'LeetCode',
+      dateVal: new Date(l.deadline)
+    }))
+  ];
 
-  // Group tasks by date
+  // Apply date filter if selected
+  if (filterDate) {
+    const [y, m, d] = filterDate.split('-');
+    allActivities = allActivities.filter(a => {
+      return a.dateVal.getFullYear() === parseInt(y) &&
+             a.dateVal.getMonth() + 1 === parseInt(m) &&
+             a.dateVal.getDate() === parseInt(d);
+    });
+  }
+
+  // Sort chronologically
+  allActivities.sort((a, b) => a.dateVal - b.dateVal);
+
+  // Group by date
   const groupedTasks = {};
-  trackerData.tasks.forEach(task => {
-    const dateStr = new Date(task.dueDate).toLocaleDateString('en-GB'); // DD/MM/YYYY
+  allActivities.forEach(task => {
+    const dateStr = task.dateVal.toLocaleDateString('en-GB'); // DD/MM/YYYY
     if (!groupedTasks[dateStr]) groupedTasks[dateStr] = [];
     groupedTasks[dateStr].push(task);
   });
@@ -87,17 +99,39 @@ const BatchTracker = () => {
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Task Tracker</h1>
-        <select 
-          className="input-field max-w-[300px]"
-          value={selectedBatch}
-          onChange={(e) => setSelectedBatch(e.target.value)}
-        >
-          {batches.map(b => (
-            <option key={b._id} value={b._id}>{b.batchName}</option>
-          ))}
-        </select>
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Task Tracker</h1>
+          <div className="mt-4 flex items-center gap-4 text-sm font-medium text-slate-600 dark:text-slate-300">
+             <div className="flex items-center gap-2">
+               <div className="w-4 h-4 bg-emerald-500 rounded"></div> Graded / LC Submitted
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-4 h-4 bg-amber-400 rounded"></div> Submitted (Not Graded)
+             </div>
+             <div className="flex items-center gap-2">
+               <div className="w-4 h-4 bg-rose-500 rounded"></div> Not Submitted
+             </div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <input 
+            type="date"
+            className="input-field"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+          />
+          <select 
+            className="input-field min-w-[200px]"
+            value={selectedBatch}
+            onChange={(e) => setSelectedBatch(e.target.value)}
+          >
+            {batches.map(b => (
+              <option key={b._id} value={b._id}>{b.batchName}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="glass-panel p-0 overflow-hidden border border-slate-200 dark:border-slate-700/50 rounded-xl relative shadow-sm">
@@ -118,18 +152,21 @@ const BatchTracker = () => {
                     Roll Number
                   </th>
                   {dates.map(date => (
-                    <th key={date} colSpan={groupedTasks[date].length} className="px-4 py-2 border-b border-r dark:border-slate-700 text-center font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300">
+                    <th key={date} colSpan={groupedTasks[date].length} className="px-4 py-2 border-b border-r dark:border-slate-700 text-center font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300">
                       {date}
                     </th>
                   ))}
-                  {dates.length === 0 && <th rowSpan={2} className="px-4 py-4 border-b border-slate-200 dark:border-slate-700">No Tasks Assigned</th>}
+                  {dates.length === 0 && <th rowSpan={2} className="px-4 py-4 border-b border-slate-200 dark:border-slate-700">No Assignments Found</th>}
                 </tr>
-                {/* SECOND HEADER ROW (CW/HW) */}
+                {/* SECOND HEADER ROW (TASK TITLES) */}
                 <tr>
                   {dates.map(date => (
                     groupedTasks[date].map(task => (
-                      <th key={task._id} title={task.title} className="px-2 py-2 border-b border-r dark:border-slate-700 text-center min-w-[60px] whitespace-nowrap overflow-hidden text-ellipsis max-w-[80px]">
-                        {task.category === 'General' ? 'Gen' : task.category}
+                      <th key={task._id} title={`${task.isLeetCode ? 'LeetCode' : task.category}: ${task.title}`} className="px-4 py-2 border-b border-r dark:border-slate-700 text-center min-w-[120px] max-w-[160px] whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded mr-1 ${task.isLeetCode ? 'bg-orange-100 text-orange-700' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
+                          {task.isLeetCode ? 'LC' : task.category === 'General' ? 'Gen' : task.category}
+                        </span>
+                        {task.title}
                       </th>
                     ))
                   ))}
@@ -146,27 +183,27 @@ const BatchTracker = () => {
                     </td>
                     {dates.map(date => (
                       groupedTasks[date].map(task => {
-                        const isCompleted = trackerData.submissions.some(s => s.studentId === student._id && s.taskId === task._id);
-                        const isToggling = toggling === `${student._id}-${task._id}`;
+                        let statusColor = 'bg-rose-500'; // Default Not Submitted
+                        
+                        if (task.isLeetCode) {
+                          const isSubmitted = trackerData.leetcodeSubmissions.some(s => s.studentId === student._id && s.problemId === task._id);
+                          if (isSubmitted) statusColor = 'bg-emerald-500';
+                        } else {
+                          const submission = trackerData.submissions.find(s => s.studentId === student._id && s.taskId === task._id);
+                          if (submission) {
+                            if (submission.status === 'graded') {
+                              statusColor = 'bg-emerald-500';
+                            } else {
+                              statusColor = 'bg-amber-400';
+                            }
+                          }
+                        }
                         
                         return (
                           <td key={task._id} className="px-2 py-3 border-b border-r dark:border-slate-700 text-center relative group">
-                            <button
-                              onClick={() => handleToggle(student._id, task._id, isCompleted)}
-                              disabled={isToggling}
-                              className={`w-6 h-6 mx-auto rounded-md flex items-center justify-center border transition-all duration-200 cursor-pointer ${
-                                isCompleted 
-                                  ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-500/30 hover:bg-emerald-600' 
-                                  : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-emerald-400 dark:hover:border-emerald-500'
-                              } ${isToggling ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                              {isToggling ? (
-                                <Loader2 size={12} className="animate-spin text-slate-400" />
-                              ) : (
-                                <Check size={14} className={isCompleted ? 'opacity-100' : 'opacity-0'} strokeWidth={3} />
-                              )}
-                            </button>
-                            {/* Tooltip for the specific task */}
+                            <div className={`w-8 h-8 mx-auto rounded-md shadow-sm ${statusColor}`}></div>
+                            
+                            {/* Tooltip */}
                             <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-xs rounded py-1 px-2 bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none whitespace-nowrap z-50">
                               {task.title}
                             </div>
