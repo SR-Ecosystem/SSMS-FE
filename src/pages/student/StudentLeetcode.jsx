@@ -12,7 +12,7 @@ const StudentLeetcode = () => {
   const [isEnrolled, setIsEnrolled] = useState(true); // default to true
 
   // For active submissions directly from this page
-  const [activeLink, setActiveLink] = useState('');
+  const [activeLinks, setActiveLinks] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -40,19 +40,20 @@ const StudentLeetcode = () => {
   }, []);
 
   const handleSubmit = async (problemId) => {
-    if (!activeLink) {
+    const linkToSubmit = activeLinks[problemId];
+    if (!linkToSubmit) {
       return Swal.fire('Error', 'Please enter your solution link', 'error');
     }
     setSubmitting(true);
     try {
-      await axios.post(`/leetcode/${problemId}/submit`, { solutionLink: activeLink });
+      await axios.post(`/leetcode/${problemId}/submit`, { solutionLink: linkToSubmit });
       Swal.fire('Success', 'Solution submitted! Streak updated. 🔥', 'success');
       
       // Update local state
       setHistory(prev => prev.map(p => 
-        p._id === problemId ? { ...p, isSubmitted: true, solutionLink: activeLink } : p
+        p._id === problemId ? { ...p, isSubmitted: true, solutionLink: linkToSubmit } : p
       ));
-      setActiveLink('');
+      setActiveLinks(prev => ({...prev, [problemId]: ''}));
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || 'Could not submit solution', 'error');
     } finally {
@@ -193,8 +194,8 @@ const StudentLeetcode = () => {
                             type="url" 
                             placeholder="Paste solution link..." 
                             className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
-                            value={activeLink}
-                            onChange={(e) => setActiveLink(e.target.value)}
+                            value={activeLinks[problem._id] || ''}
+                            onChange={(e) => setActiveLinks({...activeLinks, [problem._id]: e.target.value})}
                           />
                           <button 
                             onClick={() => handleSubmit(problem._id)}

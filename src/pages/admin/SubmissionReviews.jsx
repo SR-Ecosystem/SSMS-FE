@@ -129,8 +129,8 @@ const SubmissionReviews = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Review Submissions</h1>
-        <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white whitespace-nowrap flex-none">Review Submissions</h1>
+        <div className="flex flex-nowrap items-center gap-3 overflow-x-auto custom-scrollbar pb-1 flex-1 md:justify-end">
           <input 
             type="text"
             placeholder="Search student or task..."
