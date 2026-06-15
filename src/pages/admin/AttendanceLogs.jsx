@@ -14,6 +14,7 @@ const AttendanceLogs = () => {
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const fetchData = async () => {
     try {
@@ -117,9 +118,15 @@ const AttendanceLogs = () => {
     const searchMatch = (log.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
                         (log.email || '').toLowerCase().includes(searchTerm.toLowerCase());
                         
-    if (viewMode === 'Day' && selectedDate) {
+    if (viewMode === 'Day') {
       const logDate = log.date || (log.firstCheckIn ? new Date(log.firstCheckIn).toISOString().split('T')[0] : '');
-      return searchMatch && logDate === selectedDate;
+      const dateMatch = !selectedDate || logDate === selectedDate;
+      
+      let statusMatch = true;
+      if (statusFilter === 'Active') statusMatch = log.isActive === true;
+      if (statusFilter === 'Inactive') statusMatch = !log.isActive;
+      
+      return searchMatch && dateMatch && statusMatch;
     }
     return searchMatch;
   });
@@ -209,12 +216,23 @@ const AttendanceLogs = () => {
           </select>
           
           {viewMode === 'Day' && (
-            <input 
-              type="date"
-              className="input-field py-2 text-sm w-full sm:w-auto font-bold text-slate-700"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-            />
+            <>
+              <input 
+                type="date"
+                className="input-field py-2 text-sm w-full sm:w-auto font-bold text-slate-700"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+              />
+              <select 
+                className="input-field py-2 text-sm w-full sm:w-auto font-medium"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="All">All Statuses</option>
+                <option value="Active">Active Now</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </>
           )}
           <button onClick={handleExport} className="btn-primary flex items-center gap-2 py-2">
             <Download size={16} /> Export
