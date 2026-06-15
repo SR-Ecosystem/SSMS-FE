@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Loader from '../../components/Loader';
-import { Check, Clock, X, RotateCcw, XCircle, FilterX } from 'lucide-react';
+import { Check, Clock, X, RotateCcw, XCircle, Filter } from 'lucide-react';
 
 const BatchTracker = () => {
   const [batches, setBatches] = useState([]);
@@ -17,10 +17,19 @@ const BatchTracker = () => {
   
   const [filterDate, setFilterDate] = useState(''); // YYYY-MM-DD
   
-  // Column Filters
+  // Row Filters (Top bar)
   const [filterName, setFilterName] = useState('');
   const [filterRoll, setFilterRoll] = useState('');
-  const [taskFilters, setTaskFilters] = useState({}); // { taskId: 'all' | 'green' | 'yellow' | 'red' }
+
+  // Column Visibility Filters
+  const [visibleCategories, setVisibleCategories] = useState({
+    'General': true,
+    'HW': true,
+    'CW': true,
+    'Project': true,
+    'LeetCode': true
+  });
+  const [showColumnFilters, setShowColumnFilters] = useState(false);
 
   const fetchBatches = async () => {
     try {
@@ -63,10 +72,9 @@ const BatchTracker = () => {
 
   useEffect(() => {
     fetchTrackerData();
-    // Reset filters on batch change
+    // Reset search filters on batch change
     setFilterName('');
     setFilterRoll('');
-    setTaskFilters({});
   }, [selectedBatch]);
 
   // Merge tasks and leetcode into a single array
@@ -85,7 +93,7 @@ const BatchTracker = () => {
     }))
   ];
 
-  // Apply date filter if selected
+  // 1. Filter by Date
   if (filterDate) {
     const [y, m, d] = filterDate.split('-');
     allActivities = allActivities.filter(a => {
@@ -94,6 +102,9 @@ const BatchTracker = () => {
              a.dateVal.getDate() === parseInt(d);
     });
   }
+
+  // 2. Filter Columns by Category
+  allActivities = allActivities.filter(a => visibleCategories[a.category] !== false);
 
   allActivities.sort((a, b) => a.dateVal - b.dateVal);
 
@@ -119,52 +130,29 @@ const BatchTracker = () => {
     }
   };
 
-  // Apply row filters
+  // Apply row filters (Search by Name / Roll)
   const filteredStudents = useMemo(() => {
     return trackerData.students.filter(student => {
-      // 1. Filter by Name
       if (filterName && !student.name.toLowerCase().includes(filterName.toLowerCase())) {
         return false;
       }
-      // 2. Filter by Roll Number
       if (filterRoll && !student.rollNumber.toLowerCase().includes(filterRoll.toLowerCase())) {
         return false;
       }
-      // 3. Filter by Task Status
-      for (const taskId of Object.keys(taskFilters)) {
-        const requiredStatus = taskFilters[taskId];
-        if (requiredStatus && requiredStatus !== 'all') {
-          const task = allActivities.find(t => t._id === taskId);
-          if (task) {
-            const actualStatus = getStatusColor(student._id, task);
-            if (actualStatus !== requiredStatus) return false;
-          }
-        }
-      }
       return true;
     });
-  }, [trackerData, filterName, filterRoll, taskFilters, allActivities]);
+  }, [trackerData.students, filterName, filterRoll]);
 
-  const handleTaskFilterChange = (taskId, value) => {
-    setTaskFilters(prev => ({
-      ...prev,
-      [taskId]: value
-    }));
+  const toggleCategory = (cat) => {
+    setVisibleCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
   };
-
-  const clearAllFilters = () => {
-    setFilterName('');
-    setFilterRoll('');
-    setTaskFilters({});
-  };
-
-  const hasActiveFilters = filterName || filterRoll || Object.values(taskFilters).some(v => v && v !== 'all');
 
   if (loading && !selectedBatch) return <Loader />;
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      {/* Top Controls Row */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Task Tracker</h1>
           <div className="mt-4 flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600 dark:text-slate-300">
@@ -181,16 +169,24 @@ const BatchTracker = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          {hasActiveFilters && (
-            <button 
-              onClick={clearAllFilters}
-              className="px-3 py-2 flex items-center gap-2 text-sm font-medium text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors"
-            >
-              <FilterX size={16} /> Clear Column Filters
-            </button>
-          )}
+          {/* Row Search Filters */}
+          <input 
+            type="text" 
+            placeholder="Search student..." 
+            value={filterName}
+            onChange={(e) => setFilterName(e.target.value)}
+            className="input-field max-w-[150px]"
+          />
+          <input 
+            type="text" 
+            placeholder="Search roll..." 
+            value={filterRoll}
+            onChange={(e) => setFilterRoll(e.target.value)}
+            className="input-field max-w-[120px]"
+          />
 
-          <div className="flex items-center gap-2">
+          {/* Date Filter */}
+          <div className="flex items-center gap-1">
             <input 
               type="date"
               className="input-field"
@@ -200,15 +196,16 @@ const BatchTracker = () => {
             {filterDate && (
               <button 
                 onClick={() => setFilterDate('')}
-                className="p-2 text-rose-500 bg-rose-50 dark:bg-rose-900/20 rounded hover:bg-rose-100 transition-colors"
-                title="Clear Date Filter"
+                className="p-2 text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded transition-colors"
+                title="Clear Date"
               >
-                <XCircle size={20} />
+                <XCircle size={18} />
               </button>
             )}
           </div>
+          
           <select 
-            className="input-field min-w-[200px]"
+            className="input-field min-w-[150px]"
             value={selectedBatch}
             onChange={(e) => setSelectedBatch(e.target.value)}
           >
@@ -216,12 +213,42 @@ const BatchTracker = () => {
               <option key={b._id} value={b._id}>{b.batchName}</option>
             ))}
           </select>
+
+          {/* Column Visibility Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowColumnFilters(!showColumnFilters)}
+              className="p-2.5 flex items-center gap-2 text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 transition-colors shadow-sm"
+              title="Filter Columns"
+            >
+              <Filter size={18} />
+            </button>
+            {showColumnFilters && (
+              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 p-3 z-50">
+                <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Show Columns</h3>
+                <div className="space-y-2">
+                  {Object.keys(visibleCategories).map(cat => (
+                    <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
+                      <input 
+                        type="checkbox" 
+                        className="rounded text-indigo-600 focus:ring-indigo-500"
+                        checked={visibleCategories[cat]}
+                        onChange={() => toggleCategory(cat)}
+                      />
+                      {cat === 'General' ? 'Gen Tasks' : cat}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <button 
             onClick={fetchTrackerData}
             className="p-2.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 transition-colors shadow-sm"
             title="Reload Data"
           >
-            <RotateCcw size={20} className={loading ? 'animate-spin' : ''} />
+            <RotateCcw size={18} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>
@@ -240,25 +267,11 @@ const BatchTracker = () => {
                   <th scope="col" rowSpan={2} className="px-4 py-4 border-b border-r dark:border-slate-700 sticky left-0 bg-slate-100 dark:bg-slate-800 z-50 min-w-[60px] text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     S.No
                   </th>
-                  <th scope="col" rowSpan={2} className="px-4 py-4 border-b border-r dark:border-slate-700 sticky left-[60px] bg-slate-100 dark:bg-slate-800 z-50 min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] align-top">
-                    <div className="mb-2">Student Name</div>
-                    <input 
-                      type="text" 
-                      placeholder="Search name..." 
-                      value={filterName}
-                      onChange={(e) => setFilterName(e.target.value)}
-                      className="w-full px-2 py-1 text-xs border rounded bg-white dark:bg-slate-900 dark:border-slate-600 focus:outline-none focus:border-indigo-500"
-                    />
+                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b border-r dark:border-slate-700 sticky left-[60px] bg-slate-100 dark:bg-slate-800 z-50 min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    Student Name
                   </th>
-                  <th scope="col" rowSpan={2} className="px-4 py-4 border-b border-r dark:border-slate-700 sticky left-[260px] bg-slate-100 dark:bg-slate-800 z-50 min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] align-top">
-                    <div className="mb-2">Roll Number</div>
-                    <input 
-                      type="text" 
-                      placeholder="Search roll..." 
-                      value={filterRoll}
-                      onChange={(e) => setFilterRoll(e.target.value)}
-                      className="w-full px-2 py-1 text-xs border rounded bg-white dark:bg-slate-900 dark:border-slate-600 focus:outline-none focus:border-indigo-500"
-                    />
+                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b border-r dark:border-slate-700 sticky left-[260px] bg-slate-100 dark:bg-slate-800 z-50 min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    Roll Number
                   </th>
                   {dates.map(date => (
                     <th key={date} colSpan={groupedTasks[date].length} className="px-4 py-2 border-b border-r dark:border-slate-700 text-center font-bold bg-indigo-50 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300">
@@ -267,28 +280,16 @@ const BatchTracker = () => {
                   ))}
                   {dates.length === 0 && <th rowSpan={2} className="px-4 py-4 border-b border-slate-200 dark:border-slate-700">No Assignments Found</th>}
                 </tr>
-                {/* SECOND HEADER ROW (TASK TITLES & FILTERS) */}
+                {/* SECOND HEADER ROW (TASK TITLES) */}
                 <tr>
                   {dates.map(date => (
                     groupedTasks[date].map(task => (
-                      <th key={task._id} className="px-2 py-2 border-b border-r dark:border-slate-700 text-center min-w-[140px] max-w-[180px] bg-slate-50 dark:bg-slate-800/80">
-                        <div className="flex flex-col items-center gap-1.5 w-full">
-                          <div title={`${task.isLeetCode ? 'LeetCode' : task.category}: ${task.title}`} className="w-full whitespace-nowrap overflow-hidden text-ellipsis flex items-center justify-center">
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded mr-1 flex-shrink-0 ${task.isLeetCode ? 'bg-orange-100 text-orange-700' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
-                              {task.isLeetCode ? 'LC' : task.category === 'General' ? 'Gen' : task.category}
-                            </span>
-                            <span className="truncate">{task.title}</span>
-                          </div>
-                          <select 
-                            className="w-full text-[10px] px-1 py-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:outline-none focus:border-indigo-500"
-                            value={taskFilters[task._id] || 'all'}
-                            onChange={(e) => handleTaskFilterChange(task._id, e.target.value)}
-                          >
-                            <option value="all">Filter Status</option>
-                            <option value="green">Graded/Done</option>
-                            <option value="yellow">Submitted</option>
-                            <option value="red">Not Submitted</option>
-                          </select>
+                      <th key={task._id} title={`${task.isLeetCode ? 'LeetCode' : task.category}: ${task.title}`} className="px-4 py-3 border-b border-r dark:border-slate-700 text-center min-w-[120px] max-w-[160px] bg-slate-50 dark:bg-slate-800/80">
+                        <div className="w-full whitespace-nowrap overflow-hidden text-ellipsis flex items-center justify-center">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded mr-1 flex-shrink-0 ${task.isLeetCode ? 'bg-orange-100 text-orange-700' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'}`}>
+                            {task.isLeetCode ? 'LC' : task.category === 'General' ? 'Gen' : task.category}
+                          </span>
+                          <span className="truncate font-medium">{task.title}</span>
                         </div>
                       </th>
                     ))
@@ -298,23 +299,24 @@ const BatchTracker = () => {
               <tbody>
                 {filteredStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={dates.length === 0 ? 4 : 3 + allActivities.length} className="px-6 py-8 text-center text-slate-500">
-                      No students match the current filters.
+                    <td colSpan={dates.length === 0 ? 4 : 3 + allActivities.length} className="px-6 py-8 text-center text-slate-500 bg-white dark:bg-slate-900">
+                      No students match the current search.
                     </td>
                   </tr>
                 ) : (
                   filteredStudents.map((student, idx) => {
-                    const rowBg = idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/50';
+                    // IMPORTANT: We use completely opaque background colors here so that scrolling cells don't bleed through
+                    const rowBgClass = idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800';
                     
                     return (
-                      <tr key={student._id} className={`${rowBg} hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-colors`}>
-                        <td className={`px-4 py-3 border-b border-r dark:border-slate-700 font-bold text-center text-slate-500 dark:text-slate-400 sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBg}`}>
+                      <tr key={student._id} className={`${rowBgClass} hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors`}>
+                        <td className={`px-4 py-3 border-b border-r dark:border-slate-700 font-bold text-center text-slate-500 dark:text-slate-400 sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass}`}>
                           {idx + 1}
                         </td>
-                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 font-medium text-slate-900 dark:text-white sticky left-[60px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBg}`}>
+                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 font-medium text-slate-900 dark:text-white sticky left-[60px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass}`}>
                           {student.name}
                         </td>
-                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 text-slate-600 dark:text-slate-400 sticky left-[260px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBg}`}>
+                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 text-slate-600 dark:text-slate-400 sticky left-[260px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass}`}>
                           {student.rollNumber}
                         </td>
                         {dates.map(date => (
