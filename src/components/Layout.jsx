@@ -151,16 +151,6 @@ const Layout = () => {
           setSessionSeconds(existingSeconds + Math.floor((now - start) / 1000));
         }
       }
-
-      let lastTick = Date.now();
-      timerIntervalRef.current = setInterval(() => {
-        const now = Date.now();
-        const delta = Math.floor((now - lastTick) / 1000);
-        if (delta > 0) {
-          setSessionSeconds(prev => prev + delta);
-          lastTick = now;
-        }
-      }, 1000);
     } catch (error) {
       console.error('Checkin failed:', error);
     } finally {
@@ -169,8 +159,30 @@ const Layout = () => {
   };
 
   useEffect(() => {
+    if (sessionActive) {
+      if (!timerIntervalRef.current) {
+        let lastTick = Date.now();
+        timerIntervalRef.current = setInterval(() => {
+          const now = Date.now();
+          const delta = Math.floor((now - lastTick) / 1000);
+          if (delta > 0) {
+            setSessionSeconds(prev => prev + delta);
+            lastTick = now;
+          }
+        }, 1000);
+      }
+    } else {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    }
+
     return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
     };
   }, [sessionActive]);
 
@@ -229,19 +241,6 @@ const Layout = () => {
                 setSessionActive(true);
                 setAttendanceId(activeRecord._id);
                 attendanceIdRef.current = activeRecord._id;
-                
-                // Restart local interval timer
-                if (!timerIntervalRef.current) {
-                  let lastTick = Date.now();
-                  timerIntervalRef.current = setInterval(() => {
-                    const now = Date.now();
-                    const delta = Math.floor((now - lastTick) / 1000);
-                    if (delta > 0) {
-                      setSessionSeconds(prev => prev + delta);
-                      lastTick = now;
-                    }
-                  }, 1000);
-                }
               }
             }
           } catch (attErr) {
