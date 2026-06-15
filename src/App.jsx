@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Verification from './pages/Verification';
 import Layout from './components/Layout';
 
 // Admin Pages
@@ -46,6 +47,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify" element={<Verification />} />
           
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             {/* Admin Routes */}
