@@ -227,7 +227,16 @@ const Layout = () => {
                 setSessionActive(true);
                 setAttendanceId(activeRecord._id);
                 attendanceIdRef.current = activeRecord._id;
+              } else {
+                setSessionActive(false);
+                setAttendanceId(null);
+                attendanceIdRef.current = null;
               }
+            } else {
+              setSessionActive(false);
+              setAttendanceId(null);
+              attendanceIdRef.current = null;
+              setSessionSeconds(0);
             }
           } catch (attErr) {
             console.error('Failed to restore attendance session:', attErr);
@@ -350,17 +359,17 @@ const Layout = () => {
 
   const adminLinks = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-    { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
-    { name: 'Join Requests', path: '/enrollments', icon: <UserIcon size={20} />, badge: getBadge('joins', joinsCount) },
-    { name: 'Manage Batches', path: '/batches', icon: <BookOpen size={20} /> },
-    { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
-    { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
     { name: 'Task Management', path: '/tasks', icon: <FileText size={20} /> },
-    { name: 'Batch Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
-    { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
     { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={20} />, badge: getBadge('reviews', pendingCount) },
+    { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
+    { name: 'Batch Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
+    { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
+    { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
     { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },
     { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} /> },
+    { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
+    { name: 'Join Requests', path: '/enrollments', icon: <UserIcon size={20} />, badge: getBadge('joins', joinsCount) },
+    { name: 'Manage Batches', path: '/batches', icon: <BookOpen size={20} /> },
     { name: 'Admin Profile', path: '/profile', icon: <UserIcon size={20} /> },
   ];
 
@@ -370,10 +379,10 @@ const Layout = () => {
     { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
     { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
     { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, badge: getBadge('quizzes', quizCount) },
-    { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, badge: getBadge('chats', chatCount) },
     { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
     { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
     { name: 'Leave Application', path: '/student/leaves', icon: <Calendar size={20} /> },
+    { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, badge: getBadge('chats', chatCount) },
     { name: 'Available Batches', path: '/student/available-batches', icon: <BookOpen size={20} /> },
     { name: 'My Batches', path: '/student/my-batches', icon: <Users size={20} /> },
     { name: 'My Profile', path: '/student/profile', icon: <UserIcon size={20} /> },
