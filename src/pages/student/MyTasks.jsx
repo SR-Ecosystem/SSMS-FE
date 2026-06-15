@@ -20,7 +20,6 @@ const MyTasks = () => {
     linkUrl: '', 
     remarks: '' 
   });
-  const [selectedFile, setSelectedFile] = useState(null);
 
   const quillModules = {
     toolbar: [
@@ -63,25 +62,11 @@ const MyTasks = () => {
 
   useEffect(() => { fetchTasks(); }, []);
 
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
     try {
       let fileUrl = null;
-
-      if (subData.submissionType === 'file' && selectedFile) {
-        const uploadData = new FormData();
-        uploadData.append('file', selectedFile);
-        
-        const uploadRes = await axios.post('/upload', uploadData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        fileUrl = uploadRes.data.url;
-      }
 
       await axios.post('/submissions', {
         taskId: activeTask._id,
@@ -94,7 +79,6 @@ const MyTasks = () => {
 
       setActiveTask(null);
       setSubData({ submissionType: 'text', textContent: '', linkUrl: '', remarks: '' });
-      setSelectedFile(null);
       fetchTasks();
       Swal.fire({ title: 'Success', text: 'Task submitted successfully!', icon: 'success' });
     } catch (error) {
@@ -299,20 +283,13 @@ const MyTasks = () => {
               {/* Submission Type Toggle */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">How would you like to submit?</label>
-                <div className="grid grid-cols-3 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                   <button 
                     type="button"
                     className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${subData.submissionType === 'text' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
                     onClick={() => setSubData({...subData, submissionType: 'text'})}
                   >
                     <AlignLeft size={16} /> Text
-                  </button>
-                  <button 
-                    type="button"
-                    className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${subData.submissionType === 'file' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
-                    onClick={() => setSubData({...subData, submissionType: 'file'})}
-                  >
-                    <UploadCloud size={16} /> File
                   </button>
                   <button 
                     type="button"
@@ -340,25 +317,6 @@ const MyTasks = () => {
                 </div>
               )}
 
-              {subData.submissionType === 'file' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Upload Submission File</label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-lg">
-                    <div className="space-y-1 text-center">
-                      <UploadCloud className="mx-auto h-12 w-12 text-slate-400" />
-                      <div className="flex text-sm text-slate-600 dark:text-slate-400 justify-center">
-                        <label className="relative cursor-pointer bg-transparent rounded-md font-medium text-primary-600 hover:text-primary-500">
-                          <span>Upload a file</span>
-                          <input type="file" className="sr-only" required={subData.submissionType === 'file'} onChange={handleFileChange} />
-                        </label>
-                      </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-500">
-                        {selectedFile ? selectedFile.name : 'ZIP, PDF, DOCX (Max 50MB)'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {subData.submissionType === 'link' && (
                 <div>

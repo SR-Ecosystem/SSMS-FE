@@ -52,10 +52,10 @@ const SubmissionReviews = () => {
 
   const openReviewModal = async (sub) => {
     setActiveReview(sub);
-    setGradeData({ marksObtained: '', feedback: '' });
     setExistingGradeId(null);
     
     if (sub.status === 'graded') {
+      setGradeData({ marksObtained: '', feedback: '' });
       setLoadingGrade(true);
       try {
         const { data } = await axios.get(`/grades/submission/${sub._id}`);
@@ -68,6 +68,11 @@ const SubmissionReviews = () => {
       } finally {
         setLoadingGrade(false);
       }
+    } else {
+      setGradeData({ 
+        marksObtained: sub.taskId?.maxMarks || '', 
+        feedback: 'Good Work, Keep going...' 
+      });
     }
   };
 

@@ -9,10 +9,12 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isChartLoading, setIsChartLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('daily');
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!loading) setIsChartLoading(true);
       try {
         const { data } = await axios.get(`/analytics/dashboard?timeframe=${timeframe}`);
         setStats(data);
@@ -20,6 +22,7 @@ const AdminDashboard = () => {
         console.error('Error fetching stats:', error);
       } finally {
         setLoading(false);
+        setIsChartLoading(false);
       }
     };
     fetchStats();
@@ -173,10 +176,15 @@ const AdminDashboard = () => {
             </select>
           </div>
           
-          {stats?.chartData && stats.chartData.length > 0 ? (
-            <div className="flex-1 w-full mt-2">
+          {isChartLoading ? (
+            <div className="flex-1 w-full flex flex-col justify-center items-center text-emerald-500/50">
+              <div className="animate-spin w-8 h-8 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full mb-2"></div>
+              <span className="text-xs font-bold uppercase tracking-widest">Loading Data...</span>
+            </div>
+          ) : stats?.chartData && stats.chartData.length > 0 ? (
+            <div className="flex-1 w-full mt-2 animate-in fade-in duration-500">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart key={timeframe} data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorSubmissions" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
