@@ -74,8 +74,8 @@ const MyAttendance = () => {
         return;
       }
       const hours = day.totalSeconds / 3600;
-      if (hours >= 10 && hours <= 12) day.status = 'Present';
-      else if (hours > 12) day.status = 'Invalid';
+      if (hours >= 8 && hours <= 10) day.status = 'Present';
+      else if (hours > 10) day.status = 'Invalid';
       else if (day.isActive || day.date === todayStr) day.status = 'In Progress';
       else day.status = 'Absent';
     });
@@ -133,7 +133,7 @@ const MyAttendance = () => {
           'Period': log.period,
           'Total Hours': (log.totalSeconds / 3600).toFixed(2),
           'Days Present': log.daysPresent,
-          'Days Invalid (>12h)': log.daysInvalid,
+          'Days Invalid (>10h)': log.daysInvalid,
           'Days Absent/Partial': log.daysAbsent
         };
       }
@@ -147,7 +147,7 @@ const MyAttendance = () => {
 
   const renderStatusBadge = (status) => {
     if (status === 'Present') return <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs font-bold"><CheckCircle size={14}/> Present</span>;
-    if (status === 'Invalid') return <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded text-xs font-bold" title="> 12 hours (Left System On)"><AlertTriangle size={14}/> Invalid (&gt;12h)</span>;
+    if (status === 'Invalid') return <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded text-xs font-bold" title="> 10 hours (Left System On)"><AlertTriangle size={14}/> Invalid (&gt;10h)</span>;
     if (status === 'Leave') return <span className="flex items-center gap-1 text-indigo-600 bg-indigo-50 px-2 py-1 rounded text-xs font-bold"><Calendar size={14}/> Approved Leave</span>;
     if (status === 'In Progress') return <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs font-bold"><Loader2 className="animate-spin" size={14}/> In Progress</span>;
     return <span className="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-1 rounded text-xs font-bold"><XCircle size={14}/> Absent/Partial</span>;
@@ -190,7 +190,7 @@ const MyAttendance = () => {
           <CheckCircle size={16} /> Present
         </div>
         <p className="text-emerald-100 relative z-10 drop-shadow-sm">
-          You must log between <strong>10 hours</strong> and <strong>12 hours</strong> of session time in a single day to be marked as Present.
+          You must log between <strong>8 hours</strong> and <strong>10 hours</strong> of session time in a single day to be marked as Present.
         </p>
       </div>
 
