@@ -12,7 +12,7 @@ const StudentDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [quizAttempts, setQuizAttempts] = useState([]);
   const [activeLeetcode, setActiveLeetcode] = useState([]);
-  const [leetcodeLink, setLeetcodeLink] = useState('');
+  const [leetcodeLinks, setLeetcodeLinks] = useState({});
   const [submittingLeetcode, setSubmittingLeetcode] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -52,17 +52,18 @@ const StudentDashboard = () => {
     : analytics?.chartData;
 
   const handleLeetcodeSubmit = async (problemId) => {
-    if (!leetcodeLink) {
+    const linkToSubmit = leetcodeLinks[problemId];
+    if (!linkToSubmit) {
       Swal.fire('Error', 'Please enter your solution link', 'error');
       return;
     }
     setSubmittingLeetcode(true);
     try {
-      await axios.post(`/leetcode/${problemId}/submit`, { solutionLink: leetcodeLink });
+      await axios.post(`/leetcode/${problemId}/submit`, { solutionLink: linkToSubmit });
       Swal.fire('Success', 'LeetCode solution submitted! Streak updated. 🔥', 'success');
       // Update UI state
       setActiveLeetcode(prev => prev.map(p => p._id === problemId ? { ...p, isSubmitted: true } : p));
-      setLeetcodeLink('');
+      setLeetcodeLinks(prev => ({ ...prev, [problemId]: '' }));
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || 'Could not submit solution', 'error');
     } finally {
@@ -489,8 +490,8 @@ const StudentDashboard = () => {
                         type="url" 
                         placeholder="Paste your solution link here..." 
                         className="flex-1 bg-black/20 border border-black/30 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/50 focus:outline-none focus:border-white/50 focus:ring-1 focus:ring-white/50 transition-all shadow-inner"
-                        value={leetcodeLink}
-                        onChange={(e) => setLeetcodeLink(e.target.value)}
+                        value={leetcodeLinks[problem._id] || ''}
+                        onChange={(e) => setLeetcodeLinks({ ...leetcodeLinks, [problem._id]: e.target.value })}
                       />
                       <button 
                         onClick={() => handleLeetcodeSubmit(problem._id)}
