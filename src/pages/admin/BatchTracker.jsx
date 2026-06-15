@@ -145,10 +145,13 @@ const BatchTracker = () => {
               <thead className="text-xs uppercase bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 sticky top-0 z-20">
                 {/* FIRST HEADER ROW (DATES) */}
                 <tr>
-                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b border-r dark:border-slate-700 sticky left-0 bg-slate-100 dark:bg-slate-800 z-30 min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <th scope="col" rowSpan={2} className="px-4 py-4 border-b border-r dark:border-slate-700 sticky left-0 bg-slate-100 dark:bg-slate-800 z-30 min-w-[60px] text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    S.No
+                  </th>
+                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b border-r dark:border-slate-700 sticky left-[60px] bg-slate-100 dark:bg-slate-800 z-30 min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     Student Name
                   </th>
-                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b border-r dark:border-slate-700 sticky left-[200px] bg-slate-100 dark:bg-slate-800 z-30 min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b border-r dark:border-slate-700 sticky left-[260px] bg-slate-100 dark:bg-slate-800 z-30 min-w-[150px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     Roll Number
                   </th>
                   {dates.map(date => (
@@ -175,10 +178,13 @@ const BatchTracker = () => {
               <tbody>
                 {trackerData.students.map((student, idx) => (
                   <tr key={student._id} className={`${idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800/50'} hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-colors`}>
-                    <td className="px-6 py-3 border-b border-r dark:border-slate-700 font-medium text-slate-900 dark:text-white sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit">
+                    <td className="px-4 py-3 border-b border-r dark:border-slate-700 font-bold text-center text-slate-500 dark:text-slate-400 sticky left-0 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit">
+                      {idx + 1}
+                    </td>
+                    <td className="px-6 py-3 border-b border-r dark:border-slate-700 font-medium text-slate-900 dark:text-white sticky left-[60px] z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit">
                       {student.name}
                     </td>
-                    <td className="px-6 py-3 border-b border-r dark:border-slate-700 text-slate-600 dark:text-slate-400 sticky left-[200px] z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit">
+                    <td className="px-6 py-3 border-b border-r dark:border-slate-700 text-slate-600 dark:text-slate-400 sticky left-[260px] z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] bg-inherit">
                       {student.rollNumber}
                     </td>
                     {dates.map(date => (
