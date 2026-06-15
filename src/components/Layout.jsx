@@ -8,6 +8,7 @@ import { LayoutDashboard, Users, BookOpen, FileText, CheckCircle,
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
 import { soundManager } from '../utils/soundManager';
+import Loader from './Loader';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -24,6 +25,7 @@ const Layout = () => {
   const [sessionActive, setSessionActive] = useState(false);
   const [attendanceId, setAttendanceId] = useState(null);
   const [sessionSeconds, setSessionSeconds] = useState(0);
+  const [isSyncing, setIsSyncing] = useState(user?.role === 'student');
   const sessionSecondsRef = useRef(0);
   useEffect(() => { sessionSecondsRef.current = sessionSeconds; }, [sessionSeconds]);
   const attendanceIdRef = useRef(null);
@@ -226,6 +228,8 @@ const Layout = () => {
             }
           } catch (attErr) {
             console.error('Failed to restore attendance session:', attErr);
+          } finally {
+            setIsSyncing(false);
           }
         }
       } catch (e) {
@@ -373,6 +377,12 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen transition-colors duration-500 flex bg-transparent">
+      {isSyncing && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
+          <Loader text="Syncing Attendance..." />
+        </div>
+      )}
+
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
