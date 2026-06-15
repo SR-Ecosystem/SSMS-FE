@@ -21,10 +21,11 @@ const Layout = () => {
     return savedTheme !== 'light'; // Default to dark
   });
   
-  // Attendance state
   const [sessionActive, setSessionActive] = useState(false);
   const [attendanceId, setAttendanceId] = useState(null);
   const [sessionSeconds, setSessionSeconds] = useState(0);
+  const sessionSecondsRef = useRef(0);
+  useEffect(() => { sessionSecondsRef.current = sessionSeconds; }, [sessionSeconds]);
   const attendanceIdRef = useRef(null);
 
   // Notification count state
@@ -151,7 +152,14 @@ const Layout = () => {
         }
       }
 
+      let lastTick = Date.now();
       timerIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        if (now - lastTick > 10000) {
+          endSession(sessionSecondsRef.current);
+          return;
+        }
+        lastTick = now;
         setSessionSeconds(prev => prev + 1);
       }, 1000);
     } catch (error) {
@@ -162,10 +170,22 @@ const Layout = () => {
   };
 
   useEffect(() => {
+    const handleUnload = () => {
+      if (sessionActive && attendanceIdRef.current) {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          navigator.sendBeacon(`https://ssms-be.onrender.com/api/attendance/checkout/${attendanceIdRef.current}?userId=${u._id}&totalSeconds=${sessionSecondsRef.current}`);
+        }
+      }
+    };
+    window.addEventListener('beforeunload', handleUnload);
+
     return () => {
+      window.removeEventListener('beforeunload', handleUnload);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, []);
+  }, [sessionActive]);
 
   // Fetch pending notifications count
   useEffect(() => {
@@ -215,7 +235,14 @@ const Layout = () => {
                 
                 // Restart local interval timer
                 if (!timerIntervalRef.current) {
+                  let lastTick = Date.now();
                   timerIntervalRef.current = setInterval(() => {
+                    const now = Date.now();
+                    if (now - lastTick > 10000) {
+                      endSession(sessionSecondsRef.current);
+                      return;
+                    }
+                    lastTick = now;
                     setSessionSeconds(prev => prev + 1);
                   }, 1000);
                 }
@@ -251,11 +278,15 @@ const Layout = () => {
     };
   }, [user]);
 
-  const endSession = async () => {
+  const endSession = async (overrideSeconds) => {
     if (checkingInRef.current) return;
     if (user?.role === 'student' && attendanceIdRef.current) {
+      checkingInRef.current = true;
       try {
-        await axios.post(`/attendance/checkout/${attendanceIdRef.current}`);
+        const finalSeconds = overrideSeconds !== undefined ? overrideSeconds : sessionSecondsRef.current;
+        await axios.post(`/attendance/checkout/${attendanceIdRef.current}`, {
+          totalSeconds: finalSeconds
+        });
         setSessionActive(false);
         setAttendanceId(null);
         attendanceIdRef.current = null;
@@ -278,6 +309,8 @@ const Layout = () => {
         } catch(e) { console.error('Failed to sync summary:', e); }
       } catch (e) {
         console.error('Checkout failed:', e);
+      } finally {
+        checkingInRef.current = false;
       }
     }
   };
