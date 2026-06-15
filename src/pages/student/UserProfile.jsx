@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 const UserProfile = () => {
-  const { user: authUser, login } = useAuth(); // We might need to refresh auth context or just read from it
+  const { user: authUser, login, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -64,7 +64,8 @@ const UserProfile = () => {
         color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000',
         confirmButtonColor: '#0ea5e9'
       });
-      // Optionally update local context if needed
+      // Update local context
+      updateUser(data);
     } catch (error) {
       console.error('Error updating profile:', error);
       Swal.fire({
