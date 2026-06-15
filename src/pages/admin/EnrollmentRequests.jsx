@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { UserCheck, UserX, Loader2, Clock } from 'lucide-react';
 import Loader from '../../components/Loader';
+import Swal from 'sweetalert2';
 
 const EnrollmentRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({ id: null, action: null });
 
   const fetchRequests = async () => {
     try {
@@ -23,11 +25,27 @@ const EnrollmentRequests = () => {
   }, []);
 
   const handleAction = async (id, action) => {
+    setActionLoading({ id, action });
     try {
       await axios.put(`/enrollments/${id}/${action}`);
-      fetchRequests();
+      await fetchRequests();
+      
+      Swal.fire({
+        icon: 'success',
+        title: action === 'approve' ? 'Approved!' : 'Rejected',
+        text: `The join request has been successfully ${action}d.`,
+        timer: 2000,
+        showConfirmButton: false
+      });
     } catch (error) {
       console.error(`Error ${action}ing request:`, error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: `Failed to ${action} the request. Please try again.`
+      });
+    } finally {
+      setActionLoading({ id: null, action: null });
     }
   };
 
@@ -73,15 +91,27 @@ const EnrollmentRequests = () => {
                     <td className="p-4 flex items-center justify-end gap-2">
                       <button 
                         onClick={() => handleAction(req._id, 'approve')}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors"
+                        disabled={actionLoading.id === req._id}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
                       >
-                        <UserCheck size={16} /> Approve
+                        {actionLoading.id === req._id && actionLoading.action === 'approve' ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <UserCheck size={16} />
+                        )}
+                        Approve
                       </button>
                       <button 
                         onClick={() => handleAction(req._id, 'reject')}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
+                        disabled={actionLoading.id === req._id}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
                       >
-                        <UserX size={16} /> Reject
+                        {actionLoading.id === req._id && actionLoading.action === 'reject' ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <UserX size={16} />
+                        )}
+                        Reject
                       </button>
                     </td>
                   </tr>
