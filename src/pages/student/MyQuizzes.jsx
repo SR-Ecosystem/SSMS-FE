@@ -14,7 +14,7 @@ const MyQuizzes = () => {
     const fetchData = async () => {
       try {
         const [quizRes, attemptRes] = await Promise.all([
-          axios.get('/quizzes'), // For student, this returns 'published' and 'completed' quizzes for their batch
+          axios.get('/quizzes'), // For student, this returns 'published done' and 'completed' quizzes for their batch
           axios.get('/quizzes/student-attempts')
         ]);
         setQuizzes(quizRes.data);
