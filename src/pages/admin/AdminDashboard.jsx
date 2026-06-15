@@ -9,11 +9,12 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [timeframe, setTimeframe] = useState('daily');
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const { data } = await axios.get('/analytics/dashboard');
+        const { data } = await axios.get(`/analytics/dashboard?timeframe=${timeframe}`);
         setStats(data);
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -22,7 +23,7 @@ const AdminDashboard = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [timeframe]);
 
   if (loading) return <div className="p-8 text-slate-500 dark:text-slate-400 flex justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>;
 
@@ -95,12 +96,14 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left: Review Completion Donut */}
-        <div className="glass-panel p-6 flex flex-col justify-between min-h-[350px]">
-          <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Review Status</h3>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 font-medium">Assignment grading overview</p>
+        <div className="glass-panel p-6 flex flex-col h-[420px]">
+          <div>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Review Status</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 font-medium">Assignment grading overview</p>
+          </div>
           
-          <div className="flex flex-col items-center justify-between mt-2 flex-1">
-            <div className="relative w-36 h-36 mb-6">
+          <div className="flex flex-col items-center justify-center gap-8 mt-2 flex-1">
+            <div className="relative w-40 h-40 shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -128,7 +131,7 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="space-y-4 w-full">
+            <div className="space-y-4 w-full px-2">
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
@@ -155,12 +158,19 @@ const AdminDashboard = () => {
         </div>
 
         {/* Middle: Smooth Area Chart for Submissions */}
-        <div className="glass-panel p-6 flex flex-col min-h-[350px]">
+        <div className="glass-panel p-6 flex flex-col h-[420px]">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Submission Volume (Last 7 Days)</h3>
-            <button className="text-xs font-semibold text-emerald-500 hover:text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-full transition-colors">
-              View All
-            </button>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Submission Volume</h3>
+            <select 
+              className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-800/30 px-3 py-1.5 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+            >
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
           </div>
           
           {stats?.chartData && stats.chartData.length > 0 ? (
@@ -191,7 +201,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Right: Sleek Recent Activities Feed */}
-        <div className="glass-panel p-6 flex flex-col min-h-[350px]">
+        <div className="glass-panel p-6 flex flex-col h-[420px]">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Recent Activities</h3>
             <span className="text-xs font-medium text-slate-400">Today</span>
