@@ -63,7 +63,21 @@ const StudentLeetcode = () => {
           <p className="text-slate-500 mt-1">Track your daily programming challenges and streak</p>
         </div>
         
-        {/* Streak Counter */}
+        <div className="flex items-center gap-4">
+          {/* Total Solved Counter */}
+          <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-500">
+              <CheckCircle size={24} className="text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Total Solved</p>
+              <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">
+                {user?.totalLeetcodeSubmissions || 0} <span className="text-sm font-medium text-slate-500">Problems</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Streak Counter */}
         <div className="flex items-center gap-3 bg-orange-50 dark:bg-orange-900/20 px-4 py-3 rounded-2xl border border-orange-100 dark:border-orange-800/50 shadow-sm">
           <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-orange-500">
             <Flame size={24} className={user?.leetcodeStreak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-orange-400"} />
@@ -82,9 +96,9 @@ const StudentLeetcode = () => {
         
         {history.length > 0 ? (
           <div className="space-y-4">
-            {history.map(problem => {
-              const isExpired = new Date(problem.deadline) < new Date();
-              const isActive = !isExpired;
+            {history.filter(p => new Date(p.deadline) > new Date()).map(problem => {
+              const isExpired = false; // Always false since we filtered them out!
+              const isActive = true;
 
               return (
                 <div 
@@ -171,6 +185,14 @@ const StudentLeetcode = () => {
                 </div>
               );
             })}
+            
+            {history.filter(p => new Date(p.deadline) > new Date()).length === 0 && (
+              <div className="text-center py-16 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                <CheckCircle size={48} className="mb-4 text-emerald-400" />
+                <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">All Caught Up!</h3>
+                <p className="text-sm">You have no active challenges right now.</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-16 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
