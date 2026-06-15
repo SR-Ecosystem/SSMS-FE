@@ -12,6 +12,7 @@ import Layout from './components/Layout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import BatchManagement from './pages/admin/BatchManagement';
 import TaskManagement from './pages/admin/TaskManagement';
+import BatchTracker from './pages/admin/BatchTracker';
 import SubmissionReviews from './pages/admin/SubmissionReviews';
 import EnrollmentRequests from './pages/admin/EnrollmentRequests';
 import AttendanceLogs from './pages/admin/AttendanceLogs';
@@ -59,6 +60,9 @@ function App() {
             } />
             <Route path="tasks" element={
               <ProtectedRoute allowedRoles={['admin']}><TaskManagement /></ProtectedRoute>
+            } />
+            <Route path="batch-tracker" element={
+              <ProtectedRoute allowedRoles={['admin']}><BatchTracker /></ProtectedRoute>
             } />
             <Route path="reviews" element={
               <ProtectedRoute allowedRoles={['admin']}><SubmissionReviews /></ProtectedRoute>

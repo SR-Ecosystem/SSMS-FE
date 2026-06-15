@@ -351,6 +351,7 @@ const Layout = () => {
     { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
     { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
     { name: 'Task Management', path: '/tasks', icon: <FileText size={20} /> },
+    { name: 'Batch Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
     { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
     { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={20} />, badge: getBadge('reviews', pendingCount) },
     { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },

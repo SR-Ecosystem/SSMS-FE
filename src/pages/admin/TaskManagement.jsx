@@ -21,7 +21,8 @@ const TaskManagement = () => {
     dueDate: '', 
     maxMarks: 100, 
     batchId: '',
-    taskType: 'text'
+    taskType: 'text',
+    category: 'General'
   });
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -61,7 +62,7 @@ const TaskManagement = () => {
     setEditingTaskId(null);
     setFormData({
       title: '', description: '', dueDate: '', maxMarks: 100,
-      batchId: batches[0]?._id || '', taskType: 'text'
+      batchId: batches[0]?._id || '', taskType: 'text', category: 'General'
     });
     setSelectedFile(null);
     setShowModal(true);
@@ -76,7 +77,8 @@ const TaskManagement = () => {
       maxMarks: task.maxMarks,
       batchId: task.batchId?._id || task.batchId,
       taskType: task.taskType || 'text',
-      linkUrl: task.linkUrl || ''
+      linkUrl: task.linkUrl || '',
+      category: task.category || 'General'
     });
     setSelectedFile(null);
     setShowModal(true);
@@ -141,7 +143,7 @@ const TaskManagement = () => {
       setEditingTaskId(null);
       setFormData({ 
         title: '', description: '', dueDate: '', maxMarks: 100, 
-        batchId: batches[0]?._id || '', taskType: 'text' 
+        batchId: batches[0]?._id || '', taskType: 'text', category: 'General' 
       });
       setSelectedFile(null);
     } catch (error) {
@@ -264,6 +266,7 @@ const TaskManagement = () => {
 
             <div className="flex items-center gap-4 text-sm font-medium mt-auto">
               <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">Max Marks: {task.maxMarks}</span>
+              <span className="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded font-bold">{task.category || 'General'}</span>
               <span className={`px-2 py-1 rounded ${isOverdue ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/30'}`}>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
             </div>
           </div>
@@ -362,6 +365,15 @@ const TaskManagement = () => {
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Select Batch</label>
                 <select className="input-field" required value={formData.batchId} onChange={e => setFormData({...formData, batchId: e.target.value})}>
                   {batches.map(b => <option key={b._id} value={b._id}>{b.batchName}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Task Category (CW/HW)</label>
+                <select className="input-field" required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                  <option value="General">General</option>
+                  <option value="CW">Classwork (CW)</option>
+                  <option value="HW">Homework (HW)</option>
                 </select>
               </div>
 
