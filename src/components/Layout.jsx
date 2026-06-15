@@ -379,16 +379,16 @@ const Layout = () => {
 
   const studentLinks = [
     { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
+    { name: 'Login Activity', path: '/student/attendance', icon: <Clock size={20} /> },
+    { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
+    { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
+    { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, badge: getBadge('quizzes', quizCount) },
+    { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, badge: getBadge('chats', chatCount) },
+    { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
+    { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
+    { name: 'Leave Application', path: '/student/leaves', icon: <Calendar size={20} /> },
     { name: 'Available Batches', path: '/student/available-batches', icon: <BookOpen size={20} /> },
     { name: 'My Batches', path: '/student/my-batches', icon: <Users size={20} /> },
-    { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, badge: getBadge('chats', chatCount) },
-    { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
-    { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, badge: getBadge('quizzes', quizCount) },
-    { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
-    { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
-    { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
-    { name: 'Leave Application', path: '/student/leaves', icon: <Calendar size={20} /> },
-    { name: 'Login Activity', path: '/student/attendance', icon: <Clock size={20} /> },
     { name: 'My Profile', path: '/student/profile', icon: <UserIcon size={20} /> },
   ];
 
