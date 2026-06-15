@@ -3,14 +3,14 @@ import axios from 'axios';
 import { Search, Loader2, CheckCircle, ExternalLink, Calendar, Code, Layout, GitBranch, Globe, Briefcase } from 'lucide-react';
 
 const Verification = () => {
-  const [email, setEmail] = useState('');
+  const [rollNumber, setRollNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [studentData, setStudentData] = useState(null);
   const [error, setError] = useState('');
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!email) return;
+    if (!rollNumber) return;
 
     setLoading(true);
     setError('');
@@ -19,10 +19,10 @@ const Verification = () => {
     try {
       // Create a temporary axios instance to avoid sending JWT token or triggering auth interceptors if possible
       // However, we just use the public endpoint
-      const { data } = await axios.get(`/public/verify/${encodeURIComponent(email)}`);
+      const { data } = await axios.get(`/public/verify/${encodeURIComponent(rollNumber)}`);
       setStudentData(data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not find student records for this email.');
+      setError(err.response?.data?.message || 'Could not find student records for this roll number.');
     } finally {
       setLoading(false);
     }
@@ -45,12 +45,12 @@ const Verification = () => {
             <div className="relative flex items-center">
               <Search className="absolute left-4 text-slate-400" size={20} />
               <input
-                type="email"
+                type="text"
                 required
-                className="w-full pl-12 pr-32 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm text-lg"
-                placeholder="Enter student email ID..."
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pl-12 pr-32 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm text-lg uppercase"
+                placeholder="Enter student roll number..."
+                value={rollNumber}
+                onChange={(e) => setRollNumber(e.target.value.toUpperCase())}
               />
               <button
                 type="submit"
