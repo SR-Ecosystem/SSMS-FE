@@ -3,12 +3,12 @@ import { useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
-import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
-  const { sessionActive, startSession, endSession, sessionSeconds, formatTime } = useOutletContext();
+  const { sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn } = useOutletContext();
   const [analytics, setAnalytics] = useState(null);
   const [quizAttempts, setQuizAttempts] = useState([]);
   const [activeLeetcode, setActiveLeetcode] = useState([]);
@@ -211,12 +211,22 @@ const StudentDashboard = () => {
             </div>
             <div>
               {sessionActive ? (
-                <button onClick={endSession} className="bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-rose-500/40 flex items-center gap-2 hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5 cursor-pointer">
-                  <Square size={16} fill="currentColor" /> Check Out
+                <button 
+                  onClick={() => endSession()} 
+                  disabled={isCheckingIn}
+                  className={`bg-rose-500 hover:bg-rose-600 text-white px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-rose-500/40 flex items-center gap-2 cursor-pointer ${isCheckingIn ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5'}`}
+                >
+                  {isCheckingIn ? <Loader2 size={16} className="animate-spin" /> : <Square size={16} fill="currentColor" />} 
+                  Check Out
                 </button>
               ) : (
-                <button onClick={startSession} className="bg-white text-teal-600 hover:bg-teal-50 px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5 cursor-pointer">
-                  <Play size={16} fill="currentColor" /> Check In
+                <button 
+                  onClick={() => startSession()} 
+                  disabled={isCheckingIn}
+                  className={`bg-white text-teal-600 hover:bg-teal-50 px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer ${isCheckingIn ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5'}`}
+                >
+                  {isCheckingIn ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} fill="currentColor" />} 
+                  Check In
                 </button>
               )}
             </div>

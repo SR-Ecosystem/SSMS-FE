@@ -123,12 +123,14 @@ const Layout = () => {
   };
 
   // Student Attendance Tracking
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
   const checkingInRef = useRef(false);
   const timerIntervalRef = useRef(null);
 
   const startSession = async () => {
     if (checkingInRef.current || sessionActive) return;
     checkingInRef.current = true;
+    setIsCheckingIn(true);
     try {
       const { data } = await axios.post('/attendance/checkin');
       setAttendanceId(data._id);
@@ -138,6 +140,7 @@ const Layout = () => {
       console.error('Checkin failed:', error);
     } finally {
       checkingInRef.current = false;
+      setIsCheckingIn(false);
     }
   };
 
@@ -262,8 +265,9 @@ const Layout = () => {
     if (checkingInRef.current) return;
     if (user?.role === 'student' && attendanceIdRef.current) {
       checkingInRef.current = true;
+      setIsCheckingIn(true);
       try {
-        const finalSeconds = overrideSeconds !== undefined ? overrideSeconds : sessionSecondsRef.current;
+        const finalSeconds = typeof overrideSeconds === 'number' ? overrideSeconds : sessionSecondsRef.current;
         await axios.post(`/attendance/checkout/${attendanceIdRef.current}`, {
           totalSeconds: finalSeconds
         });
@@ -291,6 +295,7 @@ const Layout = () => {
         console.error('Checkout failed:', e);
       } finally {
         checkingInRef.current = false;
+        setIsCheckingIn(false);
       }
     }
   };
@@ -554,7 +559,7 @@ const Layout = () => {
 
         {/* Page Content */}
         <div className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <Outlet context={{ sessionActive, startSession, endSession, sessionSeconds, formatTime }} />
+          <Outlet context={{ sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn }} />
         </div>
       </main>
     </div>
