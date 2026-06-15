@@ -10,6 +10,7 @@ const MyTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEnrolled, setIsEnrolled] = useState(true); // default to true until checked
   const [activeTask, setActiveTask] = useState(null);
   const [uploading, setUploading] = useState(false);
   
@@ -32,6 +33,17 @@ const MyTasks = () => {
 
   const fetchTasks = async () => {
     try {
+      // First check if enrolled
+      const enrollRes = await axios.get('/enrollments/my');
+      const approvedEnrollments = enrollRes.data.filter(e => e.status === 'approved');
+      
+      if (approvedEnrollments.length === 0) {
+        setIsEnrolled(false);
+        setLoading(false);
+        return; // Don't fetch tasks if not enrolled
+      }
+
+      setIsEnrolled(true);
       const [tasksRes, subsRes] = await Promise.all([
         axios.get('/tasks'),
         axios.get('/submissions') // Returns student's submissions
@@ -151,6 +163,23 @@ const MyTasks = () => {
   };
 
   if (loading) return <Loader />;
+
+  if (!isEnrolled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-24 h-24 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-6">
+          <FileTextIcon size={40} className="text-rose-500" />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">No Batch Assigned</h2>
+        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-8 text-lg">
+          You are not currently enrolled in any active batch. Please join a batch to get access to your tasks and assignments.
+        </p>
+        <a href="/student/available-batches" className="btn-primary px-8 py-3 rounded-xl shadow-lg shadow-indigo-500/30 text-base">
+          View Available Batches
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">

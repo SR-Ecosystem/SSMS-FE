@@ -47,6 +47,23 @@ const StudentLeaderboard = () => {
 
   if (loading && !selectedBatch) return <Loader />;
 
+  if (!loading && batches.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+        <div className="w-24 h-24 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-6">
+          <Trophy size={40} className="text-rose-500" />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">No Batch Assigned</h2>
+        <p className="text-slate-600 dark:text-slate-400 max-w-md mb-8 text-lg">
+          You are not currently enrolled in any active batch. Please join a batch to view the leaderboard.
+        </p>
+        <a href="/student/available-batches" className="btn-primary px-8 py-3 rounded-xl shadow-lg shadow-indigo-500/30 text-base">
+          View Available Batches
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-indigo-500 to-purple-600 p-8 rounded-3xl text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden">
