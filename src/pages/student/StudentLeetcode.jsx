@@ -78,15 +78,16 @@ const StudentLeetcode = () => {
           </div>
 
           {/* Streak Counter */}
-        <div className="flex items-center gap-3 bg-orange-50 dark:bg-orange-900/20 px-4 py-3 rounded-2xl border border-orange-100 dark:border-orange-800/50 shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-orange-500">
-            <Flame size={24} className={user?.leetcodeStreak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-orange-400"} />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Current Streak</p>
-            <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">
-              {user?.leetcodeStreak || 0} <span className="text-sm font-medium text-slate-500">Days</span>
-            </p>
+          <div className="flex items-center gap-3 bg-orange-50 dark:bg-orange-900/20 px-4 py-3 rounded-2xl border border-orange-100 dark:border-orange-800/50 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-orange-500">
+              <Flame size={24} className={user?.leetcodeStreak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-orange-400"} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Current Streak</p>
+              <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">
+                {user?.leetcodeStreak || 0} <span className="text-sm font-medium text-slate-500">Days</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
