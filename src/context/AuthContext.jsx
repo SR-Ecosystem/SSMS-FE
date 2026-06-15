@@ -13,36 +13,50 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Set up axios interceptor for the custom header
+  useEffect(() => {
+    const interceptor = axios.interceptors.request.use((config) => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed && parsed._id) {
+          config.headers['x-user-id'] = parsed._id;
+        }
+      }
+      return config;
+    });
+    return () => axios.interceptors.request.eject(interceptor);
+  }, []);
+
   // Check if user is logged in on mount
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data } = await axios.get('/auth/profile');
-        setUser(data);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     const { data } = await axios.post('/auth/login', { email, password });
     setUser(data);
+    localStorage.setItem('user', JSON.stringify(data));
     return data;
   };
 
   const register = async (name, email, password, role) => {
     const { data } = await axios.post('/auth/register', { name, email, password, role });
     setUser(data);
+    localStorage.setItem('user', JSON.stringify(data));
     return data;
   };
 
   const logout = async () => {
-    await axios.post('/auth/logout');
+    try {
+      await axios.post('/auth/logout');
+    } catch (e) {}
     setUser(null);
+    localStorage.removeItem('user');
   };
 
   return (
