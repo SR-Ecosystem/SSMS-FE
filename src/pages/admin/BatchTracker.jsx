@@ -174,6 +174,20 @@ const BatchTracker = () => {
     setSortConfig({ key, direction });
   };
 
+  const clearAllFilters = () => {
+    setFilterName('');
+    setFilterRoll('');
+    setFilterDate('');
+    setVisibleCategories({
+      'General': true,
+      'HW': true,
+      'CW': true,
+      'Project': true,
+      'LeetCode': true
+    });
+    setSortConfig({ key: 'name', direction: 'asc' });
+  };
+
   const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return <ArrowUpDown size={14} className="text-slate-400 opacity-50 hover:opacity-100 transition-opacity" />;
     if (sortConfig.direction === 'asc') return <ArrowUp size={14} className="text-indigo-500" />;
@@ -201,30 +215,30 @@ const BatchTracker = () => {
       </div>
 
       {/* Advanced Filter Bar */}
-      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/50 flex flex-wrap items-center gap-4">
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/50 flex flex-nowrap items-center gap-4 overflow-x-auto custom-scrollbar">
         
         {/* Search Inputs */}
-        <div className="flex-1 min-w-[200px] flex items-center gap-3">
+        <div className="flex-none flex items-center gap-3">
           <input 
             type="text" 
             placeholder="Search student name..." 
             value={filterName}
             onChange={(e) => setFilterName(e.target.value)}
-            className="input-field w-full sm:max-w-[200px]"
+            className="input-field w-[200px]"
           />
           <input 
             type="text" 
             placeholder="Search roll number..." 
             value={filterRoll}
             onChange={(e) => setFilterRoll(e.target.value)}
-            className="input-field w-full sm:max-w-[160px]"
+            className="input-field w-[160px]"
           />
         </div>
 
-        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 hidden lg:block"></div>
+        <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 flex-none hidden lg:block"></div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-nowrap items-center gap-3 flex-none">
           {/* Date Filter */}
           <div className="flex items-center gap-1">
             <input 
@@ -233,15 +247,6 @@ const BatchTracker = () => {
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
             />
-            {filterDate && (
-              <button 
-                onClick={() => setFilterDate('')}
-                className="p-2 text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/40 rounded transition-colors"
-                title="Clear Date"
-              >
-                <XCircle size={18} />
-              </button>
-            )}
           </div>
           
           <select 
@@ -282,6 +287,14 @@ const BatchTracker = () => {
               </div>
             )}
           </div>
+
+          <button 
+            onClick={clearAllFilters}
+            className="px-4 py-2 flex items-center gap-2 font-medium text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50"
+            title="Reset All Filters"
+          >
+            <XCircle size={16} /> Reset
+          </button>
 
           <button 
             onClick={fetchTrackerData}
