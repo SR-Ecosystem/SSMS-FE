@@ -14,6 +14,8 @@ const SubmissionReviews = () => {
   const [loadingGrade, setLoadingGrade] = useState(false);
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getFileExtension = (url) => {
     if (!url) return '';
@@ -114,13 +116,40 @@ const SubmissionReviews = () => {
 
   if (loading) return <Loader />;
 
+  const filteredSubmissions = submissions.filter(sub => {
+    const matchStatus = filterStatus === 'all' || sub.status === filterStatus;
+    const searchLower = searchQuery.toLowerCase();
+    const matchSearch = 
+      (sub.studentId?.name || '').toLowerCase().includes(searchLower) ||
+      (sub.studentId?.email || '').toLowerCase().includes(searchLower) ||
+      (sub.taskId?.title || '').toLowerCase().includes(searchLower);
+    return matchStatus && matchSearch;
+  });
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Review Submissions</h1>
-        <div className="relative">
+        <div className="flex flex-wrap items-center gap-3">
+          <input 
+            type="text"
+            placeholder="Search student or task..."
+            className="input-field py-1.5 text-sm min-w-[200px]"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
           <select 
-            className="input-field py-1.5 text-sm appearance-none min-w-[200px]"
+            className="input-field py-1.5 text-sm min-w-[150px]"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Statuses</option>
+            <option value="submitted">Pending Review</option>
+            <option value="graded">Graded</option>
+            <option value="resubmit">Resubmit Requested</option>
+          </select>
+          <select 
+            className="input-field py-1.5 text-sm min-w-[150px]"
             value={selectedBatch}
             onChange={(e) => setSelectedBatch(e.target.value)}
           >
@@ -132,37 +161,57 @@ const SubmissionReviews = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {submissions.map(sub => (
-          <div key={sub._id} className="glass-panel p-6 card-hover flex flex-col">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 line-clamp-1">{sub.taskId?.title}</h3>
-              <span className="text-xs bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-2 py-1 rounded font-medium uppercase">{sub.submissionType || 'Legacy'}</span>
-            </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">By: <span className="font-medium text-slate-700 dark:text-slate-300">{sub.studentId?.name}</span></p>
-            
-            <div className="space-y-2 mb-6 text-sm flex-1">
-              <p className="text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-white/5 p-3 rounded-lg italic border border-slate-100 dark:border-white/10 line-clamp-3">"{sub.remarks || 'No remarks provided.'}"</p>
-            </div>
-            
-            <div className="flex gap-2 mt-auto">
-              {sub.status === 'resubmit' ? (
-                <div className="w-full text-center py-2.5 font-medium text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                  Re-submit Requested
-                </div>
-              ) : (
-                <button 
-                  onClick={() => openReviewModal(sub)}
-                  className={`flex-1 py-2.5 shadow-md rounded-lg font-medium transition-colors ${sub.status === 'graded' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50' : 'btn-primary bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 shadow-indigo-500/20'}`}
-                >
-                  {sub.status === 'graded' ? 'Edit Grade' : 'Review & Grade'}
-                </button>
-              )}
-            </div>
+      <div className="glass-panel overflow-hidden">
+        {filteredSubmissions.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 dark:text-slate-400">No submissions found matching criteria.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Student</th>
+                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Task</th>
+                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Date</th>
+                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Status</th>
+                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredSubmissions.map(sub => (
+                  <tr key={sub._id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td className="p-4">
+                      <div className="font-medium text-slate-800 dark:text-slate-100">{sub.studentId?.name || 'Unknown'}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{sub.studentId?.email}</div>
+                    </td>
+                    <td className="p-4">
+                      <div className="font-medium text-slate-800 dark:text-slate-100 line-clamp-1 max-w-xs" title={sub.taskId?.title}>{sub.taskId?.title}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 uppercase">{sub.submissionType || 'Legacy'}</div>
+                    </td>
+                    <td className="p-4 text-sm text-slate-600 dark:text-slate-300">
+                      {new Date(sub.submittedAt || sub.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="p-4">
+                      {sub.status === 'submitted' && <span className="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold rounded-full">PENDING</span>}
+                      {sub.status === 'graded' && <span className="px-2 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-bold rounded-full">GRADED</span>}
+                      {sub.status === 'resubmit' && <span className="px-2 py-1 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-xs font-bold rounded-full">RESUBMIT</span>}
+                    </td>
+                    <td className="p-4 text-right">
+                      {sub.status === 'resubmit' ? (
+                        <span className="text-sm font-medium text-slate-400">Waiting for student</span>
+                      ) : (
+                        <button 
+                          onClick={() => openReviewModal(sub)}
+                          className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-colors shadow-sm ${sub.status === 'graded' ? 'bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/20' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
+                        >
+                          {sub.status === 'graded' ? 'Edit Grade' : 'Review'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-        {submissions.length === 0 && (
-          <div className="col-span-full p-12 text-center text-slate-500 dark:text-slate-400 glass-panel">No submissions pending review.</div>
         )}
       </div>
 
