@@ -180,7 +180,9 @@ const StudentDashboard = () => {
               </p>
               <h3 className="font-bold text-lg leading-none flex items-center gap-2">SSMS Base</h3>
             </Link>
-            <UserIcon size={24} className="opacity-80" />
+            <Link to="/student/profile" className="hover:opacity-80 transition-opacity" title="My Profile">
+              <UserIcon size={24} className="opacity-80" />
+            </Link>
           </div>
 
           <div className="relative z-10 grid grid-cols-2 gap-y-4 gap-x-6 my-4">
