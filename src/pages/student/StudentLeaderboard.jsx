@@ -14,7 +14,7 @@ const StudentLeaderboard = () => {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const { data } = await axios.get('/enrollments/my-batches');
+        const { data } = await axios.get('/enrollments/my');
         setBatches(data);
         if (data.length > 0) {
           setSelectedBatch(data[0].batchId._id);
