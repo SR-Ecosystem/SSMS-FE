@@ -132,25 +132,6 @@ const Layout = () => {
       setAttendanceId(data._id);
       attendanceIdRef.current = data._id;
       setSessionActive(true);
-      
-      // Fetch fresh aggregated total
-      try {
-        const summaryRes = await axios.get('/attendance/my-summary');
-        const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        const todayRecords = summaryRes.data.filter(r => {
-          const rDate = r.date || (r.firstCheckIn ? new Date(r.firstCheckIn).toISOString().split('T')[0] : '');
-          return rDate === todayStr;
-        });
-        const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
-        setSessionSeconds(totalTodaySeconds);
-      } catch(e) {
-        if (data.isActive) {
-          const start = new Date(data.lastCheckInTime).getTime();
-          const now = Date.now();
-          const existingSeconds = data.sessionDurationSeconds || 0;
-          setSessionSeconds(existingSeconds + Math.floor((now - start) / 1000));
-        }
-      }
     } catch (error) {
       console.error('Checkin failed:', error);
     } finally {
@@ -311,13 +292,14 @@ const Layout = () => {
   };
 
   const handleLogout = async () => {
-    // Explicit checkout on logout
-    if (user?.role === 'student' && attendanceIdRef.current) {
-      try {
-        await axios.post(`/attendance/checkout/${attendanceIdRef.current}`);
-      } catch (e) {
-        console.error(e);
-      }
+    if (sessionActive) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Please Check Out First',
+        text: 'You must check out from your current attendance session before logging out.',
+        confirmButtonColor: '#10b981'
+      });
+      return;
     }
     
     if (timerIntervalRef.current) {
