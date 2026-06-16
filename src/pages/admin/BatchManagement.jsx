@@ -10,8 +10,9 @@ const BatchManagement = () => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming'
+    batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: ''
   });
+  const [editingId, setEditingId] = useState(null);
   
   // Student Modal State
   const [showStudentsModal, setShowStudentsModal] = useState(false);
@@ -32,16 +33,35 @@ const BatchManagement = () => {
 
   useEffect(() => { fetchBatches(); }, []);
 
+  const handleEdit = (batch) => {
+    setFormData({
+      batchName: batch.batchName,
+      description: batch.description,
+      startDate: new Date(batch.startDate).toISOString().split('T')[0],
+      endDate: new Date(batch.endDate).toISOString().split('T')[0],
+      status: batch.status,
+      checkInTime: batch.checkInTime || '',
+      checkOutTime: batch.checkOutTime || ''
+    });
+    setEditingId(batch._id);
+    setShowModal(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await axios.post('/batches', formData);
+      if (editingId) {
+        await axios.put(`/batches/${editingId}`, formData);
+      } else {
+        await axios.post('/batches', formData);
+      }
       setShowModal(false);
-      setFormData({ batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming' });
+      setFormData({ batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: '' });
+      setEditingId(null);
       fetchBatches();
     } catch (error) {
-      console.error('Error creating batch:', error);
+      console.error('Error saving batch:', error);
     } finally {
       setSaving(false);
     }
@@ -78,10 +98,9 @@ const BatchManagement = () => {
         return;
       }
 
-      // Convert JSON array to CSV string
       const headers = Object.keys(data[0]);
       const csvRows = [];
-      csvRows.push(headers.join(',')); // Header row
+      csvRows.push(headers.join(','));
 
       for (const row of data) {
         const values = headers.map(header => {
@@ -148,7 +167,7 @@ const BatchManagement = () => {
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Management</h1>
-        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => { setFormData({ batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: '' }); setEditingId(null); setShowModal(true); }} className="btn-primary flex items-center gap-2">
           <Plus size={20} /> Create Batch
         </button>
       </div>
@@ -167,10 +186,17 @@ const BatchManagement = () => {
               </span>
             </div>
             <p className="text-slate-600 dark:text-slate-300 text-sm mb-4 flex-1">{batch.description}</p>
-            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-4">
-              <div className="flex items-center gap-1"><Calendar size={16}/> {new Date(batch.startDate).toLocaleDateString()}</div>
-              <span>to</span>
-              <div className="flex items-center gap-1"><Calendar size={16}/> {new Date(batch.endDate).toLocaleDateString()}</div>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1"><Calendar size={16}/> {new Date(batch.startDate).toLocaleDateString()}</div>
+                <span>to</span>
+                <div className="flex items-center gap-1"><Calendar size={16}/> {new Date(batch.endDate).toLocaleDateString()}</div>
+              </div>
+              {(batch.checkInTime || batch.checkOutTime) && (
+                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                  <Clock size={16}/> {batch.checkInTime || '--:--'} - {batch.checkOutTime || '--:--'}
+                </div>
+              )}
             </div>
             <div className="flex gap-2 w-full mb-4">
               <button 
@@ -187,7 +213,7 @@ const BatchManagement = () => {
               </button>
             </div>
             <div className="flex items-center gap-2 mt-auto border-t border-slate-100 dark:border-slate-800 pt-4">
-              <button className="text-primary-600 hover:text-primary-700 p-2 rounded-md hover:bg-primary-50 transition-colors">
+              <button onClick={() => handleEdit(batch)} className="text-primary-600 hover:text-primary-700 p-2 rounded-md hover:bg-primary-50 transition-colors">
                 <Edit size={18} />
               </button>
               <button onClick={() => handleDelete(batch._id)} className="text-red-500 hover:text-red-600 p-2 rounded-md hover:bg-red-50 transition-colors ml-auto">
@@ -198,12 +224,11 @@ const BatchManagement = () => {
         ))}
       </div>
 
-      {/* Create Batch Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="glass-panel w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Create New Batch</h2>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{editingId ? 'Edit Batch' : 'Create New Batch'}</h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -225,6 +250,16 @@ const BatchManagement = () => {
                   <input required type="date" className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1 ml-1">Check-in Time</label>
+                  <input type="time" className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white" value={formData.checkInTime} onChange={e => setFormData({...formData, checkInTime: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1 ml-1">Check-out Time</label>
+                  <input type="time" className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white" value={formData.checkOutTime} onChange={e => setFormData({...formData, checkOutTime: e.target.value})} />
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 ml-1">Status</label>
                 <select className="w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
@@ -237,7 +272,7 @@ const BatchManagement = () => {
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-colors">Cancel</button>
                 <button type="submit" disabled={saving} className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
                   {saving ? <Loader2 size={18} className="animate-spin" /> : null}
-                  {saving ? 'Creating...' : 'Create Batch'}
+                  {saving ? 'Saving...' : (editingId ? 'Update Batch' : 'Create Batch')}
                 </button>
               </div>
             </form>
@@ -245,7 +280,6 @@ const BatchManagement = () => {
         </div>
       )}
 
-      {/* View Students Modal */}
       {showStudentsModal && selectedBatch && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="glass-panel w-full max-w-2xl flex flex-col max-h-[80vh]">

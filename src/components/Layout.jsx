@@ -138,6 +138,12 @@ const Layout = () => {
       setSessionActive(true);
     } catch (error) {
       console.error('Checkin failed:', error);
+      Swal.fire({
+        title: 'Check-in Failed',
+        text: error.response?.data?.message || 'Unable to check in at this time.',
+        icon: 'error',
+        confirmButtonText: 'Understood'
+      });
     } finally {
       checkingInRef.current = false;
       setIsCheckingIn(false);
