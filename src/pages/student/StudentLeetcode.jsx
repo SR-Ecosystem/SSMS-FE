@@ -6,7 +6,7 @@ import Loader from '../../components/Loader';
 import Swal from 'sweetalert2';
 
 const StudentLeetcode = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(true); // default to true
@@ -46,8 +46,17 @@ const StudentLeetcode = () => {
     }
     setSubmitting(true);
     try {
-      await axios.post(`/leetcode/${problemId}/submit`, { solutionLink: linkToSubmit });
+      const { data } = await axios.post(`/leetcode/${problemId}/submit`, { solutionLink: linkToSubmit });
       Swal.fire('Success', 'Solution submitted! Streak updated. 🔥', 'success');
+      
+      // Update local state context
+      if (data.user) {
+        updateUser({
+          ...user,
+          leetcodeStreak: data.user.leetcodeStreak,
+          totalLeetcodeSubmissions: data.user.totalLeetcodeSubmissions
+        });
+      }
       
       // Update local state
       setHistory(prev => prev.map(p => 

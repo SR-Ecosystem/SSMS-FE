@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { Plus, Edit, Trash2, Play, Loader2, Save, Trash, Clock, Upload, Download, BarChart2, RotateCcw, CheckCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Play, Loader2, Save, Trash, Clock, Upload, Download, BarChart2, RotateCcw, CheckCircle, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 import QuizResultsModal from './QuizResultsModal';
 
@@ -201,9 +201,19 @@ const QuizManagement = () => {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Quizzes</h1>
           <p className="text-slate-500 mt-1">Create and publish quizzes for students</p>
         </div>
-        <button onClick={openCreateModal} className="btn-primary flex items-center gap-2 shadow-lg shadow-emerald-500/30">
-          <Plus size={20} /> Create Quiz
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Refresh Data"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button onClick={openCreateModal} className="btn-primary flex items-center gap-2 shadow-lg shadow-emerald-500/30">
+            <Plus size={20} /> Create Quiz
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -30,11 +30,28 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is logged in on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const fetchUser = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser); // Set immediately for fast UI
+          
+          // Then fetch fresh data in background
+          if (parsedUser && parsedUser._id) {
+            const { data } = await axios.get('/auth/profile', {
+              headers: { 'x-user-id': parsedUser._id }
+            });
+            setUser(data);
+            localStorage.setItem('user', JSON.stringify(data));
+          }
+        } catch (error) {
+          console.error("Error fetching fresh profile:", error);
+        }
+      }
+      setLoading(false);
+    };
+    fetchUser();
   }, []);
 
   const login = async (email, password) => {

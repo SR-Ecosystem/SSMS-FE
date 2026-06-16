@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, Clock, TrendingUp, BarChart as BarChartIcon, Bell, Activity, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, Clock, TrendingUp, BarChart as BarChartIcon, Bell, Activity, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -12,19 +12,20 @@ const AdminDashboard = () => {
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('daily');
 
+  const fetchStats = async () => {
+    if (!loading) setIsChartLoading(true);
+    try {
+      const { data } = await axios.get(`/analytics/dashboard?timeframe=${timeframe}`);
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+      setIsChartLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStats = async () => {
-      if (!loading) setIsChartLoading(true);
-      try {
-        const { data } = await axios.get(`/analytics/dashboard?timeframe=${timeframe}`);
-        setStats(data);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      } finally {
-        setLoading(false);
-        setIsChartLoading(false);
-      }
-    };
     fetchStats();
   }, [timeframe]);
 
@@ -60,6 +61,16 @@ const AdminDashboard = () => {
             <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">Hello, {user?.name.split(' ')[0]}!</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Here's the current system status</p>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchStats()}
+            disabled={isChartLoading || loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm"
+            title="Refresh Dashboard"
+          >
+            <RefreshCw size={18} className={(isChartLoading || loading) ? 'animate-spin' : ''} />
+          </button>
         </div>
       </div>
 

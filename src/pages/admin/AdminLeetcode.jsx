@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Plus, Code, Link as LinkIcon, Loader2 } from 'lucide-react';
+import { Plus, Code, Link as LinkIcon, Loader2, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const AdminLeetcode = () => {
@@ -120,7 +120,16 @@ const AdminLeetcode = () => {
         {/* History */}
         <div className="lg:col-span-2">
           <div className="glass-panel p-6 h-full flex flex-col">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">Problem History for Selected Batch</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Problem History for Selected Batch</h2>
+              <button
+                onClick={() => fetchProblems(formData.batchId)}
+                className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                title="Refresh History"
+              >
+                <RefreshCw size={16} />
+              </button>
+            </div>
             <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-[500px]">
               {pastProblems.length > 0 ? (
                 <div className="space-y-3">

@@ -3,7 +3,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { BookOpen, Plus, Loader2, UploadCloud, FileText as FileTextIcon, Edit, Trash2, Link as LinkIcon } from 'lucide-react';
+import { BookOpen, Plus, Loader2, UploadCloud, FileText as FileTextIcon, Edit, Trash2, Link as LinkIcon, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const TaskManagement = () => {
@@ -185,6 +185,14 @@ const TaskManagement = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Task Management</h1>
         <div className="flex flex-col sm:flex-row items-center gap-4">
+          <button
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Refresh Data"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
           <select 
             className="input-field py-1.5 text-sm appearance-none min-w-[200px]"
             value={filterBatch}

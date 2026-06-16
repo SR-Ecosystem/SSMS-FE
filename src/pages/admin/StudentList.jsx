@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, Mail, Phone, GitBranch, Briefcase, Globe, Code, Terminal, Search, User as UserIcon } from 'lucide-react';
+import { Loader2, Mail, Phone, GitBranch, Briefcase, Globe, Code, Terminal, Search, User as UserIcon, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const StudentList = () => {
@@ -10,21 +10,23 @@ const StudentList = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [studentsRes, batchesRes] = await Promise.all([
+        axios.get(`/auth/students${selectedBatch ? `?batchId=${selectedBatch}` : ''}`),
+        axios.get('/batches')
+      ]);
+      setStudents(studentsRes.data);
+      setBatches(batchesRes.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [studentsRes, batchesRes] = await Promise.all([
-          axios.get(`/auth/students${selectedBatch ? `?batchId=${selectedBatch}` : ''}`),
-          axios.get('/batches')
-        ]);
-        setStudents(studentsRes.data);
-        setBatches(batchesRes.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [selectedBatch]);
 
@@ -57,6 +59,14 @@ const StudentList = () => {
               <option key={b._id} value={b._id}>{b.batchName}</option>
             ))}
           </select>
+          <button
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Refresh Data"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 

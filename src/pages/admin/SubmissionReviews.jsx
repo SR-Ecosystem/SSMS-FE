@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import 'react-quill-new/dist/quill.snow.css';
-import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download } from 'lucide-react';
+import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const formatDateTime = (dateString) => {
@@ -162,6 +162,14 @@ const SubmissionReviews = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
+          <button
+            onClick={() => fetchData()}
+            disabled={loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Refresh Data"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
           <select 
             className="input-field py-1.5 text-sm min-w-[150px]"
             value={filterStatus}

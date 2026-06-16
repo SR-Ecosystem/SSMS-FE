@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Users, Plus, Edit, Trash2, Loader2, Calendar, UserMinus, X, Download, Clock } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Loader2, Calendar, UserMinus, X, Download, Clock, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const BatchManagement = () => {
@@ -182,9 +182,19 @@ const BatchManagement = () => {
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Management</h1>
-        <button onClick={() => { setFormData({ batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: '' }); setEditingId(null); setShowModal(true); }} className="btn-primary flex items-center gap-2">
-          <Plus size={20} /> Create Batch
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchBatches()}
+            disabled={loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Refresh Data"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <button onClick={() => { setFormData({ batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: '' }); setEditingId(null); setShowModal(true); }} className="btn-primary flex items-center gap-2">
+            <Plus size={20} /> Create Batch
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

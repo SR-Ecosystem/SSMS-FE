@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Calendar, CheckCircle, XCircle, Clock, User as UserIcon } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Clock, User as UserIcon, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const LeaveRequests = () => {
@@ -59,6 +59,14 @@ const LeaveRequests = () => {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Manage and approve student leave requests</p>
         </div>
+        <button
+          onClick={() => fetchLeaves()}
+          disabled={loading}
+          className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+          title="Refresh Data"
+        >
+          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

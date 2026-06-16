@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Loader from '../../components/Loader';
-import { Check, Clock, X, RotateCcw, XCircle, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Check, Clock, X, RotateCcw, XCircle, Filter, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
 
 const BatchTracker = () => {
   const [batches, setBatches] = useState([]);
@@ -265,6 +265,15 @@ const BatchTracker = () => {
 
         {/* Fixed Right Side (Buttons) */}
         <div className="flex items-center gap-2.5 flex-none border-l border-slate-200 dark:border-slate-700 pl-3">
+          
+          <button
+            onClick={() => fetchBatchData()}
+            disabled={loading}
+            className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700 whitespace-nowrap"
+            title="Refresh Data"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+          </button>
 
           {/* Column Visibility Dropdown */}
           <div className="relative">

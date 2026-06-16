@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, Calendar, Search, Filter, Download, User as UserIcon, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { Loader2, Calendar, Search, Filter, Download, User as UserIcon, CheckCircle, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
 import Loader from '../../components/Loader';
 import * as XLSX from 'xlsx';
 
@@ -200,6 +200,14 @@ const AttendanceLogs = () => {
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => fetchLogs()}
+            disabled={loading}
+            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            title="Refresh Data"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          </button>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input 
