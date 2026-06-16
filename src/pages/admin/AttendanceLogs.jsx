@@ -201,7 +201,7 @@ const AttendanceLogs = () => {
         
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => fetchLogs()}
+            onClick={() => fetchData()}
             disabled={loading}
             className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
             title="Refresh Data"
