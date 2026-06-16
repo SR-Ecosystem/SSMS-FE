@@ -34,12 +34,27 @@ const BatchManagement = () => {
   useEffect(() => { fetchBatches(); }, []);
 
   const handleEdit = (batch) => {
+    let formattedStartDate = '';
+    let formattedEndDate = '';
+    
+    try {
+      if (batch.startDate) formattedStartDate = new Date(batch.startDate).toISOString().split('T')[0];
+    } catch (e) {
+      console.warn("Invalid start date", batch.startDate);
+    }
+    
+    try {
+      if (batch.endDate) formattedEndDate = new Date(batch.endDate).toISOString().split('T')[0];
+    } catch (e) {
+      console.warn("Invalid end date", batch.endDate);
+    }
+
     setFormData({
-      batchName: batch.batchName,
-      description: batch.description,
-      startDate: new Date(batch.startDate).toISOString().split('T')[0],
-      endDate: new Date(batch.endDate).toISOString().split('T')[0],
-      status: batch.status,
+      batchName: batch.batchName || '',
+      description: batch.description || '',
+      startDate: formattedStartDate,
+      endDate: formattedEndDate,
+      status: batch.status || 'Upcoming',
       checkInTime: batch.checkInTime || '',
       checkOutTime: batch.checkOutTime || ''
     });
