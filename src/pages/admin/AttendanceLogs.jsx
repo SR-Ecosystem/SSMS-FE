@@ -276,6 +276,7 @@ const AttendanceLogs = () => {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500">
+                  <th className="p-4 font-semibold w-16">S.No.</th>
                   <th className="p-4 font-semibold">Student Name</th>
                   <th className="p-4 font-semibold">{viewMode === 'Day' ? 'Date' : 'Period'}</th>
                   {viewMode === 'Day' && (
@@ -299,6 +300,7 @@ const AttendanceLogs = () => {
               <tbody className="text-sm">
                 {filteredLogs.map((log, idx) => (
                   <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="p-4 text-slate-500 dark:text-slate-400 font-medium">{idx + 1}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
