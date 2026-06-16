@@ -4,6 +4,21 @@ import { Loader2, Award, FileCheck, Trophy, Sparkles, Rocket, Star } from 'lucid
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
 
+const formatDateTime = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  const timeStr = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+  return `${dd}/${mm}/${yy} - ${timeStr}`;
+};
+
 const MyGrades = () => {
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +71,7 @@ const MyGrades = () => {
                   <p className="text-xs font-bold text-emerald-500 mb-2 flex items-center gap-1.5"><FileCheck size={14}/> Saran Feedback</p>
                   <p className="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{grade.feedback}</p>
                 </div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-4">Graded on {new Date(grade.createdAt).toLocaleDateString()}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-4">Graded on {formatDateTime(grade.createdAt)}</p>
               </div>
             </div>
           );

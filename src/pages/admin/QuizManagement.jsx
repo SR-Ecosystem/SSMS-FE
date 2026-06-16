@@ -10,6 +10,7 @@ const QuizManagement = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -133,6 +134,7 @@ const QuizManagement = () => {
 
     const payload = { title, batchId, status, questions };
 
+    setSaving(true);
     try {
       if (editingId) {
         await axios.put(`/quizzes/${editingId}`, payload);
@@ -145,6 +147,8 @@ const QuizManagement = () => {
       fetchData();
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || 'Failed to save quiz', 'error');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -396,8 +400,9 @@ const QuizManagement = () => {
             
             <div className="p-6 border-t border-slate-100 dark:border-white/10 bg-white dark:bg-slate-800 flex justify-end gap-4 rounded-b-2xl">
               <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 rounded-xl transition-colors">Cancel</button>
-              <button onClick={handleSubmit} className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 flex items-center gap-2">
-                <Save size={18} /> Save Quiz
+              <button onClick={handleSubmit} disabled={saving} className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                {saving ? 'Saving...' : 'Save Quiz'}
               </button>
             </div>
           </div>

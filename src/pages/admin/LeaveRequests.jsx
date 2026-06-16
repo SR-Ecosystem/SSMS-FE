@@ -7,6 +7,7 @@ import Loader from '../../components/Loader';
 const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({ id: null, status: null });
 
   const fetchLeaves = async () => {
     try {
@@ -34,12 +35,15 @@ const LeaveRequests = () => {
       });
 
       if (result.isConfirmed) {
+        setActionLoading({ id, status });
         await axios.put(`/leaves/${id}/status`, { status });
         Swal.fire('Success', `Leave request has been ${status}.`, 'success');
         fetchLeaves();
       }
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || `Failed to ${status} leave.`, 'error');
+    } finally {
+      setActionLoading({ id: null, status: null });
     }
   };
 
@@ -121,15 +125,19 @@ const LeaveRequests = () => {
                     <div className="flex gap-2">
                       <button 
                         onClick={() => handleUpdateStatus(leave._id, 'rejected')}
-                        className="bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer text-sm shadow-sm"
+                        disabled={actionLoading.id === leave._id}
+                        className="bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-900/20 font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer text-sm shadow-sm disabled:opacity-50"
                       >
-                        <XCircle size={16} /> Reject
+                        {actionLoading.id === leave._id && actionLoading.status === 'rejected' ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
+                        Reject
                       </button>
                       <button 
                         onClick={() => handleUpdateStatus(leave._id, 'approved')}
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-0.5 cursor-pointer text-sm"
+                        disabled={actionLoading.id === leave._id}
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-0.5 cursor-pointer text-sm disabled:opacity-50"
                       >
-                        <CheckCircle size={16} /> Approve
+                        {actionLoading.id === leave._id && actionLoading.status === 'approved' ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                        Approve
                       </button>
                     </div>
                   )}

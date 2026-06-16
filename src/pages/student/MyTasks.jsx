@@ -6,6 +6,21 @@ import 'react-quill-new/dist/quill.snow.css';
 import { Loader2, Upload, ExternalLink, Calendar, FileText as FileTextIcon, UploadCloud, Link as LinkIcon, AlignLeft, Download, CheckCircle } from 'lucide-react';
 import Loader from '../../components/Loader';
 
+const formatDateTime = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  const timeStr = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+  return `${dd}/${mm}/${yy} - ${timeStr}`;
+};
+
 const MyTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [submissions, setSubmissions] = useState([]);
@@ -110,6 +125,7 @@ const MyTasks = () => {
             </head>
             <body>
               <h2 style="margin-bottom: 5px;">My Submitted Work</h2>
+              <p style="color: #666; margin-top: 0; font-size: 14px;">Submitted on: ${formatDateTime(sub.submittedAt || sub.createdAt)}</p>
               <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 20px;" />
               <div class="ql-editor" style="padding: 0;">${sub.textContent || '<p>No text content submitted.</p>'}</div>
               ${sub.remarks ? `<div class="remarks"><h4 style="margin-top: 0;">Remarks</h4><p style="margin-bottom: 0;">${sub.remarks}</p></div>` : ''}

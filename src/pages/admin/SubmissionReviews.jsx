@@ -5,6 +5,21 @@ import 'react-quill-new/dist/quill.snow.css';
 import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download } from 'lucide-react';
 import Loader from '../../components/Loader';
 
+const formatDateTime = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  let hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; 
+  const timeStr = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+  return `${dd}/${mm}/${yy} - ${timeStr}`;
+};
+
 const SubmissionReviews = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +27,7 @@ const SubmissionReviews = () => {
   const [gradeData, setGradeData] = useState({ marksObtained: '', feedback: '' });
   const [existingGradeId, setExistingGradeId] = useState(null);
   const [loadingGrade, setLoadingGrade] = useState(false);
+  const [savingGrade, setSavingGrade] = useState(false);
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -99,6 +115,7 @@ const SubmissionReviews = () => {
 
   const handleGrade = async (e) => {
     e.preventDefault();
+    setSavingGrade(true);
     try {
       if (existingGradeId) {
         await axios.put(`/grades/${existingGradeId}`, gradeData);
@@ -116,6 +133,8 @@ const SubmissionReviews = () => {
       fetchData();
     } catch (error) {
       Swal.fire({ title: 'Error', text: error.response?.data?.message || 'Error saving grade', icon: 'error' });
+    } finally {
+      setSavingGrade(false);
     }
   };
 
@@ -192,8 +211,8 @@ const SubmissionReviews = () => {
                       <div className="font-medium text-slate-800 dark:text-slate-100 line-clamp-1 max-w-xs" title={sub.taskId?.title}>{sub.taskId?.title}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 uppercase">{sub.submissionType || 'Legacy'}</div>
                     </td>
-                    <td className="p-4 text-sm text-slate-600 dark:text-slate-300">
-                      {new Date(sub.submittedAt || sub.createdAt).toLocaleDateString()}
+                    <td className="p-4 text-slate-500 dark:text-slate-400 text-sm whitespace-nowrap">
+                      {formatDateTime(sub.submittedAt || sub.createdAt)}
                     </td>
                     <td className="p-4">
                       {sub.status === 'submitted' && <span className="px-2 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold rounded-full">PENDING</span>}
@@ -383,8 +402,9 @@ const SubmissionReviews = () => {
                 </div>
                 <div className="pt-4 flex gap-3">
                   <button type="button" onClick={() => setActiveReview(null)} className="flex-1 py-3 px-4 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-colors">Cancel</button>
-                  <button type="submit" className={`flex-1 py-3 flex justify-center items-center gap-2 rounded-lg font-bold text-white transition-colors ${existingGradeId ? 'bg-emerald-600 hover:bg-emerald-700' : 'btn-primary'}`}>
-                    <CheckCircle size={20}/> {existingGradeId ? 'Update Grade' : 'Submit Final Grade'}
+                  <button type="submit" disabled={savingGrade} className={`flex-1 py-3 flex justify-center items-center gap-2 rounded-lg font-bold text-white transition-colors ${existingGradeId ? 'bg-emerald-600 hover:bg-emerald-700' : 'btn-primary'}`}>
+                    {savingGrade ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle size={20}/>}
+                    {savingGrade ? 'Saving...' : (existingGradeId ? 'Update Grade' : 'Submit Final Grade')}
                   </button>
                 </div>
               </form>

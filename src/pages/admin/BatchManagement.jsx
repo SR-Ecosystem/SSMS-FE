@@ -7,6 +7,7 @@ import Loader from '../../components/Loader';
 const BatchManagement = () => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming'
@@ -33,6 +34,7 @@ const BatchManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
       await axios.post('/batches', formData);
       setShowModal(false);
@@ -40,6 +42,8 @@ const BatchManagement = () => {
       fetchBatches();
     } catch (error) {
       console.error('Error creating batch:', error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -231,7 +235,10 @@ const BatchManagement = () => {
               </div>
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30">Create Batch</button>
+                <button type="submit" disabled={saving} className="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+                  {saving ? <Loader2 size={18} className="animate-spin" /> : null}
+                  {saving ? 'Creating...' : 'Create Batch'}
+                </button>
               </div>
             </form>
           </div>

@@ -8,6 +8,7 @@ const AvailableBatches = () => {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [requestedMap, setRequestedMap] = useState({});
+  const [actionLoading, setActionLoading] = useState({});
 
   const fetchBatches = async () => {
     try {
@@ -36,6 +37,7 @@ const AvailableBatches = () => {
   useEffect(() => { fetchBatches(); }, []);
 
   const handleRequest = async (batchId) => {
+    setActionLoading(prev => ({...prev, [batchId]: true}));
     try {
       await axios.post('/enrollments/request', { batchId });
       setRequestedMap(prev => ({...prev, [batchId]: true}));
@@ -54,6 +56,8 @@ const AvailableBatches = () => {
       });
     } catch (error) {
       Swal.fire({ title: 'Error', text: error.response?.data?.message || 'Error requesting batch', icon: 'error' });
+    } finally {
+      setActionLoading(prev => ({...prev, [batchId]: false}));
     }
   };
 
@@ -83,14 +87,15 @@ const AvailableBatches = () => {
               <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 flex-1">{batch.description}</p>
               <button 
                 onClick={() => handleRequest(batch._id)}
-                disabled={requestedMap[batch._id]}
+                disabled={requestedMap[batch._id] || actionLoading[batch._id]}
                 className={`w-full py-2.5 rounded-xl font-medium transition-all flex justify-center items-center gap-2 ${
                   requestedMap[batch._id] 
                     ? 'bg-emerald-50 text-emerald-600' 
-                    : 'bg-primary-50 text-primary-600 hover:bg-primary-100'
+                    : 'bg-primary-50 text-primary-600 hover:bg-primary-100 disabled:opacity-50'
                 }`}
               >
-                {requestedMap[batch._id] ? <><Check size={18} /> Request Sent!</> : <><PlusCircle size={18} /> Request to Join</>}
+                {actionLoading[batch._id] ? <Loader2 size={18} className="animate-spin" /> : (requestedMap[batch._id] ? <Check size={18} /> : <PlusCircle size={18} />)}
+                {actionLoading[batch._id] ? 'Requesting...' : (requestedMap[batch._id] ? 'Request Sent!' : 'Request to Join')}
               </button>
             </div>
           ))}
