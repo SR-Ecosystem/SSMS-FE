@@ -25,6 +25,7 @@ const SubmissionReviews = () => {
   const [loading, setLoading] = useState(true);
   const [activeReview, setActiveReview] = useState(null);
   const [gradeData, setGradeData] = useState({ marksObtained: '', feedback: '' });
+  const [isLateSubmission, setIsLateSubmission] = useState(false);
   const [existingGradeId, setExistingGradeId] = useState(null);
   const [loadingGrade, setLoadingGrade] = useState(false);
   const [savingGrade, setSavingGrade] = useState(false);
@@ -72,6 +73,7 @@ const SubmissionReviews = () => {
     
     if (sub.status === 'graded') {
       setGradeData({ marksObtained: '', feedback: '' });
+      setIsLateSubmission(false);
       setLoadingGrade(true);
       try {
         const { data } = await axios.get(`/grades/submission/${sub._id}`);
@@ -89,6 +91,7 @@ const SubmissionReviews = () => {
         marksObtained: sub.taskId?.maxMarks || '', 
         feedback: 'Good Work, Keep going...' 
       });
+      setIsLateSubmission(false);
     }
   };
 
@@ -407,6 +410,35 @@ const SubmissionReviews = () => {
                     onChange={e => setGradeData({...gradeData, feedback: e.target.value})} 
                     placeholder="Provide constructive feedback..."
                   ></textarea>
+                </div>
+                
+                <div className="flex items-center gap-2 mt-2">
+                  <input 
+                    type="checkbox" 
+                    id="lateSubmission"
+                    className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500"
+                    checked={isLateSubmission}
+                    onChange={(e) => {
+                      setIsLateSubmission(e.target.checked);
+                      if (e.target.checked) {
+                        setGradeData(prev => ({
+                          ...prev,
+                          feedback: prev.feedback === 'Good Work, Keep going...' 
+                            ? 'Late submission. Marks have been reduced accordingly.' 
+                            : 'Late submission. Marks have been reduced accordingly.\n\n' + prev.feedback
+                        }));
+                      } else {
+                        setGradeData(prev => ({
+                          ...prev,
+                          feedback: prev.feedback.replace('Late submission. Marks have been reduced accordingly.\n\n', '')
+                                                  .replace('Late submission. Marks have been reduced accordingly.', 'Good Work, Keep going...')
+                        }));
+                      }
+                    }}
+                  />
+                  <label htmlFor="lateSubmission" className="text-sm font-medium text-rose-600 dark:text-rose-400 cursor-pointer">
+                    Mark as Late Submission (Reduces Marks)
+                  </label>
                 </div>
                 <div className="pt-4 flex gap-3">
                   <button type="button" onClick={() => setActiveReview(null)} className="flex-1 py-3 px-4 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-colors">Cancel</button>
