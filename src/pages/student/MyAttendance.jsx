@@ -221,7 +221,7 @@ const MyAttendance = () => {
                     ) : (
                       <>
                         <th className="p-4 font-bold text-emerald-400">Days Present</th>
-                        <th className="p-4 font-bold text-amber-400">Invalid (&gt;12h)</th>
+                        <th className="p-4 font-bold text-amber-400">Invalid (&gt;10h)</th>
                         <th className="p-4 font-bold text-rose-400">Absent/Partial</th>
                       </>
                     )}

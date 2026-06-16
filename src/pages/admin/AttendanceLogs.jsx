@@ -110,6 +110,21 @@ const AttendanceLogs = () => {
       }
     });
 
+    Object.values(groupedMap).forEach(day => {
+      if (viewMode === 'Day') {
+        if (day.status === 'Leave' || day.isLeave) {
+          day.status = 'Leave';
+          return;
+        }
+        const hours = (day.totalSeconds || 0) / 3600;
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (hours >= 8 && hours <= 10) day.status = 'Present';
+        else if (hours > 10) day.status = 'Invalid';
+        else if (day.isActive || day.date === todayStr) day.status = 'In Progress';
+        else day.status = 'Absent';
+      }
+    });
+
     return Object.values(groupedMap).sort((a, b) => b.period.localeCompare(a.period));
   };
 
@@ -267,7 +282,7 @@ const AttendanceLogs = () => {
                   ) : (
                     <>
                       <th className="p-4 font-semibold text-emerald-600">Days Present</th>
-                      <th className="p-4 font-semibold text-amber-600">Invalid (&gt;12h)</th>
+                      <th className="p-4 font-semibold text-amber-600">Invalid (&gt;10h)</th>
                       <th className="p-4 font-semibold text-rose-600">Absent/Partial</th>
                     </>
                   )}
