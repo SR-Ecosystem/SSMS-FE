@@ -34,9 +34,11 @@ const SubmissionReviews = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [evaluating, setEvaluating] = useState(false);
+  const [evalProgress, setEvalProgress] = useState({ active: false, total: 0, completed: 0 });
 
   const handleAutoEvaluate = async () => {
-    const pendingCount = submissions.filter(s => s.status === 'submitted').length;
+    const pendingSubmissions = submissions.filter(s => s.status === 'submitted');
+    const pendingCount = pendingSubmissions.length;
     
     if (pendingCount === 0) {
       return Swal.fire('Info', 'There are no pending submissions to evaluate.', 'info');
@@ -44,7 +46,7 @@ const SubmissionReviews = () => {
 
     const result = await Swal.fire({
       title: `Auto Evaluate ${pendingCount} Submissions?`,
-      text: `This will automatically evaluate and grade ${pendingCount} pending submission(s). Submissions past the due date will lose 1 mark per hour delayed. This action cannot be undone.`,
+      text: `This will automatically evaluate and grade ${pendingCount} pending submission(s). Submissions past the due date (11:59 PM) will lose 1 mark per hour delayed.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
@@ -54,24 +56,24 @@ const SubmissionReviews = () => {
 
     if (result.isConfirmed) {
       setEvaluating(true);
-      Swal.fire({
-        title: 'Auto Evaluating...',
-        html: `Evaluating and grading <b>${pendingCount}</b> submission(s) in the background.<br/>Please wait.`,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
+      setEvalProgress({ active: true, total: pendingCount, completed: 0 });
       
-      try {
-        const { data } = await axios.post('/grades/auto-evaluate');
-        Swal.fire('Success', data.message, 'success');
-        fetchData();
-      } catch (error) {
-        Swal.fire('Error', error.response?.data?.message || 'Failed to auto-evaluate', 'error');
-      } finally {
-        setEvaluating(false);
+      let successCount = 0;
+      
+      for (let i = 0; i < pendingCount; i++) {
+        try {
+          await axios.post('/grades/auto-evaluate', { submissionId: pendingSubmissions[i]._id });
+          successCount++;
+        } catch (error) {
+          console.error('Error evaluating submission:', pendingSubmissions[i]._id, error);
+        }
+        setEvalProgress(prev => ({ ...prev, completed: i + 1 }));
       }
+      
+      setEvaluating(false);
+      setEvalProgress({ active: false, total: 0, completed: 0 });
+      fetchData();
+      Swal.fire('Success', `Successfully auto-evaluated ${successCount} out of ${pendingCount} submissions.`, 'success');
     }
   };
 
@@ -301,6 +303,27 @@ const SubmissionReviews = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Progress Indicator */}
+      {evalProgress.active && (
+        <div className="fixed bottom-6 right-6 bg-white dark:bg-slate-800 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-emerald-200 dark:border-emerald-800/50 p-4 z-50 flex items-center gap-4 transition-all duration-300 transform translate-y-0 opacity-100">
+          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <Zap size={24} className="animate-pulse" />
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Evaluating Submissions</h4>
+            <div className="flex items-center gap-3">
+              <div className="w-32 h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-300 ease-out" 
+                  style={{ width: `${(evalProgress.completed / evalProgress.total) * 100}%` }}
+                ></div>
+              </div>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 min-w-[3ch]">{evalProgress.completed}/{evalProgress.total}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeReview && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
