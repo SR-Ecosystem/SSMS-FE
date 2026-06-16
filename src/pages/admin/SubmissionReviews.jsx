@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import 'react-quill-new/dist/quill.snow.css';
-import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download, RefreshCw } from 'lucide-react';
+import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download, RefreshCw, Zap } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const formatDateTime = (dateString) => {
@@ -33,6 +33,47 @@ const SubmissionReviews = () => {
   const [selectedBatch, setSelectedBatch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [evaluating, setEvaluating] = useState(false);
+
+  const handleAutoEvaluate = async () => {
+    const pendingCount = submissions.filter(s => s.status === 'submitted').length;
+    
+    if (pendingCount === 0) {
+      return Swal.fire('Info', 'There are no pending submissions to evaluate.', 'info');
+    }
+
+    const result = await Swal.fire({
+      title: `Auto Evaluate ${pendingCount} Submissions?`,
+      text: `This will automatically evaluate and grade ${pendingCount} pending submission(s). Submissions past the due date will lose 1 mark per hour delayed. This action cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, evaluate all'
+    });
+
+    if (result.isConfirmed) {
+      setEvaluating(true);
+      Swal.fire({
+        title: 'Auto Evaluating...',
+        html: `Evaluating and grading <b>${pendingCount}</b> submission(s) in the background.<br/>Please wait.`,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+      
+      try {
+        const { data } = await axios.post('/grades/auto-evaluate');
+        Swal.fire('Success', data.message, 'success');
+        fetchData();
+      } catch (error) {
+        Swal.fire('Error', error.response?.data?.message || 'Failed to auto-evaluate', 'error');
+      } finally {
+        setEvaluating(false);
+      }
+    }
+  };
 
   const getFileExtension = (url) => {
     if (!url) return '';
@@ -173,6 +214,17 @@ const SubmissionReviews = () => {
           >
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
           </button>
+          
+          <button
+            onClick={handleAutoEvaluate}
+            disabled={evaluating}
+            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors shrink-0"
+            title="Auto Evaluate All Pending Submissions"
+          >
+            {evaluating ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+            <span className="hidden sm:inline">Auto Evaluate</span>
+          </button>
+
           <select 
             className="input-field py-1.5 text-sm min-w-[150px]"
             value={filterStatus}
