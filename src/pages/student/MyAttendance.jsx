@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Loader2, Calendar, Download, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
-import Loader from '../../components/Loader';
+import SkeletonLoader from '../../components/SkeletonLoader';
 import * as XLSX from 'xlsx';
 
 const MyAttendance = () => {
@@ -153,7 +153,7 @@ const MyAttendance = () => {
     return <span className="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-1 rounded text-xs font-bold"><XCircle size={14}/> Absent/Partial</span>;
   };
 
-  if (loading) return <Loader />;
+  if (loading) return <SkeletonLoader type="table" />;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">

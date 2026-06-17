@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { Users, BookOpen, CheckCircle, Clock, TrendingUp, BarChart as BarChartIcon, Bell, Activity, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ const AdminDashboard = () => {
     fetchStats();
   }, [timeframe]);
 
-  if (loading) return <div className="p-8 text-slate-500 dark:text-slate-400 flex justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>;
+  if (loading) return <SkeletonLoader type="admin-dashboard" />;
 
   const reviewData = [
     { name: 'Completed', value: stats?.completedReviews || 0 },

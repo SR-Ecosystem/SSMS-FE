@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { Code, Flame, CheckCircle, Clock, ExternalLink } from 'lucide-react';
-import Loader from '../../components/Loader';
+import SkeletonLoader from '../../components/SkeletonLoader';
 import Swal from 'sweetalert2';
 
 const StudentLeetcode = () => {
@@ -70,7 +70,7 @@ const StudentLeetcode = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  if (loading) return <SkeletonLoader type="card-grid" />;
 
   if (!isEnrolled) {
     return (

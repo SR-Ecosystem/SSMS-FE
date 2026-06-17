@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Gamepad2, ArrowRight, CheckCircle, Clock } from 'lucide-react';
-import Loader from '../../components/Loader';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const MyQuizzes = () => {
   const [quizzes, setQuizzes] = useState([]);
@@ -28,7 +28,7 @@ const MyQuizzes = () => {
     fetchData();
   }, []);
 
-  if (loading) return <Loader />;
+  if (loading) return <SkeletonLoader type="card-grid" />;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">

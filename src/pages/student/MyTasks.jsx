@@ -4,7 +4,7 @@ import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Loader2, Upload, ExternalLink, Calendar, FileText as FileTextIcon, UploadCloud, Link as LinkIcon, AlignLeft, Download, CheckCircle } from 'lucide-react';
-import Loader from '../../components/Loader';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const formatDateTime = (dateString) => {
   if (!dateString) return '';
@@ -103,36 +103,52 @@ const MyTasks = () => {
     }
   };
 
-  const handleViewSubmission = (sub) => {
+  const handleViewSubmission = async (sub) => {
     if (sub.submissionType === 'link' && sub.linkUrl) {
       window.open(sub.linkUrl, '_blank');
     } else if (sub.submissionType === 'file' && sub.fileUrl) {
       const url = sub.fileUrl.startsWith('http') ? sub.fileUrl : `${import.meta.env.VITE_API_URL}${sub.fileUrl}`;
       window.open(url, '_blank');
     } else if (sub.submissionType === 'text') {
-      const newWin = window.open('', '_blank');
-      if (newWin) {
-        newWin.document.write(`
-          <html>
-            <head>
-              <title>Submitted Work</title>
-              <style>
-                body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; color: #333; }
-                .ql-editor { font-size: 16px; }
-                .remarks { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px; }
-              </style>
-              <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css" />
-            </head>
-            <body>
-              <h2 style="margin-bottom: 5px;">My Submitted Work</h2>
-              <p style="color: #666; margin-top: 0; font-size: 14px;">Submitted on: ${formatDateTime(sub.submittedAt || sub.createdAt)}</p>
-              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 20px;" />
-              <div class="ql-editor" style="padding: 0;">${sub.textContent || '<p>No text content submitted.</p>'}</div>
-              ${sub.remarks ? `<div class="remarks"><h4 style="margin-top: 0;">Remarks</h4><p style="margin-bottom: 0;">${sub.remarks}</p></div>` : ''}
-            </body>
-          </html>
-        `);
-        newWin.document.close();
+      try {
+        Swal.fire({
+          title: 'Loading Submission...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+        const { data: fullSub } = await axios.get(`/submissions/${sub._id}`);
+        Swal.close();
+        
+        const newWin = window.open('', '_blank');
+        if (newWin) {
+          newWin.document.write(`
+            <html>
+              <head>
+                <title>Submitted Work</title>
+                <style>
+                  body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; color: #333; }
+                  .ql-editor { font-size: 16px; }
+                  .remarks { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px; }
+                </style>
+                <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css" />
+              </head>
+              <body>
+                <h2 style="margin-bottom: 5px;">My Submitted Work</h2>
+                <p style="color: #666; margin-top: 0; font-size: 14px;">Submitted on: ${formatDateTime(fullSub.submittedAt || fullSub.createdAt)}</p>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 20px;" />
+                <div class="ql-editor" style="padding: 0;">${fullSub.textContent || '<p>No text content submitted.</p>'}</div>
+                ${fullSub.remarks ? `<div class="remarks"><h4 style="margin-top: 0;">Remarks</h4><p style="margin-bottom: 0;">${fullSub.remarks}</p></div>` : ''}
+              </body>
+            </html>
+          `);
+          newWin.document.close();
+        }
+      } catch (error) {
+        Swal.close();
+        console.error('Error fetching submission details:', error);
+        Swal.fire('Error', 'Could not fetch submission details.', 'error');
       }
     }
   };
@@ -162,7 +178,7 @@ const MyTasks = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  if (loading) return <SkeletonLoader type="table" />;
 
   if (!isEnrolled) {
     return (

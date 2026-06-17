@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
 import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ const StudentDashboard = () => {
     }
   }, [user]);
 
-  if (loading) return <div className="p-8 text-slate-500 dark:text-slate-400 flex justify-center"><div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>;
+  if (loading) return <SkeletonLoader type="student-dashboard" />;
 
   const completionData = [
     { name: 'Completed', value: analytics?.completedTasks || 0 },

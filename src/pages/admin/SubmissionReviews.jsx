@@ -3,7 +3,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import 'react-quill-new/dist/quill.snow.css';
 import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download, RefreshCw, Zap } from 'lucide-react';
-import Loader from '../../components/Loader';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const formatDateTime = (dateString) => {
   if (!dateString) return '';
@@ -113,28 +113,32 @@ const SubmissionReviews = () => {
   const openReviewModal = async (sub) => {
     setActiveReview(sub);
     setExistingGradeId(null);
-    
-    if (sub.status === 'graded') {
-      setGradeData({ marksObtained: '', feedback: '' });
-      setIsLateSubmission(false);
-      setLoadingGrade(true);
-      try {
-        const { data } = await axios.get(`/grades/submission/${sub._id}`);
-        if (data) {
-          setGradeData({ marksObtained: data.marksObtained, feedback: data.feedback });
-          setExistingGradeId(data._id);
-        }
-      } catch (error) {
-        console.error('Error fetching grade:', error);
-      } finally {
-        setLoadingGrade(false);
+    setLoadingGrade(true);
+    try {
+      const [subRes, gradeRes] = await Promise.all([
+        axios.get(`/submissions/${sub._id}`),
+        sub.status === 'graded' ? axios.get(`/grades/submission/${sub._id}`).catch(() => null) : Promise.resolve(null)
+      ]);
+      
+      const fullSub = subRes.data;
+      setActiveReview(fullSub);
+      
+      if (sub.status === 'graded' && gradeRes && gradeRes.data) {
+        const data = gradeRes.data;
+        setGradeData({ marksObtained: data.marksObtained, feedback: data.feedback });
+        setExistingGradeId(data._id);
+      } else {
+        setGradeData({ 
+          marksObtained: fullSub.taskId?.maxMarks || '', 
+          feedback: 'Good Work, Keep going...' 
+        });
       }
-    } else {
-      setGradeData({ 
-        marksObtained: sub.taskId?.maxMarks || '', 
-        feedback: 'Good Work, Keep going...' 
-      });
       setIsLateSubmission(false);
+    } catch (error) {
+      console.error('Error opening review modal:', error);
+      Swal.fire('Error', 'Could not fetch submission details.', 'error');
+    } finally {
+      setLoadingGrade(false);
     }
   };
 
@@ -184,7 +188,7 @@ const SubmissionReviews = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  if (loading) return <SkeletonLoader type="table" />;
 
   const filteredSubmissions = submissions.filter(sub => {
     const matchStatus = filterStatus === 'all' || sub.status === filterStatus;
@@ -346,8 +350,13 @@ const SubmissionReviews = () => {
                 <button onClick={() => setActiveReview(null)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300">&times;</button>
               </div>
             </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 relative">
+              {loadingGrade && (
+                <div className="absolute inset-0 bg-white/60 dark:bg-slate-900/60 flex flex-col items-center justify-center z-50 backdrop-blur-sm">
+                  <Loader2 className="animate-spin text-primary-500 mb-2" size={36} />
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 animate-pulse">Loading submission details...</span>
+                </div>
+              )}
               
               {/* Submission Content Viewer */}
               <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl border border-slate-100 dark:border-white/10">
