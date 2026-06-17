@@ -366,7 +366,7 @@ const SubmissionReviews = () => {
                   <div className="flex flex-col items-center justify-center gap-4">
                     {activeReview.fileUrl ? (() => {
                       const ext = getFileExtension(activeReview.fileUrl);
-                      const fileSrc = activeReview.fileUrl.startsWith('http') ? activeReview.fileUrl : `https://ssms-be.onrender.com${activeReview.fileUrl}`;
+                      const fileSrc = activeReview.fileUrl.startsWith('http') ? activeReview.fileUrl : `${import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com'}${activeReview.fileUrl}`;
                       
                       if (isImage(ext)) {
                         return (
@@ -396,7 +396,7 @@ const SubmissionReviews = () => {
                       </div>
                     )}
                     {activeReview.fileUrl && (() => {
-                      const fileSrc = activeReview.fileUrl.startsWith('http') ? activeReview.fileUrl : `https://ssms-be.onrender.com${activeReview.fileUrl}`;
+                      const fileSrc = activeReview.fileUrl.startsWith('http') ? activeReview.fileUrl : `${import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com'}${activeReview.fileUrl}`;
                       return (
                         <div className="flex items-center gap-4 mt-2">
                           <a 

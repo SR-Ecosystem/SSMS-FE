@@ -239,7 +239,7 @@ const TaskManagement = () => {
               <div className="mb-6 flex flex-col gap-2 flex-1">
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Please download the instructions file below:</p>
                 <a 
-                  href={task.fileUrl.startsWith('http') ? task.fileUrl : `https://ssms-be.onrender.com${task.fileUrl}`} 
+                  href={task.fileUrl.startsWith('http') ? task.fileUrl : `${import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com'}${task.fileUrl}`} 
                   target="_blank" 
                   rel="noreferrer" 
                   className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 text-sm rounded-lg w-max hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors font-bold shadow-sm cursor-pointer"

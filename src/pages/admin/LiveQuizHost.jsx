@@ -60,7 +60,7 @@ const LiveQuizHost = () => {
         setQuiz(data);
         
         // 2. Initialize Socket
-        const newSocket = io('https://ssms-be.onrender.com', { withCredentials: true });
+        const newSocket = io(import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com', { withCredentials: true });
         setSocket(newSocket);
 
         newSocket.on('connect', () => {
