@@ -2,7 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Set global axios defaults
-axios.defaults.baseURL = 'https://ssms-be.onrender.com/api';
+const apiUrl = import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com';
+axios.defaults.baseURL = `${apiUrl}/api`;
 axios.defaults.withCredentials = true;
 
 const AuthContext = createContext();
