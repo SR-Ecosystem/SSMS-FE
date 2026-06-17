@@ -265,7 +265,7 @@ const Layout = () => {
   useEffect(() => {
     let socket = null;
     if (user?.role === 'student') {
-      socket = io(import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com', { withCredentials: true });
+      socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
       socket.on('connect', () => {
         socket.emit('student-listen-quizzes', { studentId: user._id });
       });

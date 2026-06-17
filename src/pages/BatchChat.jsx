@@ -48,7 +48,7 @@ const BatchChat = () => {
     if (!activeBatchId) return;
 
     // Connect to Socket
-    socketRef.current = io(import.meta.env.VITE_API_URL || 'https://ssms-be.onrender.com', { withCredentials: true });
+    socketRef.current = io(import.meta.env.VITE_API_URL, { withCredentials: true });
     const socket = socketRef.current;
 
     // Fetch message history for the active batch
