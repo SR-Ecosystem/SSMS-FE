@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, Mail, Phone, GitBranch, Briefcase, Globe, Code, Terminal, Search, User as UserIcon, RefreshCw } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { Loader2, Mail, Phone, GitBranch, Briefcase, Globe, Code, Terminal, Search, User as UserIcon, RefreshCw, Key } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const StudentList = () => {
@@ -34,6 +35,76 @@ const StudentList = () => {
     student.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     student.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleChangePassword = async (student) => {
+    const { value: newPassword } = await Swal.fire({
+      title: 'Change Password',
+      text: `Enter new password for ${student.name}`,
+      html: `
+        <div style="position: relative; max-width: 100%; margin-top: 1rem;">
+          <input type="password" id="swal-password-input" class="swal2-input" placeholder="New Password (min 6 chars)" style="width: 100%; max-width: 100%; margin: 0; box-sizing: border-box; padding-right: 40px;" autocapitalize="off" autocorrect="off">
+          <button type="button" id="swal-toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; padding: 4px; display: flex; align-items: center; justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="swal-eye-icon"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Update Password',
+      confirmButtonColor: '#0ea5e9',
+      background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+      color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+      didOpen: () => {
+        const input = document.getElementById('swal-password-input');
+        const toggleBtn = document.getElementById('swal-toggle-password');
+        const eyeIcon = document.getElementById('swal-eye-icon');
+        
+        toggleBtn.addEventListener('click', () => {
+          if (input.type === 'password') {
+            input.type = 'text';
+            // EyeOff SVG path
+            eyeIcon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/>';
+            eyeIcon.style.color = '#0ea5e9';
+          } else {
+            input.type = 'password';
+            // Eye SVG path
+            eyeIcon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+            eyeIcon.style.color = '#64748b';
+          }
+        });
+      },
+      preConfirm: () => {
+        const val = document.getElementById('swal-password-input').value;
+        if (!val || val.length < 6) {
+          Swal.showValidationMessage('Password must be at least 6 characters long!');
+          return false;
+        }
+        return val;
+      }
+    });
+
+    if (newPassword) {
+      try {
+        await axios.put(`/auth/students/${student._id}/password`, { password: newPassword });
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Password updated successfully.',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+          confirmButtonColor: '#10b981'
+        });
+      } catch (error) {
+        console.error('Error updating password:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Failed to update password',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+        });
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -93,7 +164,16 @@ const StudentList = () => {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-slate-800 dark:text-white text-lg truncate">{student.name}</h3>
+                  <div className="flex items-start justify-between">
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg truncate mr-2">{student.name}</h3>
+                    <button
+                      onClick={() => handleChangePassword(student)}
+                      className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors shrink-0"
+                      title="Change Password"
+                    >
+                      <Key size={16} />
+                    </button>
+                  </div>
                   <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tracking-wide">
                     {student.rollNumber || 'NO ROLL NUMBER'}
                   </p>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Plus, Code, Link as LinkIcon, Loader2, RefreshCw } from 'lucide-react';
+import { Plus, Code, Link as LinkIcon, Loader2, RefreshCw, Search } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const AdminLeetcode = () => {
@@ -14,6 +14,7 @@ const AdminLeetcode = () => {
     batchId: ''
   });
   const [pastProblems, setPastProblems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchProblems = async (bId) => {
     try {
@@ -120,45 +121,59 @@ const AdminLeetcode = () => {
         {/* History */}
         <div className="lg:col-span-2">
           <div className="glass-panel p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
               <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Problem History for Selected Batch</h2>
-              <button
-                onClick={() => fetchProblems(formData.batchId)}
-                className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                title="Refresh History"
-              >
-                <RefreshCw size={16} />
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                  <input
+                    type="text"
+                    placeholder="Search problem..."
+                    className="input-field pl-8 py-1 px-3 text-xs w-40 sm:w-48"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <button
+                  onClick={() => fetchProblems(formData.batchId)}
+                  className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                  title="Refresh History"
+                >
+                  <RefreshCw size={16} />
+                </button>
+              </div>
             </div>
             <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 max-h-[500px]">
-              {pastProblems.length > 0 ? (
+              {pastProblems.filter(p => p.title?.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? (
                 <div className="space-y-3">
-                  {pastProblems.map(p => {
-                    const isActive = new Date(p.deadline) > new Date();
-                    return (
-                      <div key={p._id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                        <div>
-                          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
-                            {p.title}
-                            {isActive && <span className="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">Active</span>}
-                          </h3>
-                          <a href={p.problemLink} target="_blank" rel="noreferrer" className="text-xs text-primary-500 hover:underline mt-1 truncate max-w-[200px] sm:max-w-xs block">
-                            {p.problemLink}
-                          </a>
+                  {pastProblems
+                    .filter(p => p.title?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map(p => {
+                      const isActive = new Date(p.deadline) > new Date();
+                      return (
+                        <div key={p._id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                          <div>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                              {p.title}
+                              {isActive && <span className="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">Active</span>}
+                            </h3>
+                            <a href={p.problemLink} target="_blank" rel="noreferrer" className="text-xs text-primary-500 hover:underline mt-1 truncate max-w-[200px] sm:max-w-xs block">
+                              {p.problemLink}
+                            </a>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Deadline</p>
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                              {new Date(p.deadline).toLocaleString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Deadline</p>
-                          <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                            {new Date(p.deadline).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               ) : (
                 <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium">
-                  No problems allocated to this batch yet.
+                  {pastProblems.length > 0 ? 'No matching problems found.' : 'No problems allocated to this batch yet.'}
                 </div>
               )}
             </div>

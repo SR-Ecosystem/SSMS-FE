@@ -4,13 +4,14 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
 import { 
-  User as UserIcon, Mail, Phone, GitBranch, Briefcase, Globe, Save, Loader2, Code, Terminal 
+  User as UserIcon, Mail, Phone, GitBranch, Briefcase, Globe, Save, Loader2, Code, Terminal, Eye, EyeOff 
 } from 'lucide-react';
 
 const UserProfile = () => {
   const { user: authUser, login, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -21,6 +22,8 @@ const UserProfile = () => {
     portfolio: '',
     leetcode: '',
     hackerrank: '',
+    password: '',
+    confirmPassword: '',
   });
 
   useEffect(() => {
@@ -36,6 +39,8 @@ const UserProfile = () => {
           portfolio: data.portfolio || '',
           leetcode: data.leetcode || '',
           hackerrank: data.hackerrank || '',
+          password: '',
+          confirmPassword: '',
         });
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -53,9 +58,28 @@ const UserProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Passwords do not match!',
+        background: document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000',
+      });
+      return;
+    }
+    
     setSaving(true);
     try {
-      const { data } = await axios.put('/auth/profile', formData);
+      // Create payload without confirmPassword
+      const payload = { ...formData };
+      delete payload.confirmPassword;
+      if (!payload.password) {
+        delete payload.password;
+      }
+
+      const { data } = await axios.put('/auth/profile', payload);
       Swal.fire({
         icon: 'success',
         title: 'Profile Updated',
@@ -230,6 +254,49 @@ const UserProfile = () => {
                   onChange={handleChange}
                   placeholder="https://hackerrank.com/username"
                   className="input-field pl-10"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Security Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4 border-b border-slate-200 dark:border-white/10 pb-2 mt-8">Security</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">New Password (Optional)</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Leave blank to keep current"
+                  className="input-field px-3"
+                  minLength={6}
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirm New Password</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm new password"
+                  className="input-field px-3"
+                  minLength={6}
                 />
               </div>
             </div>

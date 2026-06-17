@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { Plus, Edit, Trash2, Play, Loader2, Save, Trash, Clock, Upload, Download, BarChart2, RotateCcw, CheckCircle, RefreshCw } from 'lucide-react';
-import Loader from '../../components/Loader';
+import { Plus, Edit, Trash2, Play, Loader2, Save, Trash, Clock, Upload, Download, BarChart2, RotateCcw, CheckCircle, RefreshCw, Search } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
 import QuizResultsModal from './QuizResultsModal';
 
 const QuizManagement = () => {
@@ -15,6 +15,11 @@ const QuizManagement = () => {
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [uploadingExcel, setUploadingExcel] = useState(false);
+
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterBatch, setFilterBatch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   
   const navigate = useNavigate();
 
@@ -192,7 +197,29 @@ const QuizManagement = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setFilterBatch('');
+    setFilterStatus('all');
+  };
+
+  const filteredQuizzes = quizzes.filter(quiz => {
+    const titleText = quiz.title || '';
+    const matchesSearch = titleText.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesBatch = 
+      !filterBatch || 
+      quiz.batchId?._id === filterBatch || 
+      quiz.batchId === filterBatch;
+
+    const matchesStatus = 
+      filterStatus === 'all' || 
+      quiz.status === filterStatus;
+
+    return matchesSearch && matchesBatch && matchesStatus;
+  });
+
+  if (loading) return <SkeletonLoader type="card-grid" />;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -202,22 +229,74 @@ const QuizManagement = () => {
           <p className="text-slate-500 mt-1">Create and publish quizzes for students</p>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => fetchData()}
-            disabled={loading}
-            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
-            title="Refresh Data"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
           <button onClick={openCreateModal} className="btn-primary flex items-center gap-2 shadow-lg shadow-emerald-500/30">
             <Plus size={20} /> Create Quiz
           </button>
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search quiz title..."
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+          title="Refresh Data"
+        >
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={filterBatch}
+          onChange={(e) => setFilterBatch(e.target.value)}
+        >
+          <option value="">All Batches</option>
+          {batches.map(b => (
+            <option key={b._id} value={b._id}>{b.batchName}</option>
+          ))}
+        </select>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="all">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+          <option value="completed">Completed</option>
+        </select>
+
+        <button 
+          onClick={handleResetFilters}
+          className="px-3 py-1.5 flex items-center justify-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer w-full sm:w-auto sm:ml-auto"
+          title="Reset Filters"
+        >
+          <RotateCcw size={14} /> Reset
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {quizzes.map(quiz => (
+        {filteredQuizzes.length === 0 ? (
+          <div className="col-span-full glass-panel p-12 text-center text-slate-500 dark:text-slate-400">
+            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-400 opacity-50" />
+            <p className="text-xl font-bold text-slate-800 dark:text-slate-200">No quizzes found</p>
+            <p className="text-sm mt-1 font-medium">Try adjusting your filters or search term.</p>
+          </div>
+        ) : (
+          filteredQuizzes.map(quiz => (
           <div key={quiz._id} className="glass-panel p-6 flex flex-col hover:-translate-y-1 transition-transform duration-300">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-bold text-lg text-slate-800 dark:text-white">{quiz.title}</h3>
@@ -288,7 +367,7 @@ const QuizManagement = () => {
               </div>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {showModal && (

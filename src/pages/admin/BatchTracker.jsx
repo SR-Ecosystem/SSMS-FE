@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Loader from '../../components/Loader';
+import SkeletonLoader from '../../components/SkeletonLoader';
 import { Check, Clock, X, RotateCcw, XCircle, Filter, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
 
 const BatchTracker = () => {
@@ -194,7 +195,7 @@ const BatchTracker = () => {
     return <ArrowDown size={14} className="text-indigo-500" />;
   };
 
-  if (loading && !selectedBatch) return <Loader />;
+  if (loading && !selectedBatch) return <SkeletonLoader type="table" />;
 
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -267,9 +268,9 @@ const BatchTracker = () => {
         <div className="flex items-center gap-2.5 flex-none border-l border-slate-200 dark:border-slate-700 pl-3">
           
           <button
-            onClick={() => fetchBatchData()}
+            onClick={fetchTrackerData}
             disabled={loading}
-            className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700 whitespace-nowrap"
+            className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded-lg hover:bg-slate-100 transition-colors border border-slate-200 dark:border-slate-700 whitespace-nowrap cursor-pointer"
             title="Refresh Data"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
@@ -310,14 +311,6 @@ const BatchTracker = () => {
             title="Reset All Filters"
           >
             <XCircle size={14} /> Reset
-          </button>
-
-          <button 
-            onClick={fetchTrackerData}
-            className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 transition-colors shadow-sm"
-            title="Reload Data"
-          >
-            <RotateCcw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>

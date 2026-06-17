@@ -1,27 +1,38 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Calendar, CheckCircle, XCircle, Clock, User as UserIcon, RefreshCw } from 'lucide-react';
-import Loader from '../../components/Loader';
+import { Calendar, CheckCircle, XCircle, Clock, User as UserIcon, RefreshCw, Search, Filter, RotateCcw, Loader2 } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({ id: null, status: null });
 
-  const fetchLeaves = async () => {
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBatch, setSelectedBatch] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+
+  const fetchData = async () => {
     try {
-      const { data } = await axios.get('/leaves');
-      setLeaves(data);
+      setLoading(true);
+      const [leavesRes, batchesRes] = await Promise.all([
+        axios.get('/leaves'),
+        axios.get('/batches')
+      ]);
+      setLeaves(leavesRes.data);
+      setBatches(batchesRes.data);
     } catch (error) {
-      console.error('Error fetching leaves:', error);
+      console.error('Error fetching leave requests data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLeaves();
+    fetchData();
   }, []);
 
   const handleUpdateStatus = async (id, status) => {
@@ -38,7 +49,7 @@ const LeaveRequests = () => {
         setActionLoading({ id, status });
         await axios.put(`/leaves/${id}/status`, { status });
         Swal.fire('Success', `Leave request has been ${status}.`, 'success');
-        fetchLeaves();
+        fetchData();
       }
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || `Failed to ${status} leave.`, 'error');
@@ -47,7 +58,38 @@ const LeaveRequests = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSelectedBatch('');
+    setSelectedStatus('all');
+  };
+
+  // Filtered leaves
+  const filteredLeaves = leaves.filter((leave) => {
+    const studentName = leave.studentId?.name || '';
+    const studentRoll = leave.studentId?.rollNumber || '';
+    const studentEmail = leave.studentId?.email || '';
+    const reasonText = leave.reason || '';
+
+    const matchesSearch = 
+      studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      studentRoll.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reasonText.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesBatch = 
+      !selectedBatch || 
+      leave.studentId?.batch === selectedBatch || 
+      (leave.studentId?.batch?._id === selectedBatch);
+
+    const matchesStatus = 
+      selectedStatus === 'all' || 
+      leave.status === selectedStatus;
+
+    return matchesSearch && matchesBatch && matchesStatus;
+  });
+
+  if (loading) return <SkeletonLoader type="table" />;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -59,25 +101,70 @@ const LeaveRequests = () => {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Manage and approve student leave requests</p>
         </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search student or reason..."
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
         <button
-          onClick={() => fetchLeaves()}
+          onClick={fetchData}
           disabled={loading}
-          className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
           title="Refresh Data"
         >
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={selectedBatch}
+          onChange={(e) => setSelectedBatch(e.target.value)}
+        >
+          <option value="">All Batches</option>
+          {batches.map(b => (
+            <option key={b._id} value={b._id}>{b.batchName}</option>
+          ))}
+        </select>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+        >
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+
+        <button 
+          onClick={handleResetFilters}
+          className="px-3 py-1.5 flex items-center justify-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer w-full sm:w-auto sm:ml-auto"
+          title="Reset Filters"
+        >
+          <RotateCcw size={14} /> Reset
         </button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {leaves.length === 0 ? (
+        {filteredLeaves.length === 0 ? (
           <div className="glass-panel p-12 text-center text-slate-500 dark:text-slate-400 col-span-full">
             <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-400 opacity-50" />
-            <p className="text-xl font-bold text-slate-800 dark:text-slate-200">All caught up!</p>
-            <p className="text-sm mt-1 font-medium">No leave requests found.</p>
+            <p className="text-xl font-bold text-slate-800 dark:text-slate-200">No requests found</p>
+            <p className="text-sm mt-1 font-medium">Try adjusting your filters or search term.</p>
           </div>
         ) : (
-          leaves.map((leave) => (
+          filteredLeaves.map((leave) => (
             <div key={leave._id} className="glass-panel p-6 card-hover relative overflow-hidden flex flex-col group">
               {/* Accent Line */}
               <div className={`absolute top-0 left-0 w-full h-1 ${leave.status === 'pending' ? 'bg-amber-500' : leave.status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`} />

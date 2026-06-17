@@ -1,18 +1,28 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { UserCheck, UserX, Loader2, Clock, RefreshCw } from 'lucide-react';
-import Loader from '../../components/Loader';
+import { UserCheck, UserX, Loader2, Clock, RefreshCw, Search, RotateCcw } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
 import Swal from 'sweetalert2';
 
 const EnrollmentRequests = () => {
   const [requests, setRequests] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState({ id: null, action: null });
 
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBatch, setSelectedBatch] = useState('');
+
   const fetchRequests = async () => {
     try {
-      const { data } = await axios.get('/enrollments/pending');
-      setRequests(data);
+      setLoading(true);
+      const [enrollRes, batchesRes] = await Promise.all([
+        axios.get('/enrollments/pending'),
+        axios.get('/batches')
+      ]);
+      setRequests(enrollRes.data);
+      setBatches(batchesRes.data);
     } catch (error) {
       console.error('Error fetching requests:', error);
     } finally {
@@ -49,27 +59,79 @@ const EnrollmentRequests = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  const filteredRequests = requests.filter((req) => {
+    const studentName = req.studentId?.name || '';
+    const studentEmail = req.studentId?.email || '';
+    const batchName = req.batchId?.batchName || '';
+
+    const matchesSearch = 
+      studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      batchName.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesBatch = 
+      !selectedBatch || 
+      req.batchId?._id === selectedBatch || 
+      req.batchId === selectedBatch;
+
+    return matchesSearch && matchesBatch;
+  });
+
+  if (loading) return <SkeletonLoader type="table" />;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Join Requests</h1>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search student name or email..."
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
         <button
-          onClick={() => fetchRequests()}
+          onClick={fetchRequests}
           disabled={loading}
-          className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
           title="Refresh Data"
         >
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={selectedBatch}
+          onChange={(e) => setSelectedBatch(e.target.value)}
+        >
+          <option value="">All Batches</option>
+          {batches.map(b => (
+            <option key={b._id} value={b._id}>{b.batchName}</option>
+          ))}
+        </select>
+
+        <button 
+          onClick={() => { setSearchTerm(''); setSelectedBatch(''); }}
+          className="px-3 py-1.5 flex items-center justify-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer w-full sm:w-auto sm:ml-auto"
+          title="Reset Filters"
+        >
+          <RotateCcw size={14} /> Reset
         </button>
       </div>
 
       <div className="glass-panel overflow-hidden">
-        {requests.length === 0 ? (
+        {filteredRequests.length === 0 ? (
           <div className="p-8 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center">
             <Clock className="w-12 h-12 mb-3 text-slate-300" />
-            <p>No pending join requests at the moment.</p>
+            <p>No pending join requests found matching the filters.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -84,7 +146,7 @@ const EnrollmentRequests = () => {
                 </tr>
               </thead>
               <tbody>
-                {requests.map((req) => (
+                {filteredRequests.map((req) => (
                   <tr key={req._id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                     <td className="p-4 font-medium text-slate-800 dark:text-slate-100">{req.studentId?.name}</td>
                     <td className="p-4 text-slate-600 dark:text-slate-300">{req.studentId?.email}</td>

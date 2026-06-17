@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Users, Plus, Edit, Trash2, Loader2, Calendar, UserMinus, X, Download, Clock, RefreshCw } from 'lucide-react';
-import Loader from '../../components/Loader';
+import { Users, Plus, Edit, Trash2, Loader2, Calendar, UserMinus, X, Download, Clock, RefreshCw, Search, RotateCcw, CheckCircle } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const BatchManagement = () => {
   const [batches, setBatches] = useState([]);
@@ -13,6 +13,10 @@ const BatchManagement = () => {
     batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: ''
   });
   const [editingId, setEditingId] = useState(null);
+
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   
   // Student Modal State
   const [showStudentsModal, setShowStudentsModal] = useState(false);
@@ -176,29 +180,87 @@ const BatchManagement = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('All');
+  };
+
+  const filteredBatches = batches.filter(batch => {
+    const matchesSearch = 
+      (batch.batchName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (batch.description || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = 
+      statusFilter === 'All' || 
+      batch.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) return <SkeletonLoader type="card-grid" />;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Batch Management</h1>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => fetchBatches()}
-            disabled={loading}
-            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
-            title="Refresh Data"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
           <button onClick={() => { setFormData({ batchName: '', description: '', startDate: '', endDate: '', status: 'Upcoming', checkInTime: '', checkOutTime: '' }); setEditingId(null); setShowModal(true); }} className="btn-primary flex items-center gap-2">
             <Plus size={20} /> Create Batch
           </button>
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search batch name or description..."
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <button
+          onClick={fetchBatches}
+          disabled={loading}
+          className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+          title="Refresh Data"
+        >
+          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm min-w-[180px]"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="All">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Upcoming">Upcoming</option>
+          <option value="Completed">Completed</option>
+        </select>
+
+        <button 
+          onClick={handleResetFilters}
+          className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer"
+          title="Reset Filters"
+        >
+          <RotateCcw size={14} /> Reset
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {batches.map((batch) => (
+        {filteredBatches.length === 0 ? (
+          <div className="col-span-full glass-panel p-12 text-center text-slate-500 dark:text-slate-400">
+            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-400 opacity-50" />
+            <p className="text-xl font-bold text-slate-800 dark:text-slate-200">No batches found</p>
+            <p className="text-sm mt-1 font-medium">Try adjusting your filters or search term.</p>
+          </div>
+        ) : (
+          filteredBatches.map((batch) => (
           <div key={batch._id} className="glass-panel p-6 card-hover flex flex-col">
             <div className="flex justify-between items-start mb-4">
               <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">{batch.batchName}</h3>
@@ -246,7 +308,7 @@ const BatchManagement = () => {
               </button>
             </div>
           </div>
-        ))}
+        )))}
       </div>
 
       {showModal && (

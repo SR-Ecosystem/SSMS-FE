@@ -208,17 +208,17 @@ const SubmissionReviews = () => {
           <input 
             type="text"
             placeholder="Search student or task..."
-            className="input-field py-1.5 text-sm min-w-[200px]"
+            className="input-field py-1.5 text-sm w-auto min-w-[150px]"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button
             onClick={() => fetchData()}
             disabled={loading}
-            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
+            className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
             title="Refresh Data"
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
           
           <button
@@ -232,7 +232,7 @@ const SubmissionReviews = () => {
           </button>
 
           <select 
-            className="input-field py-1.5 text-sm min-w-[150px]"
+            className="input-field py-1.5 text-sm w-auto min-w-[130px]"
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
           >
@@ -242,7 +242,7 @@ const SubmissionReviews = () => {
             <option value="resubmit">Resubmit Requested</option>
           </select>
           <select 
-            className="input-field py-1.5 text-sm min-w-[150px]"
+            className="input-field py-1.5 text-sm w-auto min-w-[130px]"
             value={selectedBatch}
             onChange={(e) => setSelectedBatch(e.target.value)}
           >

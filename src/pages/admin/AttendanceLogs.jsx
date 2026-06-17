@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, Calendar, Search, Filter, Download, User as UserIcon, CheckCircle, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Calendar, Search, Filter, Download, User as UserIcon, CheckCircle, AlertTriangle, XCircle, RefreshCw, LogOut } from 'lucide-react';
+import Swal from 'sweetalert2';
 import Loader from '../../components/Loader';
 import * as XLSX from 'xlsx';
 
@@ -186,6 +187,46 @@ const AttendanceLogs = () => {
     return <span className="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-1 rounded text-xs font-bold"><XCircle size={14}/> Absent/Partial</span>;
   };
 
+  const handleCheckout = async (logId) => {
+    if (!logId) return;
+    try {
+      await axios.put(`/attendance/admin/checkout/${logId}`);
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'Failed to checkout student', 'error');
+    }
+  };
+
+  const handleCheckoutAll = async () => {
+    const activeLogs = filteredLogs.filter(log => log.isActive);
+    if (activeLogs.length === 0) return;
+    
+    const studentIds = activeLogs.map(log => log.studentId);
+    try {
+      const result = await Swal.fire({
+        title: 'Check out all active students?',
+        text: `This will check out ${activeLogs.length} active students currently visible.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, check them out!'
+      });
+      
+      if (result.isConfirmed) {
+        setLoading(true);
+        await axios.put('/attendance/admin/checkout-all', { studentIds });
+        Swal.fire('Success', 'Students checked out successfully', 'success');
+        fetchData();
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'Failed to checkout all students', 'error');
+      setLoading(false);
+    }
+  };
+
+  const hasActiveLogs = viewMode === 'Day' && filteredLogs.some(log => log.isActive);
+
   if (loading) return <Loader />;
 
   return (
@@ -261,6 +302,15 @@ const AttendanceLogs = () => {
           <button onClick={handleExport} className="btn-primary flex items-center gap-2 py-2">
             <Download size={16} /> Export
           </button>
+          {hasActiveLogs && (
+            <button 
+              onClick={handleCheckoutAll} 
+              className="px-3 py-2 flex items-center gap-1.5 text-sm font-bold bg-rose-50 text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-100 transition-colors shrink-0"
+              title="Checkout all visible active students"
+            >
+              <LogOut size={16} /> Checkout All
+            </button>
+          )}
         </div>
       </div>
 
@@ -322,7 +372,16 @@ const AttendanceLogs = () => {
                         </td>
                         <td className="p-4 text-slate-600 dark:text-slate-400">
                           {log.isActive ? (
-                            <span className="text-emerald-500 font-bold animate-pulse text-xs">Active</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-emerald-500 font-bold animate-pulse text-xs">Active</span>
+                              <button 
+                                onClick={() => handleCheckout(log._id)}
+                                className="p-1 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded transition-colors"
+                                title="Force Checkout"
+                              >
+                                <LogOut size={14} />
+                              </button>
+                            </div>
                           ) : (
                             log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
                           )}

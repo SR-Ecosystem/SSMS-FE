@@ -3,8 +3,8 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { BookOpen, Plus, Loader2, UploadCloud, FileText as FileTextIcon, Edit, Trash2, Link as LinkIcon, RefreshCw } from 'lucide-react';
-import Loader from '../../components/Loader';
+import { BookOpen, Plus, Loader2, UploadCloud, FileText as FileTextIcon, Edit, Trash2, Link as LinkIcon, RefreshCw, Search, RotateCcw, CheckCircle } from 'lucide-react';
+import SkeletonLoader from '../../components/SkeletonLoader';
 
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
@@ -14,6 +14,10 @@ const TaskManagement = () => {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [filterBatch, setFilterBatch] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Filter States
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
   
   const [formData, setFormData] = useState({
     title: '', 
@@ -178,31 +182,33 @@ const TaskManagement = () => {
     }
   };
 
-  if (loading) return <Loader />;
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setFilterCategory('All');
+    setFilterBatch('');
+  };
+
+  const filteredTasks = tasks.filter(task => {
+    const titleText = task.title || '';
+    const descText = task.description || '';
+    const matchesSearch = 
+      titleText.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      descText.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCategory = 
+      filterCategory === 'All' || 
+      task.category === filterCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  if (loading) return <SkeletonLoader type="card-grid" />;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Task Management</h1>
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <button
-            onClick={() => fetchData()}
-            disabled={loading}
-            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
-            title="Refresh Data"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-          <select 
-            className="input-field py-1.5 text-sm appearance-none min-w-[200px]"
-            value={filterBatch}
-            onChange={(e) => setFilterBatch(e.target.value)}
-          >
-            <option value="">All Batches</option>
-            {batches.map(b => (
-              <option key={b._id} value={b._id}>{b.batchName}</option>
-            ))}
-          </select>
           <button 
             onClick={openCreateModal} 
             className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-bold py-2.5 px-6 text-sm rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5 whitespace-nowrap w-full sm:w-auto cursor-pointer"
@@ -212,8 +218,69 @@ const TaskManagement = () => {
         </div>
       </div>
 
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search task title or description..."
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+          title="Refresh Data"
+        >
+          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm min-w-[180px]"
+          value={filterBatch}
+          onChange={(e) => setFilterBatch(e.target.value)}
+        >
+          <option value="">All Batches</option>
+          {batches.map(b => (
+            <option key={b._id} value={b._id}>{b.batchName}</option>
+          ))}
+        </select>
+
+        <select 
+          className="input-field py-1.5 text-sm min-w-[180px]"
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+        >
+          <option value="All">All Categories</option>
+          <option value="General">General</option>
+          <option value="HW">HW</option>
+          <option value="CW">CW</option>
+          <option value="Project">Project</option>
+        </select>
+
+        <button 
+          onClick={handleResetFilters}
+          className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer"
+          title="Reset Filters"
+        >
+          <RotateCcw size={14} /> Reset
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {tasks.map(task => {
+        {filteredTasks.length === 0 ? (
+          <div className="col-span-full glass-panel p-12 text-center text-slate-500 dark:text-slate-400">
+            <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-400 opacity-50" />
+            <p className="text-xl font-bold text-slate-800 dark:text-slate-200">No tasks found</p>
+            <p className="text-sm mt-1 font-medium">Try adjusting your filters or search term.</p>
+          </div>
+        ) : (
+          filteredTasks.map(task => {
           const isOverdue = new Date() > new Date(task.dueDate).setHours(23, 59, 59, 999);
           return (
           <div key={task._id} className={`glass-panel p-6 card-hover border-l-4 flex flex-col ${isOverdue ? 'border-l-red-500' : 'border-l-primary-500'}`}>
@@ -278,7 +345,7 @@ const TaskManagement = () => {
               <span className={`px-2 py-1 rounded ${isOverdue ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/30'}`}>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
             </div>
           </div>
-        )})}
+        )}))}
       </div>
 
       {showModal && (
