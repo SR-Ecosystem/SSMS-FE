@@ -231,7 +231,7 @@ const AttendanceLogs = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Calendar className="text-emerald-500" />
@@ -239,79 +239,84 @@ const AttendanceLogs = () => {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Excel-format aggregated attendance tracking</p>
         </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => fetchData()}
-            disabled={loading}
-            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
-            title="Refresh Data"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search student..." 
-              className="input-field pl-9 py-2 text-sm w-full md:w-48"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <select 
-            className="input-field py-2 text-sm w-full sm:w-auto max-w-[150px]"
-            value={selectedBatch}
-            onChange={(e) => setSelectedBatch(e.target.value)}
-          >
-            <option value="">All Batches</option>
-            {batches.map(b => (
-              <option key={b._id} value={b._id}>{b.batchName}</option>
-            ))}
-          </select>
-          <select 
-            className="input-field py-2 text-sm font-bold text-emerald-700 bg-emerald-50 border-emerald-200 w-full sm:w-auto min-w-[140px]"
-            value={viewMode}
-            onChange={(e) => setViewMode(e.target.value)}
-          >
-            <option value="Day">Daily View</option>
-            <option value="Week">Weekly View</option>
-            <option value="Month">Monthly View</option>
-            <option value="Year">Yearly View</option>
-          </select>
-          
-          {viewMode === 'Day' && (
-            <>
-              <input 
-                type="date"
-                className="input-field py-2 text-sm w-full sm:w-auto font-bold text-slate-700"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-              />
-              <select 
-                className="input-field py-2 text-sm w-full sm:w-auto font-medium"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="All">All Statuses</option>
-                <option value="Active">Active Now</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </>
-          )}
-          <button onClick={handleExport} className="btn-primary flex items-center gap-2 py-2">
-            <Download size={16} /> Export
-          </button>
-          {hasActiveLogs && (
-            <button 
-              onClick={handleCheckoutAll} 
-              className="px-3 py-2 flex items-center gap-1.5 text-sm font-bold bg-rose-50 text-rose-600 border border-rose-200 rounded-xl hover:bg-rose-100 transition-colors shrink-0"
-              title="Checkout all visible active students"
-            >
-              <LogOut size={16} /> Checkout All
-            </button>
-          )}
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search student..." 
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
+
+        <button
+          onClick={() => fetchData()}
+          disabled={loading}
+          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+          title="Refresh Data"
+        >
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={selectedBatch}
+          onChange={(e) => setSelectedBatch(e.target.value)}
+        >
+          <option value="">All Batches</option>
+          {batches.map(b => (
+            <option key={b._id} value={b._id}>{b.batchName}</option>
+          ))}
+        </select>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[130px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50"
+          value={viewMode}
+          onChange={(e) => setViewMode(e.target.value)}
+        >
+          <option value="Day">Daily View</option>
+          <option value="Week">Weekly View</option>
+          <option value="Month">Monthly View</option>
+          <option value="Year">Yearly View</option>
+        </select>
+        
+        {viewMode === 'Day' && (
+          <>
+            <input 
+              type="date"
+              className="input-field py-1.5 text-sm w-full sm:w-auto font-bold text-slate-700 dark:text-slate-200"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
+            <select 
+              className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[130px]"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active Now</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </>
+        )}
+
+        <button onClick={handleExport} className="btn-primary flex items-center gap-2 py-1.5 text-sm shrink-0">
+          <Download size={14} /> Export
+        </button>
+        {hasActiveLogs && (
+          <button 
+            onClick={handleCheckoutAll} 
+            className="px-3 py-1.5 flex items-center gap-1.5 text-sm font-bold bg-rose-50 dark:bg-rose-900/20 text-rose-600 border border-rose-200 dark:border-rose-800/50 rounded-lg hover:bg-rose-100 transition-colors shrink-0 cursor-pointer"
+            title="Checkout all visible active students"
+          >
+            <LogOut size={14} /> Checkout All
+          </button>
+        )}
       </div>
 
       <div className="glass-panel overflow-hidden">

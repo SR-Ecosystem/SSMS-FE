@@ -363,38 +363,88 @@ const Layout = () => {
     return count > (seenCounts[key] || 0) ? count : 0;
   };
 
-  const adminLinks = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-    { name: 'Task Management', path: '/tasks', icon: <FileText size={20} /> },
-    { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={20} />, badge: getBadge('reviews', pendingCount) },
-    { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
-    { name: 'Batch Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
-    { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
-    { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
-    { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },
-    { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} /> },
-    { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
-    { name: 'Join Requests', path: '/enrollments', icon: <UserIcon size={20} />, badge: getBadge('joins', joinsCount) },
-    { name: 'Manage Batches', path: '/batches', icon: <BookOpen size={20} /> },
-    { name: 'Admin Profile', path: '/profile', icon: <UserIcon size={20} /> },
+  const adminSections = [
+    {
+      label: 'Overview',
+      links: [
+        { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
+      ]
+    },
+    {
+      label: 'Academic',
+      links: [
+        { name: 'Task Management', path: '/tasks', icon: <FileText size={20} /> },
+        { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={20} />, badge: getBadge('reviews', pendingCount) },
+        { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
+        { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
+      ]
+    },
+    {
+      label: 'Management',
+      links: [
+        { name: 'Manage Batches', path: '/batches', icon: <BookOpen size={20} /> },
+        { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
+        { name: 'Batch Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
+        { name: 'Join Requests', path: '/enrollments', icon: <UserIcon size={20} />, badge: getBadge('joins', joinsCount) },
+      ]
+    },
+    {
+      label: 'Operations',
+      links: [
+        { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} /> },
+        { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },
+        { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
+      ]
+    },
+    {
+      label: 'Account',
+      links: [
+        { name: 'Admin Profile', path: '/profile', icon: <UserIcon size={20} /> },
+      ]
+    }
   ];
 
-  const studentLinks = [
-    { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
-    { name: 'Login Activity', path: '/student/attendance', icon: <Clock size={20} /> },
-    { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
-    { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
-    { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, badge: getBadge('quizzes', quizCount) },
-    { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
-    { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
-    { name: 'Leave Application', path: '/student/leaves', icon: <Calendar size={20} /> },
-    { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, badge: getBadge('chats', chatCount) },
-    { name: 'Available Batches', path: '/student/available-batches', icon: <BookOpen size={20} /> },
-    { name: 'My Batches', path: '/student/my-batches', icon: <Users size={20} /> },
-    { name: 'My Profile', path: '/student/profile', icon: <UserIcon size={20} /> },
+  const studentSections = [
+    {
+      label: 'Main',
+      links: [
+        { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
+      ]
+    },
+    {
+      label: 'Learning',
+      links: [
+        { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
+        { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, badge: getBadge('quizzes', quizCount) },
+        { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
+      ]
+    },
+    {
+      label: 'Performance',
+      links: [
+        { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
+        { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
+      ]
+    },
+    {
+      label: 'Batches & Chat',
+      links: [
+        { name: 'My Batches', path: '/student/my-batches', icon: <Users size={20} /> },
+        { name: 'Available Batches', path: '/student/available-batches', icon: <BookOpen size={20} /> },
+        { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, badge: getBadge('chats', chatCount) },
+      ]
+    },
+    {
+      label: 'Account',
+      links: [
+        { name: 'Login Activity', path: '/student/attendance', icon: <Clock size={20} /> },
+        { name: 'Leave Application', path: '/student/leaves', icon: <Calendar size={20} /> },
+        { name: 'My Profile', path: '/student/profile', icon: <UserIcon size={20} /> },
+      ]
+    }
   ];
 
-  const links = user?.role === 'admin' ? adminLinks : studentLinks;
+  const sections = user?.role === 'admin' ? adminSections : studentSections;
 
   return (
     <div className="min-h-screen transition-colors duration-500 flex bg-transparent">
@@ -438,32 +488,44 @@ const Layout = () => {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar pr-2">
-          {links.map((link) => {
-            const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
-            return (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 text-[13px] ${
-                  isActive 
-                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm' 
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
-                }`}
-                onClick={() => setSidebarOpen(false)}
-              >
-                <div className="flex items-center gap-3">
-                  {link.icon}
-                  {link.name}
-                </div>
-                {link.badge > 0 && !isActive && (
-                  <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                    {link.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+        <div className="flex-1 overflow-y-auto py-3 px-3 custom-scrollbar pr-2">
+          {sections.map((section, sIdx) => (
+            <div key={section.label}>
+              {sIdx > 0 && (
+                <div className="mx-3 my-2 border-t border-slate-100 dark:border-white/5"></div>
+              )}
+              <p className="px-4 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
+                {section.label}
+              </p>
+              <div className="space-y-0.5">
+                {section.links.map((link) => {
+                  const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
+                  return (
+                    <Link
+                      key={link.name}
+                      to={link.path}
+                      className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 text-[13px] ${
+                        isActive 
+                          ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm' 
+                          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
+                      }`}
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {link.icon}
+                        {link.name}
+                      </div>
+                      {link.badge > 0 && !isActive && (
+                        <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                          {link.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="p-4 border-t border-slate-100 dark:border-white/10">

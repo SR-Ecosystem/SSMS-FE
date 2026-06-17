@@ -220,7 +220,7 @@ const TaskManagement = () => {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input 
             type="text" 
@@ -234,14 +234,14 @@ const TaskManagement = () => {
         <button
           onClick={fetchData}
           disabled={loading}
-          className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
           title="Refresh Data"
         >
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
         </button>
 
         <select 
-          className="input-field py-1.5 text-sm min-w-[180px]"
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
           value={filterBatch}
           onChange={(e) => setFilterBatch(e.target.value)}
         >
@@ -252,7 +252,7 @@ const TaskManagement = () => {
         </select>
 
         <select 
-          className="input-field py-1.5 text-sm min-w-[180px]"
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
           value={filterCategory}
           onChange={(e) => setFilterCategory(e.target.value)}
         >
@@ -265,7 +265,7 @@ const TaskManagement = () => {
 
         <button 
           onClick={handleResetFilters}
-          className="px-3 py-1.5 flex items-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer"
+          className="px-3 py-1.5 flex items-center justify-center gap-1.5 font-medium text-sm text-rose-600 bg-rose-50 dark:bg-rose-900/20 rounded-lg hover:bg-rose-100 transition-colors border border-rose-100 dark:border-rose-800/50 whitespace-nowrap cursor-pointer w-full sm:w-auto sm:ml-auto"
           title="Reset Filters"
         >
           <RotateCcw size={14} /> Reset

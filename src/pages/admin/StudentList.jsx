@@ -119,36 +119,40 @@ const StudentList = () => {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Student Directory</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and view all registered students</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-          <select 
-            value={selectedBatch}
-            onChange={(e) => setSelectedBatch(e.target.value)}
-            className="input-field max-w-[200px]"
-          >
-            <option value="">All Batches</option>
-            {batches.map(b => (
-              <option key={b._id} value={b._id}>{b.batchName}</option>
-            ))}
-          </select>
-          <button
-            onClick={() => fetchData()}
-            disabled={loading}
-            className="p-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0"
-            title="Refresh Data"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-          </button>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search students..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
-            />
-          </div>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+        <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search students..."
+            className="input-field pl-9 py-1.5 text-sm w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
+
+        <button
+          onClick={() => fetchData()}
+          disabled={loading}
+          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
+          title="Refresh Data"
+        >
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+        </button>
+
+        <select 
+          className="input-field py-1.5 text-sm w-full sm:w-auto min-w-[140px]"
+          value={selectedBatch}
+          onChange={(e) => setSelectedBatch(e.target.value)}
+        >
+          <option value="">All Batches</option>
+          {batches.map(b => (
+            <option key={b._id} value={b._id}>{b.batchName}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
