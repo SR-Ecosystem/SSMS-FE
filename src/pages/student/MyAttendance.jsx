@@ -74,7 +74,9 @@ const MyAttendance = () => {
         return;
       }
       const hours = day.totalSeconds / 3600;
-      if (hours >= 8 && hours <= 10) day.status = 'Present';
+      const minRequired = 8 - (day.leaveHours || 0);
+      
+      if (hours >= minRequired && hours <= 10) day.status = 'Present';
       else if (hours > 10) day.status = 'Invalid';
       else if (day.isActive || day.date === todayStr) day.status = 'In Progress';
       else day.status = 'Absent';

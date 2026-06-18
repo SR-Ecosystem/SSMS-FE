@@ -197,7 +197,14 @@ const LeaveRequests = () => {
                 <div className="flex flex-col flex-1">
                   <div className="mb-4">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-widest bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-500/20 shadow-sm">
-                      <Calendar size={14} /> Req. Date: {new Date(leave.date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                      <Calendar size={14} /> 
+                      {leave.leaveType === 'multiple_days' ? (
+                        <>Req. Date: {leave.startDate} to {leave.endDate}</>
+                      ) : leave.leaveType === 'hours' ? (
+                        <>Req. Date: {leave.startDate} ({leave.startTime} - {leave.endTime})</>
+                      ) : (
+                        <>Req. Date: {leave.startDate || leave.date}</>
+                      )}
                     </span>
                   </div>
                   

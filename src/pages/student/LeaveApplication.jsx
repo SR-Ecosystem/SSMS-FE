@@ -7,7 +7,14 @@ import Loader from '../../components/Loader';
 const LeaveApplication = () => {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ date: '', reason: '' });
+  const [formData, setFormData] = useState({ 
+    leaveType: 'full_day',
+    startDate: '', 
+    endDate: '', 
+    startTime: '', 
+    endTime: '', 
+    reason: '' 
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const fetchLeaves = async () => {
@@ -27,7 +34,7 @@ const LeaveApplication = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.date || !formData.reason) return;
+    if (!formData.startDate || !formData.reason) return;
     
     setSubmitting(true);
     try {
@@ -37,7 +44,14 @@ const LeaveApplication = () => {
         text: 'Leave application submitted successfully.',
         icon: 'success'
       });
-      setFormData({ date: '', reason: '' });
+      setFormData({ 
+        leaveType: 'full_day',
+        startDate: '', 
+        endDate: '', 
+        startTime: '', 
+        endTime: '', 
+        reason: '' 
+      });
       fetchLeaves();
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || 'Failed to submit leave application', 'error');
@@ -75,15 +89,78 @@ const LeaveApplication = () => {
           <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200 mb-4 border-b border-slate-100 dark:border-slate-800 pb-2">New Request</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date of Leave</label>
-              <input 
-                type="date" 
-                required 
-                className="input-field w-full"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              />
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Leave Type</label>
+              <select 
+                className="input-field w-full mb-4"
+                value={formData.leaveType}
+                onChange={(e) => setFormData({ ...formData, leaveType: e.target.value })}
+              >
+                <option value="full_day">Full Day</option>
+                <option value="multiple_days">Multiple Days</option>
+                <option value="hours">Specific Hours</option>
+              </select>
             </div>
+
+            {formData.leaveType === 'multiple_days' ? (
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Date</label>
+                  <input 
+                    type="date" 
+                    required 
+                    className="input-field w-full"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Date</label>
+                  <input 
+                    type="date" 
+                    required 
+                    className="input-field w-full"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date</label>
+                <input 
+                  type="date" 
+                  required 
+                  className="input-field w-full"
+                  value={formData.startDate}
+                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                />
+              </div>
+            )}
+
+            {formData.leaveType === 'hours' && (
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Start Time</label>
+                  <input 
+                    type="time" 
+                    required 
+                    className="input-field w-full"
+                    value={formData.startTime}
+                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">End Time</label>
+                  <input 
+                    type="time" 
+                    required 
+                    className="input-field w-full"
+                    value={formData.endTime}
+                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Reason</label>
               <textarea 
@@ -120,7 +197,7 @@ const LeaveApplication = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500">
-                    <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold">Date/Time</th>
                     <th className="p-4 font-semibold">Reason</th>
                     <th className="p-4 font-semibold text-right">Status</th>
                   </tr>
@@ -129,7 +206,16 @@ const LeaveApplication = () => {
                   {leaves.map((leave) => (
                     <tr key={leave._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                       <td className="p-4 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                        {leave.date}
+                        {leave.leaveType === 'multiple_days' ? (
+                          <span>{leave.startDate} <span className="text-slate-400 font-normal mx-1">to</span> {leave.endDate}</span>
+                        ) : leave.leaveType === 'hours' ? (
+                          <div className="flex flex-col">
+                            <span>{leave.startDate}</span>
+                            <span className="text-xs text-indigo-500 font-medium">{leave.startTime} - {leave.endTime}</span>
+                          </div>
+                        ) : (
+                          <span>{leave.startDate || leave.date}</span>
+                        )}
                       </td>
                       <td className="p-4 text-slate-600 dark:text-slate-400">
                         {leave.reason}

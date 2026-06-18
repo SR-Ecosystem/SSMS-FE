@@ -114,7 +114,8 @@ const AttendanceLogs = () => {
         }
         groupedMap[key].totalSeconds += (log.totalSeconds || 0);
         const hours = (log.totalSeconds || 0) / 3600;
-        if (hours >= 8 && hours <= 10) groupedMap[key].daysPresent += 1;
+        const minRequired = 8 - (log.leaveHours || 0);
+        if (hours >= minRequired && hours <= 10) groupedMap[key].daysPresent += 1;
         else if (hours > 10) groupedMap[key].daysInvalid += 1;
         else groupedMap[key].daysAbsent += 1;
       }
@@ -127,8 +128,10 @@ const AttendanceLogs = () => {
           return;
         }
         const hours = (day.totalSeconds || 0) / 3600;
+        const minRequired = 8 - (day.leaveHours || 0);
         const todayStr = new Date().toISOString().split('T')[0];
-        if (hours >= 8 && hours <= 10) day.status = 'Present';
+        
+        if (hours >= minRequired && hours <= 10) day.status = 'Present';
         else if (hours > 10) day.status = 'Invalid';
         else if (day.isActive || day.date === todayStr) day.status = 'In Progress';
         else day.status = 'Absent';

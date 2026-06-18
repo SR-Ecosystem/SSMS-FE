@@ -45,6 +45,8 @@ const Layout = () => {
   const [joinsCount, setJoinsCount] = useState(0);
   const [onlineStudentsCount, setOnlineStudentsCount] = useState(0);
   
+  const [activeLeaveStatus, setActiveLeaveStatus] = useState({ isOnLeave: false, message: '' });
+  
   // Header Notifications state
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -215,6 +217,13 @@ const Layout = () => {
             soundManager.playNotification();
           }
           setNotifications(newNotifs);
+          
+          try {
+            const { data: leaveData } = await axios.get('/leaves/active-status');
+            setActiveLeaveStatus({ isOnLeave: leaveData.isOnLeave, message: leaveData.message });
+          } catch (leaveErr) {
+            console.error('Failed to fetch active leave status:', leaveErr);
+          }
           
           // Restore today's attendance session state
           try {
@@ -672,8 +681,8 @@ const Layout = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <Outlet context={{ sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn }} />
+        <div className="flex-1 overflow-auto relative z-10 p-4 lg:p-8 pt-4">
+          <Outlet context={{ sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus }} />
         </div>
       </main>
     </div>

@@ -9,7 +9,7 @@ import SkeletonLoader from '../../components/SkeletonLoader';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
-  const { sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn } = useOutletContext();
+  const { sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus } = useOutletContext();
   const [analytics, setAnalytics] = useState(null);
   const [quizAttempts, setQuizAttempts] = useState([]);
   const [activeLeetcode, setActiveLeetcode] = useState([]);
@@ -221,6 +221,19 @@ const StudentDashboard = () => {
                   {isCheckingIn ? <Loader2 size={16} className="animate-spin" /> : <Square size={16} fill="currentColor" />} 
                   Check Out
                 </button>
+              ) : activeLeaveStatus?.isOnLeave ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-xs font-bold text-amber-200 mb-2 max-w-[180px] text-right">
+                    {activeLeaveStatus.message}
+                  </span>
+                  <button 
+                    disabled
+                    className="bg-white/50 text-teal-800/50 px-8 py-3 rounded-xl text-base font-black flex items-center gap-2 cursor-not-allowed"
+                  >
+                    <Calendar size={16} /> 
+                    On Leave
+                  </button>
+                </div>
               ) : (
                 <button 
                   onClick={() => startSession()} 
