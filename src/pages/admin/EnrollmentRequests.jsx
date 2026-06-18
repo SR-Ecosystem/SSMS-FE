@@ -134,61 +134,110 @@ const EnrollmentRequests = () => {
             <p>No pending join requests found matching the filters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200">
-                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Student Name</th>
-                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Email</th>
-                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Requested Batch</th>
-                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Date</th>
-                  <th className="p-4 font-semibold text-slate-700 dark:text-slate-200 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRequests.map((req) => (
-                  <tr key={req._id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                    <td className="p-4 font-medium text-slate-800 dark:text-slate-100">{req.studentId?.name}</td>
-                    <td className="p-4 text-slate-600 dark:text-slate-300">{req.studentId?.email}</td>
-                    <td className="p-4">
-                      <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium">
-                        {req.batchId?.batchName}
-                      </span>
-                    </td>
-                    <td className="p-4 text-slate-500 dark:text-slate-400 text-sm">
+          <>
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 lg:hidden p-4">
+              {filteredRequests.map((req) => (
+                <div key={req._id} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col gap-3">
+                  <div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100">{req.studentId?.name}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">{req.studentId?.email}</div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-xs font-bold">
+                      {req.batchId?.batchName}
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                       {new Date(req.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => handleAction(req._id, 'approve')}
-                        disabled={actionLoading.id === req._id}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading.id === req._id && actionLoading.action === 'approve' ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <UserCheck size={16} />
-                        )}
-                        Approve
-                      </button>
-                      <button 
-                        onClick={() => handleAction(req._id, 'reject')}
-                        disabled={actionLoading.id === req._id}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
-                      >
-                        {actionLoading.id === req._id && actionLoading.action === 'reject' ? (
-                          <Loader2 size={16} className="animate-spin" />
-                        ) : (
-                          <UserX size={16} />
-                        )}
-                        Reject
-                      </button>
-                    </td>
+                    </span>
+                  </div>
+                  <div className="mt-2 flex gap-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+                    <button 
+                      onClick={() => handleAction(req._id, 'approve')}
+                      disabled={actionLoading.id === req._id}
+                      className="flex-1 flex justify-center items-center gap-1 px-3 py-2 bg-emerald-500 text-white text-sm font-bold rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                    >
+                      {actionLoading.id === req._id && actionLoading.action === 'approve' ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <UserCheck size={16} />
+                      )}
+                      Approve
+                    </button>
+                    <button 
+                      onClick={() => handleAction(req._id, 'reject')}
+                      disabled={actionLoading.id === req._id}
+                      className="flex-1 flex justify-center items-center gap-1 px-3 py-2 bg-red-500 text-white text-sm font-bold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                    >
+                      {actionLoading.id === req._id && actionLoading.action === 'reject' ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <UserX size={16} />
+                      )}
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10">
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Student Name</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Email</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Requested Batch</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-200">Date</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-200 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredRequests.map((req) => (
+                    <tr key={req._id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
+                      <td className="p-4 font-medium text-slate-800 dark:text-slate-100">{req.studentId?.name}</td>
+                      <td className="p-4 text-slate-600 dark:text-slate-400">{req.studentId?.email}</td>
+                      <td className="p-4">
+                        <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm font-medium">
+                          {req.batchId?.batchName}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-500 dark:text-slate-400 text-sm">
+                        {new Date(req.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-4 flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleAction(req._id, 'approve')}
+                          disabled={actionLoading.id === req._id}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading.id === req._id && actionLoading.action === 'approve' ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <UserCheck size={16} />
+                          )}
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => handleAction(req._id, 'reject')}
+                          disabled={actionLoading.id === req._id}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading.id === req._id && actionLoading.action === 'reject' ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <UserX size={16} />
+                          )}
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>

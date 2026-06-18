@@ -154,13 +154,13 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-teal-400/30">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mt-auto pt-4 border-t border-teal-400/30">
             <div>
               <p className="text-xs text-teal-100 mb-1">Admin</p>
-              <p className="font-bold text-lg">{user?.name || 'Admin'}</p>
+              <p className="font-bold text-lg truncate max-w-[150px]">{user?.name || 'Admin'}</p>
             </div>
             <div className="flex items-center gap-2">
-              <Link to="/students" className="bg-white text-teal-600 hover:bg-teal-50 px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5">
+              <Link to="/students" className="bg-white text-teal-600 hover:bg-teal-50 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap">
                 <Users size={16} /> View Students
               </Link>
             </div>
@@ -226,7 +226,7 @@ const AdminDashboard = () => {
         {/* Submission Volume Chart */}
         <div className="lg:col-span-5 bg-gradient-to-br from-cyan-400 to-blue-500 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-blue-500/40 flex flex-col min-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-48 h-48 bg-white/20 rounded-full blur-3xl pointer-events-none -ml-10 -mt-10"></div>
-          <div className="flex justify-between items-center mb-6 relative z-10">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-6 relative z-10">
             <h3 className="text-sm font-extrabold text-white drop-shadow-sm">Submission Volume</h3>
             <select 
               className="text-xs font-bold text-blue-600 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors shadow-sm cursor-pointer focus:outline-none"

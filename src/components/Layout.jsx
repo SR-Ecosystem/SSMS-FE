@@ -3,7 +3,7 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, Users, BookOpen, FileText, CheckCircle, 
-  LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar
+  LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
@@ -15,6 +15,13 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Dark mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -36,6 +43,7 @@ const Layout = () => {
   const [chatCount, setChatCount] = useState(0);
   const [leavesCount, setLeavesCount] = useState(0);
   const [joinsCount, setJoinsCount] = useState(0);
+  const [onlineStudentsCount, setOnlineStudentsCount] = useState(0);
   
   // Header Notifications state
   const [notifications, setNotifications] = useState([]);
@@ -182,6 +190,9 @@ const Layout = () => {
   useEffect(() => {
     const fetchCounts = async () => {
       try {
+        const { data: onlineData } = await axios.get('/attendance/active-count');
+        setOnlineStudentsCount(onlineData.activeCount || 0);
+
         if (user?.role === 'admin') {
           const { data } = await axios.get('/analytics/dashboard');
           setPendingCount(data.pendingReviews || 0);
@@ -446,6 +457,26 @@ const Layout = () => {
 
   const sections = user?.role === 'admin' ? adminSections : studentSections;
 
+  if (user?.role === 'student' && isMobile) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-rose-500/20 rounded-full flex items-center justify-center mb-6">
+          <Monitor size={40} className="text-rose-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-2">Desktop Access Required</h1>
+        <p className="text-slate-400 max-w-md mx-auto mb-8">
+          The student portal is optimized for laptop and desktop browsers. Please log in from a computer to access your classes, tasks, and materials.
+        </p>
+        <button
+          onClick={logout}
+          className="flex items-center gap-2 bg-slate-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-700 transition-colors"
+        >
+          <LogOut size={18} /> Logout
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen transition-colors duration-500 flex bg-transparent">
       {isSyncing && (
@@ -552,6 +583,12 @@ const Layout = () => {
           
           <div className="ml-auto flex items-center gap-4 glass-panel px-2 py-1.5 h-14">
             
+            {/* Online Students Count */}
+            <div className="hidden sm:flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 dark:border-slate-700">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span>{onlineStudentsCount} Online</span>
+            </div>
+
             {/* Student Timer */}
             {user?.role === 'student' && sessionActive && (
               <div className="hidden sm:flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full text-sm font-medium border border-emerald-100 dark:border-emerald-800">

@@ -17,6 +17,14 @@ const AttendanceLogs = () => {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [statusFilter, setStatusFilter] = useState('All');
 
+  const formatTime = (totalSeconds) => {
+    if (!totalSeconds) return '0min';
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    if (h > 0) return `${h}hr ${m}min`;
+    return `${m}min`;
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -87,6 +95,7 @@ const AttendanceLogs = () => {
           if (log.isActive) {
             groupedMap[key].isActive = true;
             groupedMap[key].lastCheckOut = null;
+            groupedMap[key]._id = log._id; // Use active session's ID for checkout
           }
         }
       } else {
@@ -187,9 +196,18 @@ const AttendanceLogs = () => {
     return <span className="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-1 rounded text-xs font-bold"><XCircle size={14}/> Absent/Partial</span>;
   };
 
-  const handleCheckout = async (logId) => {
+  const handleCheckout = async (logId, studentName) => {
     if (!logId) return;
     try {
+      const result = await Swal.fire({
+        title: `Check out ${studentName || 'this student'}?`,
+        text: 'This will end their active session.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, check out',
+        cancelButtonText: 'Cancel'
+      });
+      if (!result.isConfirmed) return;
       await axios.put(`/attendance/admin/checkout/${logId}`);
       fetchData();
     } catch (error) {
@@ -327,91 +345,185 @@ const AttendanceLogs = () => {
             <p className="text-sm mt-1">Try adjusting your filters or search terms.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500">
-                  <th className="p-4 font-semibold w-16">S.No.</th>
-                  <th className="p-4 font-semibold">Student Name</th>
-                  <th className="p-4 font-semibold">{viewMode === 'Day' ? 'Date' : 'Period'}</th>
-                  {viewMode === 'Day' && (
-                    <>
-                      <th className="p-4 font-semibold">First Check-In</th>
-                      <th className="p-4 font-semibold">Last Check-Out</th>
-                    </>
-                  )}
-                  <th className="p-4 font-semibold">Total Logged Time</th>
-                  {viewMode === 'Day' ? (
-                    <th className="p-4 font-semibold">Daily Status</th>
-                  ) : (
-                    <>
-                      <th className="p-4 font-semibold text-emerald-600">Days Present</th>
-                      <th className="p-4 font-semibold text-amber-600">Invalid (&gt;10h)</th>
-                      <th className="p-4 font-semibold text-rose-600">Absent/Partial</th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                {filteredLogs.map((log, idx) => (
-                  <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="p-4 text-slate-500 dark:text-slate-400 font-medium">{idx + 1}</td>
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-                          {(log.name || '?').charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-800 dark:text-slate-200">{log.name || 'Unknown Student'}</p>
-                          <p className="text-[10px] text-slate-500">{log.email || 'No email'}</p>
-                        </div>
+          <>
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 lg:hidden p-4">
+              {filteredLogs.map((log, idx) => (
+                <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                        {(log.name || '?').charAt(0)}
                       </div>
-                    </td>
-                    <td className="p-4 font-medium text-slate-700 dark:text-slate-300">
-                      {viewMode === 'Day' ? log.date : log.period}
-                    </td>
+                      <div>
+                        <p className="font-bold text-slate-800 dark:text-slate-200 text-base">{log.name || 'Unknown Student'}</p>
+                        <p className="text-xs text-slate-500">{log.email || 'No email'}</p>
+                      </div>
+                    </div>
                     {viewMode === 'Day' && (
+                      <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
+                        log.status === 'Present' ? 'bg-emerald-100 text-emerald-700' :
+                        log.status === 'Absent' ? 'bg-rose-100 text-rose-700' :
+                        log.status === 'Leave' ? 'bg-indigo-100 text-indigo-700' :
+                        log.status === 'Invalid' ? 'bg-amber-100 text-amber-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {log.status}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="border-t border-slate-100 dark:border-slate-700 pt-3 grid grid-cols-2 gap-2 text-sm">
+                    <div className="col-span-2 flex justify-between bg-slate-50 dark:bg-slate-900 p-2 rounded">
+                      <span className="text-slate-500">{viewMode === 'Day' ? 'Date' : 'Period'}:</span>
+                      <span className="font-bold">{viewMode === 'Day' ? log.date : log.period}</span>
+                    </div>
+                    
+                    {viewMode === 'Day' ? (
                       <>
-                        <td className="p-4 text-slate-600 dark:text-slate-400">
-                          {log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-                        </td>
-                        <td className="p-4 text-slate-600 dark:text-slate-400">
+                        <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded flex flex-col">
+                          <span className="text-xs text-slate-500">First In</span>
+                          <span className="font-medium">{log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                        </div>
+                        <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded flex flex-col">
+                          <span className="text-xs text-slate-500">Last Out</span>
                           {log.isActive ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-emerald-500 font-bold animate-pulse text-xs">Active</span>
+                            <span className="text-emerald-500 font-bold flex items-center justify-between gap-1 w-full">
+                              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Active</span>
                               <button 
-                                onClick={() => handleCheckout(log._id)}
-                                className="p-1 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded transition-colors"
+                                onClick={() => handleCheckout(log._id, log.name)}
+                                className="p-1 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded transition-colors bg-rose-50 dark:bg-rose-900/20"
                                 title="Force Checkout"
                               >
                                 <LogOut size={14} />
                               </button>
-                            </div>
+                            </span>
                           ) : (
-                            log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+                            <span className="font-medium">{log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
                           )}
-                        </td>
+                        </div>
+                        <div className="col-span-2 bg-slate-50 dark:bg-slate-900 p-2 rounded flex justify-between items-center">
+                          <span className="text-xs text-slate-500">Total Logged Time</span>
+                          <span className="font-bold text-lg text-emerald-600">{formatTime(log.totalSeconds)}</span>
+                        </div>
                       </>
-                    )}
-                    <td className="p-4 font-mono font-bold text-slate-600 dark:text-slate-400">
-                      {formatDuration(log.totalSeconds)}
-                    </td>
-                    {viewMode === 'Day' ? (
-                      <td className="p-4">
-                        {renderStatusBadge(log.status)}
-                      </td>
                     ) : (
                       <>
-                        <td className="p-4 font-bold text-emerald-600">{log.daysPresent}</td>
-                        <td className="p-4 font-bold text-amber-600">{log.daysInvalid}</td>
-                        <td className="p-4 font-bold text-rose-600">{log.daysAbsent}</td>
+                        <div className="col-span-2 bg-slate-50 dark:bg-slate-900 p-2 rounded flex justify-between items-center">
+                          <span className="text-xs text-slate-500">Total Logged Time</span>
+                          <span className="font-bold text-lg text-emerald-600">{formatTime(log.totalSeconds)}</span>
+                        </div>
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-2 rounded flex justify-between items-center text-emerald-700 dark:text-emerald-400">
+                          <span className="text-xs">Days Present</span>
+                          <span className="font-bold">{log.daysPresent}</span>
+                        </div>
+                        <div className="bg-rose-50 dark:bg-rose-900/20 p-2 rounded flex justify-between items-center text-rose-700 dark:text-rose-400">
+                          <span className="text-xs">Absent/Partial</span>
+                          <span className="font-bold">{log.daysAbsent}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full text-left border-collapse whitespace-nowrap">
+                <thead>
+                  <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs uppercase tracking-wider text-slate-500">
+                    <th className="p-4 font-semibold w-16">S.No.</th>
+                    <th className="p-4 font-semibold">Student Name</th>
+                    <th className="p-4 font-semibold">{viewMode === 'Day' ? 'Date' : 'Period'}</th>
+                    {viewMode === 'Day' && (
+                      <>
+                        <th className="p-4 font-semibold">First Check-In</th>
+                        <th className="p-4 font-semibold">Last Check-Out</th>
+                      </>
+                    )}
+                    <th className="p-4 font-semibold">Total Logged Time</th>
+                    {viewMode === 'Day' ? (
+                      <th className="p-4 font-semibold">Daily Status</th>
+                    ) : (
+                      <>
+                        <th className="p-4 font-semibold text-emerald-600">Days Present</th>
+                        <th className="p-4 font-semibold text-amber-600">Invalid (&gt;10h)</th>
+                        <th className="p-4 font-semibold text-rose-600">Absent/Partial</th>
                       </>
                     )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="text-sm">
+                  {filteredLogs.map((log, idx) => (
+                    <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="p-4 text-slate-500 dark:text-slate-400 font-medium">{idx + 1}</td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                            {(log.name || '?').charAt(0)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-800 dark:text-slate-200">{log.name || 'Unknown Student'}</p>
+                            <p className="text-[10px] text-slate-500">{log.email || 'No email'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 font-medium text-slate-700 dark:text-slate-300">
+                        {viewMode === 'Day' ? log.date : log.period}
+                      </td>
+                      {viewMode === 'Day' && (
+                        <>
+                          <td className="p-4 text-slate-600 dark:text-slate-400">
+                            {log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                          </td>
+                          <td className="p-4 text-slate-600 dark:text-slate-400">
+                            {log.isActive ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">Active Now</span>
+                                <button 
+                                  onClick={() => handleCheckout(log._id, log.name)}
+                                  className="p-1 ml-1 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded transition-colors"
+                                  title="Force Checkout"
+                                >
+                                  <LogOut size={14} />
+                                </button>
+                              </div>
+                            ) : (
+                              log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+                            )}
+                          </td>
+                        </>
+                      )}
+                      <td className="p-4">
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatTime(log.totalSeconds)}</span>
+                      </td>
+                      {viewMode === 'Day' ? (
+                        <td className="p-4">
+                          <span className={`px-2 py-1 text-xs font-bold rounded uppercase tracking-wider ${
+                            log.status === 'Present' ? 'bg-emerald-100 text-emerald-700' :
+                            log.status === 'Absent' ? 'bg-rose-100 text-rose-700' :
+                            log.status === 'Leave' ? 'bg-indigo-100 text-indigo-700' :
+                            log.status === 'Invalid' ? 'bg-amber-100 text-amber-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {log.status}
+                          </span>
+                        </td>
+                      ) : (
+                        <>
+                          <td className="p-4 font-bold text-emerald-600">{log.daysPresent}</td>
+                          <td className="p-4 font-bold text-amber-600">{log.daysInvalid}</td>
+                          <td className="p-4 font-bold text-rose-600">{log.daysAbsent}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
