@@ -371,8 +371,14 @@ const QuizManagement = () => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="glass-panel w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
+        <div 
+          className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
+          onClick={() => setShowModal(false)}
+        >
+          <div 
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center">
               <h2 className="text-xl font-extrabold text-slate-800 dark:text-white">
                 {editingId ? 'Edit Quiz' : 'Create New Quiz'}

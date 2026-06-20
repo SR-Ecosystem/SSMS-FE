@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import 'react-quill-new/dist/quill.snow.css';
-import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download, RefreshCw, Zap } from 'lucide-react';
+import { FileText, CheckCircle, ExternalLink, Loader2, Link as LinkIcon, Download, RefreshCw, Zap, X } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const formatDateTime = (dateString) => {
@@ -379,8 +379,14 @@ const SubmissionReviews = () => {
       )}
 
       {activeReview && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800">
+        <div 
+          className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+          onClick={() => setActiveReview(null)}
+        >
+          <div 
+            className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-slate-100 dark:border-white/10 flex justify-between items-center bg-slate-50 dark:bg-white/5 shrink-0">
               <div>
                 <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -396,11 +402,16 @@ const SubmissionReviews = () => {
               <div className="flex items-center gap-4">
                 <button 
                   onClick={() => handleRequestResubmit(activeReview._id)} 
-                  className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 px-3 py-1.5 rounded-md hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+                  className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400 px-3 py-1.5 rounded-md hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors whitespace-nowrap"
                 >
                   Request Re-submit
                 </button>
-                <button onClick={() => setActiveReview(null)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300">&times;</button>
+                <button 
+                  onClick={() => setActiveReview(null)} 
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-colors"
+                >
+                  <X size={18} />
+                </button>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto p-6 space-y-6 relative">

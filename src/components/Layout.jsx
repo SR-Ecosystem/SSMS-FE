@@ -681,7 +681,7 @@ const Layout = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto relative z-10 p-4 lg:p-8 pt-4">
+        <div className="flex-1 overflow-auto p-4 lg:p-8 pt-4">
           <Outlet context={{ sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus }} />
         </div>
       </main>

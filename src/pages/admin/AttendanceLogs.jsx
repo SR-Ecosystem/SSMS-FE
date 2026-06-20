@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 
 const AttendanceLogs = () => {
   const [logs, setLogs] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Filter States
@@ -25,15 +26,27 @@ const AttendanceLogs = () => {
     return `${m}min`;
   };
 
+  const formatDateString = (dateStr) => {
+    if (!dateStr) return '';
+    // Convert YYYY-MM-DD to DD-MM-YYYY
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [logsRes, batchesRes] = await Promise.all([
+      const [logsRes, batchesRes, studentsRes] = await Promise.all([
         axios.get(`/attendance/summary${selectedBatch ? `?batchId=${selectedBatch}` : ''}`),
-        axios.get('/batches')
+        axios.get('/batches'),
+        axios.get(`/auth/students${selectedBatch ? `?batchId=${selectedBatch}` : ''}`)
       ]);
       setLogs(logsRes.data);
       setBatches(batchesRes.data);
+      setAllStudents(studentsRes.data);
     } catch (error) {
       console.error('Error fetching attendance summary:', error);
     } finally {
@@ -138,6 +151,36 @@ const AttendanceLogs = () => {
       }
     });
 
+    // For Day view: inject students with no records ON THE SELECTED DATE as 'Waiting'
+    if (viewMode === 'Day') {
+      // Only include students who have a record specifically for the selected date
+      const checkedInOnSelectedDate = new Set(
+        Object.values(groupedMap)
+          .filter(e => e.date === selectedDate)
+          .map(e => String(e.studentId))
+      );
+      allStudents.forEach(student => {
+        if (!checkedInOnSelectedDate.has(String(student._id))) {
+          groupedMap[`${student._id}_${selectedDate}_ghost`] = {
+            studentId: String(student._id),
+            name: student.name,
+            email: student.email,
+            rollNumber: student.rollNumber,
+            date: selectedDate,
+            period: selectedDate,
+            totalSeconds: 0,
+            firstCheckIn: null,
+            lastCheckOut: null,
+            isActive: false,
+            isLeave: false,
+            leaveHours: 0,
+            status: 'Waiting',
+            _isGhost: true
+          };
+        }
+      });
+    }
+
     return Object.values(groupedMap).sort((a, b) => b.period.localeCompare(a.period));
   };
 
@@ -153,7 +196,9 @@ const AttendanceLogs = () => {
       
       let statusMatch = true;
       if (statusFilter === 'Active') statusMatch = log.isActive === true;
-      if (statusFilter === 'Inactive') statusMatch = !log.isActive;
+      if (statusFilter === 'Inactive') statusMatch = !log.isActive && log.status !== 'Waiting' && log.status !== 'Leave';
+      if (statusFilter === 'Leave') statusMatch = log.status === 'Leave';
+      if (statusFilter === 'Waiting') statusMatch = log.status === 'Waiting';
       
       return searchMatch && dateMatch && statusMatch;
     }
@@ -166,11 +211,11 @@ const AttendanceLogs = () => {
         return {
           'Student Name': log.name,
           'Email': log.email,
-          'Date': log.date,
-          'First Check-In': log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString() : 'N/A',
-          'Last Check-Out': log.isActive ? 'Active Now' : (log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString() : 'N/A'),
-          'Total Hours': (log.totalSeconds / 3600).toFixed(2),
-          'Status': log.status
+          'Date': formatDateString(log.date),
+          'First Check-In': log.status === 'Waiting' ? '---' : log.status === 'Leave' ? 'On Leave' : (log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString() : 'N/A'),
+          'Last Check-Out': log.status === 'Waiting' ? '---' : log.status === 'Leave' ? 'On Leave' : log.isActive ? 'Active Now' : (log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString() : 'N/A'),
+          'Total Hours': log.status === 'Waiting' ? '---' : log.status === 'Leave' ? '—' : (log.totalSeconds / 3600).toFixed(2),
+          'Status': log.status === 'Waiting' ? 'Waiting for Check-In' : log.status
         };
       } else {
         return {
@@ -196,6 +241,7 @@ const AttendanceLogs = () => {
     if (status === 'Invalid') return <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded text-xs font-bold" title="> 10 hours (Left System On)"><AlertTriangle size={14}/> Invalid (&gt;10h)</span>;
     if (status === 'Leave') return <span className="flex items-center gap-1 text-indigo-600 bg-indigo-50 px-2 py-1 rounded text-xs font-bold"><Calendar size={14}/> Approved Leave</span>;
     if (status === 'In Progress') return <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs font-bold"><Loader2 className="animate-spin" size={14}/> In Progress</span>;
+    if (status === 'Waiting') return <span className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded text-xs font-bold"><UserIcon size={14}/> Waiting for Check-In</span>;
     return <span className="flex items-center gap-1 text-rose-600 bg-rose-50 px-2 py-1 rounded text-xs font-bold"><XCircle size={14}/> Absent/Partial</span>;
   };
 
@@ -322,6 +368,8 @@ const AttendanceLogs = () => {
               <option value="All">All Statuses</option>
               <option value="Active">Active Now</option>
               <option value="Inactive">Inactive</option>
+              <option value="Leave">On Leave</option>
+              <option value="Waiting">Waiting for Check-In</option>
             </select>
           </>
         )}
@@ -379,36 +427,45 @@ const AttendanceLogs = () => {
                   <div className="border-t border-slate-100 dark:border-slate-700 pt-3 grid grid-cols-2 gap-2 text-sm">
                     <div className="col-span-2 flex justify-between bg-slate-50 dark:bg-slate-900 p-2 rounded">
                       <span className="text-slate-500">{viewMode === 'Day' ? 'Date' : 'Period'}:</span>
-                      <span className="font-bold">{viewMode === 'Day' ? log.date : log.period}</span>
+                      <span className="font-bold">{viewMode === 'Day' ? formatDateString(log.date) : log.period}</span>
                     </div>
                     
                     {viewMode === 'Day' ? (
                       <>
-                        <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded flex flex-col">
-                          <span className="text-xs text-slate-500">First In</span>
-                          <span className="font-medium">{log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded flex flex-col">
-                          <span className="text-xs text-slate-500">Last Out</span>
-                          {log.isActive ? (
-                            <span className="text-emerald-500 font-bold flex items-center justify-between gap-1 w-full">
-                              <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Active</span>
-                              <button 
-                                onClick={() => handleCheckout(log._id, log.name)}
-                                className="p-1 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded transition-colors bg-rose-50 dark:bg-rose-900/20"
-                                title="Force Checkout"
-                              >
-                                <LogOut size={14} />
-                              </button>
-                            </span>
-                          ) : (
-                            <span className="font-medium">{log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
-                          )}
-                        </div>
-                        <div className="col-span-2 bg-slate-50 dark:bg-slate-900 p-2 rounded flex justify-between items-center">
-                          <span className="text-xs text-slate-500">Total Logged Time</span>
-                          <span className="font-bold text-lg text-emerald-600">{formatTime(log.totalSeconds)}</span>
-                        </div>
+                        {log.status === 'Leave' ? (
+                          <div className="col-span-2 bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg flex items-center justify-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                            <Calendar size={16} />
+                            Approved Leave — No attendance required
+                          </div>
+                        ) : (
+                          <>
+                            <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded flex flex-col">
+                              <span className="text-xs text-slate-500">First In</span>
+                              <span className="font-medium">{log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                            </div>
+                            <div className="bg-slate-50 dark:bg-slate-900 p-2 rounded flex flex-col">
+                              <span className="text-xs text-slate-500">Last Out</span>
+                              {log.isActive ? (
+                                <span className="text-emerald-500 font-bold flex items-center justify-between gap-1 w-full">
+                                  <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Active</span>
+                                  <button 
+                                    onClick={() => handleCheckout(log._id, log.name)}
+                                    className="p-1 hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-500 rounded transition-colors bg-rose-50 dark:bg-rose-900/20"
+                                    title="Force Checkout"
+                                  >
+                                    <LogOut size={14} />
+                                  </button>
+                                </span>
+                              ) : (
+                                <span className="font-medium">{log.lastCheckOut ? new Date(log.lastCheckOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</span>
+                              )}
+                            </div>
+                            <div className="col-span-2 bg-slate-50 dark:bg-slate-900 p-2 rounded flex justify-between items-center">
+                              <span className="text-xs text-slate-500">Total Logged Time</span>
+                              <span className="font-bold text-lg text-emerald-600">{formatTime(log.totalSeconds)}</span>
+                            </div>
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
@@ -473,15 +530,25 @@ const AttendanceLogs = () => {
                         </div>
                       </td>
                       <td className="p-4 font-medium text-slate-700 dark:text-slate-300">
-                        {viewMode === 'Day' ? log.date : log.period}
+                        {viewMode === 'Day' ? formatDateString(log.date) : log.period}
                       </td>
                       {viewMode === 'Day' && (
                         <>
                           <td className="p-4 text-slate-600 dark:text-slate-400">
-                            {log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
+                            {log.status === 'Leave' ? (
+                              <span className="text-indigo-400 italic text-xs">On Leave</span>
+                            ) : log.status === 'Waiting' ? (
+                              <span className="text-slate-400 font-mono">---</span>
+                            ) : (
+                              log.firstCheckIn ? new Date(log.firstCheckIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'
+                            )}
                           </td>
                           <td className="p-4 text-slate-600 dark:text-slate-400">
-                            {log.isActive ? (
+                            {log.status === 'Leave' ? (
+                              <span className="text-indigo-400 italic text-xs">On Leave</span>
+                            ) : log.status === 'Waiting' ? (
+                              <span className="text-slate-400 font-mono">---</span>
+                            ) : log.isActive ? (
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                                 <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">Active Now</span>
@@ -500,19 +567,13 @@ const AttendanceLogs = () => {
                         </>
                       )}
                       <td className="p-4">
-                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatTime(log.totalSeconds)}</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {log.status === 'Leave' ? '—' : log.status === 'Waiting' ? '---' : formatTime(log.totalSeconds)}
+                        </span>
                       </td>
                       {viewMode === 'Day' ? (
                         <td className="p-4">
-                          <span className={`px-2 py-1 text-xs font-bold rounded uppercase tracking-wider ${
-                            log.status === 'Present' ? 'bg-emerald-100 text-emerald-700' :
-                            log.status === 'Absent' ? 'bg-rose-100 text-rose-700' :
-                            log.status === 'Leave' ? 'bg-indigo-100 text-indigo-700' :
-                            log.status === 'Invalid' ? 'bg-amber-100 text-amber-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {log.status}
-                          </span>
+                          {renderStatusBadge(log.status)}
                         </td>
                       ) : (
                         <>
