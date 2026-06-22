@@ -203,17 +203,77 @@ const LiveQuizPlayer = () => {
       <div className="min-h-screen bg-slate-950 fixed inset-0 z-50 flex flex-col items-center p-6 pt-16 text-white overflow-y-auto">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.08),transparent_70%)] pointer-events-none"></div>
 
-        <div className="relative">
-          <Trophy className="w-24 h-24 text-yellow-400 mb-6 drop-shadow-[0_0_40px_rgba(245,158,11,0.5)] animate-pulse" />
-          <Star className="w-8 h-8 text-yellow-300 absolute -top-2 -right-2 animate-bounce" />
-        </div>
+        {gameState === 'leaderboard' && answerResult ? (
+          <div className="w-full max-w-3xl flex flex-col items-center mb-8 z-10 shrink-0">
+            {answerResult.isCorrect ? (
+              <div className="text-center p-5 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl w-full max-w-md shadow-xl mb-6">
+                <CheckCircle2 className="w-16 h-16 mb-2 mx-auto text-emerald-400 drop-shadow-[0_0_20px_rgba(52,211,153,0.4)] animate-bounce" />
+                <h1 className="text-3xl font-black text-emerald-400 tracking-tight">CORRECT!</h1>
+                <p className="text-lg font-black text-white mt-1">+{answerResult.pointsEarned} PTS</p>
+              </div>
+            ) : (
+              <div className="text-center p-5 bg-rose-500/10 border border-rose-500/20 rounded-3xl w-full max-w-md shadow-xl mb-6">
+                <XCircle className="w-16 h-16 mb-2 mx-auto text-rose-500 drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]" />
+                <h1 className="text-3xl font-black text-rose-500 tracking-tight">
+                  {answerResult.selectedOption === -1 ? "TIME'S UP!" : "INCORRECT"}
+                </h1>
+                <p className="text-slate-400 text-sm font-bold mt-1">Consistency is key, keep pushing!</p>
+              </div>
+            )}
 
-        <h1 className="text-5xl font-black mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-amber-500">
-          {gameState === 'finished' ? 'Final Standings' : 'Lobby Leaderboard'}
-        </h1>
-        <div className="px-6 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full mb-8 shadow-lg">
-          <p className="text-emerald-400 text-xl font-black">Score: {totalScore} PTS</p>
-        </div>
+            {/* Detailed correctness visual options review */}
+            <div className="w-full bg-slate-900/50 p-6 rounded-3xl border border-slate-800 shadow-2xl">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 text-center">Question Review</h3>
+              <p className="text-base font-extrabold text-white text-center mb-4">{currentQuestion?.text}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {currentQuestion?.options.map((opt, idx) => {
+                  const isCorrectOpt = idx === answerResult.correctOption;
+                  const isSelectedOpt = idx === answerResult.selectedOption;
+                  
+                  let borderClass = "border-slate-800 bg-slate-900/60 opacity-40";
+                  let statusIcon = null;
+                  
+                  if (isCorrectOpt) {
+                    borderClass = "border-emerald-500 bg-emerald-950/40 shadow-[0_0_15px_rgba(16,185,129,0.15)] opacity-100 scale-101";
+                    statusIcon = <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
+                  } else if (isSelectedOpt) {
+                    borderClass = "border-rose-500 bg-rose-950/40 shadow-[0_0_15px_rgba(244,63,94,0.15)] opacity-100 scale-101";
+                    statusIcon = <XCircle className="w-5 h-5 text-rose-400 shrink-0" />;
+                  }
+                  
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`p-4 rounded-xl border-2 flex items-center justify-between gap-3 transition-all duration-300 text-sm ${borderClass}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs bg-slate-850 text-white ${isCorrectOpt ? 'bg-emerald-500/20 text-emerald-400' : isSelectedOpt ? 'bg-rose-500/20 text-rose-400' : ''}`}>
+                          {['A', 'B', 'C', 'D'][idx]}
+                        </div>
+                        <span className="font-extrabold text-left">{opt}</span>
+                      </div>
+                      {statusIcon}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="relative">
+              <Trophy className="w-24 h-24 text-yellow-400 mb-6 drop-shadow-[0_0_40px_rgba(245,158,11,0.5)] animate-pulse" />
+              <Star className="w-8 h-8 text-yellow-300 absolute -top-2 -right-2 animate-bounce" />
+            </div>
+
+            <h1 className="text-5xl font-black mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-amber-500">
+              {gameState === 'finished' ? 'Final Standings' : 'Lobby Leaderboard'}
+            </h1>
+            <div className="px-6 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full mb-8 shadow-lg">
+              <p className="text-emerald-400 text-xl font-black">Score: {totalScore} PTS</p>
+            </div>
+          </>
+        )}
 
         {/* Visual Podium for Top 3 */}
         {gameState === 'finished' && leaderboard.length > 0 && (

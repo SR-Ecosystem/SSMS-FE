@@ -39,19 +39,6 @@ const LiveQuizHost = () => {
     return () => clearInterval(timer);
   }, [gameState, timeLeft, socket, pin]);
 
-  // Auto-trigger next question from leaderboard
-  useEffect(() => {
-    let timer;
-    if (gameState === 'leaderboard') {
-      timer = setTimeout(() => {
-        if (socket) {
-          socket.emit('host-next-question', { pin });
-        }
-      }, 5000); // Show leaderboard for 5 seconds then auto-proceed
-    }
-    return () => clearTimeout(timer);
-  }, [gameState, socket, pin]);
-
   useEffect(() => {
     // 1. Fetch Quiz Data
     const fetchQuiz = async () => {
@@ -146,7 +133,7 @@ const LiveQuizHost = () => {
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600 rounded-full mix-blend-screen filter blur-[150px] opacity-30 animate-blob animation-delay-2000"></div>
 
       {/* Header */}
-      <header className="p-6 flex justify-between items-center relative z-10 bg-slate-900/50 backdrop-blur-md border-b border-white/10">
+      <header className="p-6 flex justify-between items-center relative z-10 bg-slate-900/50 backdrop-blur-md border-b border-white/10 shrink-0">
         <div>
           <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300">
             {quiz?.title}
@@ -170,9 +157,9 @@ const LiveQuizHost = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 relative z-10 flex flex-col p-8">
+      <main className="flex-1 min-h-0 relative z-10 flex flex-col p-8 overflow-y-auto">
         {gameState === 'lobby' && (
-          <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="flex-1 flex flex-col items-center justify-start py-6">
             {/* Prominent Game PIN display */}
             <div className="text-center mb-10 bg-slate-800/80 backdrop-blur-md p-8 rounded-3xl border border-slate-700 shadow-2xl max-w-md w-full animate-bounce">
               <p className="text-emerald-400 text-xs font-black uppercase tracking-widest mb-2">Join at student/join-quiz with Game PIN</p>
@@ -264,11 +251,19 @@ const LiveQuizHost = () => {
         )}
 
         {(gameState === 'leaderboard' || gameState === 'finished') && (
-          <div className="flex-1 flex flex-col items-center justify-start overflow-y-auto max-h-[80vh] w-full py-6">
+          <div className="flex-1 flex flex-col items-center justify-start w-full py-6">
             <Trophy className="w-20 h-20 text-amber-400 mb-4 drop-shadow-[0_0_30px_rgba(251,191,36,0.5)] shrink-0 animate-pulse" />
             <h2 className="text-5xl font-black mb-8 tracking-tight shrink-0 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-amber-500">
               {gameState === 'finished' ? 'Final Standings' : 'Current Leaderboard'}
             </h2>
+
+            {/* Correct Answer Display for intermediate leaderboard */}
+            {gameState === 'leaderboard' && currentQuestion && (
+              <div className="bg-slate-800/80 p-6 rounded-3xl border border-emerald-500/30 max-w-2xl w-full mb-8 shadow-xl text-center">
+                <p className="text-xs font-black uppercase tracking-widest text-emerald-400 mb-2">Correct Answer Was</p>
+                <p className="text-2xl font-black text-white">{currentQuestion.options[currentQuestion.correctOption]}</p>
+              </div>
+            )}
 
             {/* Podium Visual Layout on finished */}
             {gameState === 'finished' && leaderboard.length > 0 && (
