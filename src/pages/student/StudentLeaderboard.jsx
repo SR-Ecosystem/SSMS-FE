@@ -4,6 +4,11 @@ import { Trophy, Medal, Award, Flame } from 'lucide-react';
 import Loader from '../../components/Loader';
 import { useAuth } from '../../context/AuthContext';
 
+const formatScore = (val) => {
+  if (val === undefined || val === null || isNaN(val)) return '0';
+  return String(Math.round((Number(val) + Number.EPSILON) * 100) / 100);
+};
+
 const StudentLeaderboard = () => {
   const { user } = useAuth();
   const [batches, setBatches] = useState([]);
@@ -14,10 +19,20 @@ const StudentLeaderboard = () => {
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const { data } = await axios.get('/enrollments/my');
-        setBatches(data);
-        if (data.length > 0) {
-          setSelectedBatch(data[0].batchId._id);
+        let batchList = [];
+        if (user?.role === 'admin') {
+          const { data } = await axios.get('/batches');
+          batchList = data.map(b => ({
+            _id: b._id,
+            batchId: b
+          }));
+        } else {
+          const { data } = await axios.get('/enrollments/my');
+          batchList = data;
+        }
+        setBatches(batchList);
+        if (batchList.length > 0) {
+          setSelectedBatch(batchList[0].batchId._id);
         } else {
           setLoading(false);
         }
@@ -26,8 +41,10 @@ const StudentLeaderboard = () => {
         setLoading(false);
       }
     };
-    fetchBatches();
-  }, []);
+    if (user) {
+      fetchBatches();
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -92,59 +109,73 @@ const StudentLeaderboard = () => {
         <Loader />
       ) : leaderboard.length > 0 ? (
         <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-          <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-500 dark:text-slate-400 text-sm uppercase tracking-wider">
-            <div className="col-span-1 text-center">Rank</div>
-            <div className="col-span-5">Student</div>
-            <div className="col-span-2 text-center">Tasks</div>
-            <div className="col-span-2 text-center">Quizzes</div>
-            <div className="col-span-2 text-center">Overall</div>
-          </div>
-          
-          <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
-            {leaderboard.map((student) => {
-              const isCurrentUser = student.studentId === user._id;
-              let rankIcon = null;
-              if (student.rank === 1) rankIcon = <Medal className="text-amber-400 drop-shadow-md" size={24} />;
-              else if (student.rank === 2) rankIcon = <Medal className="text-slate-300 drop-shadow-md" size={24} />;
-              else if (student.rank === 3) rankIcon = <Medal className="text-amber-600 drop-shadow-md" size={24} />;
-
-              return (
-                <div key={student.studentId} className={`grid grid-cols-12 gap-4 p-4 items-center transition-colors ${isCurrentUser ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/50'}`}>
-                  <div className="col-span-1 flex justify-center items-center">
-                    {rankIcon ? rankIcon : <span className="font-black text-lg text-slate-400">{student.rank}</span>}
-                  </div>
-                  
-                  <div className="col-span-5 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-500 text-white flex items-center justify-center font-bold shadow-sm">
-                      {student.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className={`font-bold ${isCurrentUser ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`}>
-                        {student.name} {isCurrentUser && '(You)'}
-                      </h3>
-                      <div className="flex items-center gap-1 text-xs font-medium text-orange-500 mt-0.5">
-                        <Flame size={12} fill="currentColor" />
-                        {student.leetcodeStreak} Day Streak
+          <div className="overflow-x-auto w-full">
+            <div className="min-w-[900px]">
+              <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-500 dark:text-slate-400 text-xs sm:text-sm uppercase tracking-wider">
+                <div className="col-span-1 text-center">RANK</div>
+                <div className="col-span-3">STUDENT</div>
+                <div className="col-span-1 text-center">TASKS</div>
+                <div className="col-span-2 text-center">LEETCODE</div>
+                <div className="col-span-1 text-center">QUIZZES</div>
+                <div className="col-span-2 text-center">MOCK DRIVES</div>
+                <div className="col-span-2 text-center">OVER ALL</div>
+              </div>
+              
+              <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                {leaderboard.map((student) => {
+                  const isCurrentUser = student.studentId === user._id;
+                  let rankIcon = null;
+                  if (student.rank === 1) rankIcon = <Medal className="text-amber-400 drop-shadow-md" size={24} />;
+                  else if (student.rank === 2) rankIcon = <Medal className="text-slate-300 drop-shadow-md" size={24} />;
+                  else if (student.rank === 3) rankIcon = <Medal className="text-amber-600 drop-shadow-md" size={24} />;
+     
+                  return (
+                    <div key={student.studentId} className={`grid grid-cols-12 gap-4 p-4 items-center transition-colors ${isCurrentUser ? 'bg-indigo-50/50 dark:bg-indigo-900/20' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/50'}`}>
+                      <div className="col-span-1 flex justify-center items-center">
+                        {rankIcon ? rankIcon : <span className="font-black text-lg text-slate-400">{student.rank}</span>}
+                      </div>
+                      
+                      <div className="col-span-3 flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-500 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+                          {student.name.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className={`font-bold truncate ${isCurrentUser ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`} title={student.name}>
+                            {student.name} {isCurrentUser && '(You)'}
+                          </h3>
+                          <div className="flex items-center gap-1 text-xs font-medium text-orange-500 mt-0.5">
+                            <Flame size={12} fill="currentColor" />
+                            <span>{student.leetcodeStreak} Day Streak</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="col-span-1 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {formatScore(student.totalTaskScore)}
+                      </div>
+    
+                      <div className="col-span-2 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {formatScore(student.streakScore)}
+                      </div>
+                      
+                      <div className="col-span-1 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {formatScore(student.totalQuizScore)}
+                      </div>
+     
+                      <div className="col-span-2 text-center font-semibold text-slate-600 dark:text-slate-300">
+                        {formatScore(student.totalMockDriveScore || 0)}
+                      </div>
+                      
+                      <div className="col-span-2 flex justify-center items-center">
+                        <div className="inline-flex items-center justify-center px-3 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-black">
+                          {formatScore(student.overallScore)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="col-span-2 text-center font-semibold text-slate-600 dark:text-slate-300">
-                    {student.totalTaskScore}
-                  </div>
-                  
-                  <div className="col-span-2 text-center font-semibold text-slate-600 dark:text-slate-300">
-                    {student.totalQuizScore}
-                  </div>
-                  
-                  <div className="col-span-2 text-center">
-                    <div className="inline-flex items-center justify-center px-3 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-black">
-                      {student.overallScore}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       ) : (

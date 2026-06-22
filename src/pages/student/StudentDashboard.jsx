@@ -256,7 +256,17 @@ const StudentDashboard = () => {
               <Trophy size={20} className="text-yellow-100" />
             </div>
             <h3 className="text-[10px] font-bold text-yellow-100 tracking-widest uppercase mb-1">Leaderboard</h3>
-            <p className="text-2xl font-black leading-tight">View Your<br/>Ranking</p>
+            <p className="text-2xl font-black leading-tight">
+              {analytics?.rank && analytics.rank !== 'N/A' ? `Your Rank: #${analytics.rank}` : 'View Your Ranking'}
+            </p>
+            {analytics?.rank && analytics.rank !== 'N/A' && (
+              <p className="text-xs font-semibold text-amber-50/90 mt-2 leading-relaxed drop-shadow-sm transition-all duration-300">
+                {analytics.rank === 1 && "You're leading the pack! Outstanding job! 👑"}
+                {analytics.rank > 1 && analytics.rank <= 3 && "So close to the top! Keep pushing! 🚀"}
+                {analytics.rank > 3 && analytics.rank <= 10 && "Amazing! You are in the top 10! 🌟"}
+                {analytics.rank > 10 && "Keep climbing! Daily consistency pays off! 💪"}
+              </p>
+            )}
           </div>
           <div className="mt-4 flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
             <span className="text-xs font-bold text-yellow-50">Compare with peers</span>

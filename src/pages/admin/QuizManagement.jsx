@@ -482,10 +482,17 @@ const QuizManagement = () => {
                         value={q.timeLimit}
                         onChange={e => handleQuestionChange(qIndex, 'timeLimit', Number(e.target.value))}
                       >
+                        {![5, 10, 15, 20, 30, 45, 60, 120].includes(Number(q.timeLimit)) && (
+                          <option value={Number(q.timeLimit)}>{q.timeLimit} seconds</option>
+                        )}
+                        <option value={5}>5 seconds</option>
                         <option value={10}>10 seconds</option>
+                        <option value={15}>15 seconds</option>
                         <option value={20}>20 seconds</option>
                         <option value={30}>30 seconds</option>
+                        <option value={45}>45 seconds</option>
                         <option value={60}>60 seconds</option>
+                        <option value={120}>120 seconds</option>
                       </select>
                     </div>
                   </div>

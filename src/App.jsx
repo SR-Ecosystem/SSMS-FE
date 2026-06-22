@@ -23,6 +23,7 @@ import LiveQuizHost from './pages/admin/LiveQuizHost';
 import AdminLeetcode from './pages/admin/AdminLeetcode';
 import BatchChat from './pages/BatchChat';
 import LeaveRequests from './pages/admin/LeaveRequests';
+import MockDriveManagement from './pages/admin/MockDriveManagement';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -91,6 +92,9 @@ function App() {
             <Route path="leaves" element={
               <ProtectedRoute allowedRoles={['admin']}><LeaveRequests /></ProtectedRoute>
             } />
+            <Route path="mock-drives" element={
+              <ProtectedRoute allowedRoles={['admin']}><MockDriveManagement /></ProtectedRoute>
+            } />
             <Route path="profile" element={
               <ProtectedRoute allowedRoles={['admin']}><AdminProfile /></ProtectedRoute>
             } />
@@ -142,7 +146,7 @@ function App() {
               <ProtectedRoute allowedRoles={['student']}><LeaveApplication /></ProtectedRoute>
             } />
             <Route path="student/leaderboard" element={
-              <ProtectedRoute allowedRoles={['student']}><StudentLeaderboard /></ProtectedRoute>
+              <ProtectedRoute allowedRoles={['student', 'admin']}><StudentLeaderboard /></ProtectedRoute>
             } />
             <Route path="*" element={<div className="p-8"><h1 className="text-2xl">Page Under Construction</h1></div>} />
           </Route>

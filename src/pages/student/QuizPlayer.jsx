@@ -23,15 +23,20 @@ const QuizPlayer = () => {
   const [answerResult, setAnswerResult] = useState(null); // { isCorrect, pointsEarned }
   const [totalScore, setTotalScore] = useState(0);
   const totalScoreRef = useRef(0);
+  const gameStateRef = useRef(gameState);
   
   const [leaderboard, setLeaderboard] = useState([]);
   const [liveAnswered, setLiveAnswered] = useState(0);
   const [liveTotalPlayers, setLiveTotalPlayers] = useState(0);
 
-  // Keep totalScoreRef updated with current totalScore
+  // Keep refs updated with current state to avoid stale closures in socket callbacks
   useEffect(() => {
     totalScoreRef.current = totalScore;
   }, [totalScore]);
+
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
@@ -106,26 +111,31 @@ const QuizPlayer = () => {
     });
 
     newSocket.on('show-leaderboard', (data) => {
-      setLeaderboard(data.leaderboard);
+      setLeaderboard(data?.leaderboard || []);
       setGameState('leaderboard');
     });
 
     newSocket.on('game-finished', async (data) => {
-      setLeaderboard(data.leaderboard);
+      setLeaderboard(data?.leaderboard || []);
       setGameState('finished');
       
-      // Save attempt to database using the ref value to avoid stale closures
-      try {
-        await axios.post(`/quizzes/${data.quizId}/attempts`, {
-          studentId: user._id,
-          score: totalScoreRef.current
-        });
-      } catch (err) {
-        console.error('Failed to save score', err);
-      }
+      // Performance Optimization: Save attempt to database with random jitter delay (0-2s)
+      // to prevent thundering herd database spikes when 100+ students submit at the exact same moment.
+      const delay = Math.random() * 2000;
+      setTimeout(async () => {
+        try {
+          await axios.post(`/quizzes/${data.quizId}/attempts`, {
+            studentId: user._id,
+            score: totalScoreRef.current
+          });
+        } catch (err) {
+          console.error('Failed to save score', err);
+        }
+      }, delay);
     });
 
     newSocket.on('host-disconnected', () => {
+      if (gameStateRef.current === 'finished') return;
       alert('The host ended the game unexpectedly.');
       navigate('/student/quizzes');
     });

@@ -3,7 +3,8 @@ import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { LayoutDashboard, Users, BookOpen, FileText, CheckCircle, 
-  LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor
+  LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor,
+  Briefcase
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
@@ -397,6 +398,8 @@ const Layout = () => {
         { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={20} />, badge: getBadge('reviews', pendingCount) },
         { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
         { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
+        { name: 'Mock Drives', path: '/mock-drives', icon: <Briefcase size={20} /> },
+        { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
       ]
     },
     {
@@ -511,7 +514,7 @@ const Layout = () => {
           <div className="flex items-center gap-4 group cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/30 transition-all duration-500"></div>
-              <div className="relative w-12 h-12 rounded-xl bg-white shadow-[0_8px_15px_-3px_rgba(0,0,0,0.5)] border-t border-white/80 border-b-[4px] border-slate-300 dark:border-b-slate-900/80 dark:border-x-black/20 p-1 flex items-center justify-center transition-all duration-300 group-hover:-translate-y-1 group-active:translate-y-0.5 group-active:border-b-[1px] overflow-hidden">
+              <div className="relative w-14 h-14 rounded-xl bg-white shadow-[0_8px_15px_-3px_rgba(0,0,0,0.5)] border-t border-white/80 border-b-[4px] border-slate-300 dark:border-b-slate-900/80 dark:border-x-black/20 p-0.1 flex items-center justify-center transition-all duration-300 group-hover:-translate-y-1 group-active:translate-y-0.5 group-active:border-b-[1px] overflow-hidden">
                 <img src="/logo.png" alt="SSMS Logo" className="w-full h-full object-contain rounded-lg" />
               </div>
             </div>

@@ -77,12 +77,12 @@ const LiveQuizHost = () => {
         });
 
         newSocket.on('show-leaderboard', (data) => {
-          setLeaderboard(data.leaderboard);
+          setLeaderboard(data?.leaderboard || []);
           setGameState('leaderboard');
         });
 
         newSocket.on('game-finished', (data) => {
-          setLeaderboard(data.leaderboard);
+          setLeaderboard(data?.leaderboard || []);
           setGameState('finished');
         });
 

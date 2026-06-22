@@ -124,13 +124,13 @@ const SubmissionReviews = () => {
     try {
       const [subRes, gradeRes] = await Promise.all([
         axios.get(`/submissions/${sub._id}`),
-        sub.status === 'graded' ? axios.get(`/grades/submission/${sub._id}`).catch(() => null) : Promise.resolve(null)
+        axios.get(`/grades/submission/${sub._id}`).catch(() => null)
       ]);
       
       const fullSub = subRes.data;
       setActiveReview(fullSub);
       
-      if (sub.status === 'graded' && gradeRes && gradeRes.data) {
+      if (gradeRes && gradeRes.data) {
         const data = gradeRes.data;
         setGradeData({ marksObtained: data.marksObtained, feedback: data.feedback });
         setExistingGradeId(data._id);
