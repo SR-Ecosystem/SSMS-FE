@@ -173,7 +173,13 @@ const LiveQuizHost = () => {
       <main className="flex-1 relative z-10 flex flex-col p-8">
         {gameState === 'lobby' && (
           <div className="flex-1 flex flex-col items-center justify-center">
-            <h2 className="text-4xl font-bold mb-12 animate-pulse text-slate-300">Waiting for players...</h2>
+            {/* Prominent Game PIN display */}
+            <div className="text-center mb-10 bg-slate-800/80 backdrop-blur-md p-8 rounded-3xl border border-slate-700 shadow-2xl max-w-md w-full animate-bounce">
+              <p className="text-emerald-400 text-xs font-black uppercase tracking-widest mb-2">Join at student/join-quiz with Game PIN</p>
+              <h1 className="text-7xl font-black text-white tracking-widest">{pin}</h1>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-8 animate-pulse text-slate-400">Waiting for players...</h2>
             
             <div className="flex flex-wrap justify-center gap-4 max-w-5xl mb-12">
               {players.map((p, i) => (
@@ -258,11 +264,65 @@ const LiveQuizHost = () => {
         )}
 
         {(gameState === 'leaderboard' || gameState === 'finished') && (
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <Trophy className="w-24 h-24 text-amber-400 mb-6 drop-shadow-[0_0_30px_rgba(251,191,36,0.5)]" />
-            <h2 className="text-5xl font-black mb-12 tracking-tight">
-              {gameState === 'finished' ? 'Final Podium' : 'Current Leaderboard'}
+          <div className="flex-1 flex flex-col items-center justify-start overflow-y-auto max-h-[80vh] w-full py-6">
+            <Trophy className="w-20 h-20 text-amber-400 mb-4 drop-shadow-[0_0_30px_rgba(251,191,36,0.5)] shrink-0 animate-pulse" />
+            <h2 className="text-5xl font-black mb-8 tracking-tight shrink-0 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-amber-500">
+              {gameState === 'finished' ? 'Final Standings' : 'Current Leaderboard'}
             </h2>
+
+            {/* Podium Visual Layout on finished */}
+            {gameState === 'finished' && leaderboard.length > 0 && (
+              <div className="flex items-end justify-center gap-4 md:gap-8 my-8 w-full max-w-2xl px-4 shrink-0 relative z-10">
+                {/* 2nd Place */}
+                {leaderboard[1] && (
+                  <div className="flex flex-col items-center flex-1 transition-all duration-700">
+                    <div className="relative mb-2 flex flex-col items-center">
+                      <div className="text-4xl mb-1">🥈</div>
+                      <div className="font-extrabold text-sm md:text-base text-slate-200 text-center truncate max-w-[120px]">{leaderboard[1].name}</div>
+                      <div className="text-xs text-slate-400">{leaderboard[1].rollNumber}</div>
+                    </div>
+                    <div className="w-full bg-gradient-to-t from-slate-900/90 to-slate-800/40 border-t-4 border-slate-400 h-32 rounded-t-3xl flex flex-col items-center justify-between p-4 shadow-[0_0_20px_rgba(148,163,184,0.15)] relative">
+                      <div className="text-lg font-black text-slate-300">2nd</div>
+                      <div className="text-base font-black text-emerald-400 mt-auto">{leaderboard[1].score} <span className="text-[10px] text-slate-500 font-bold">PTS</span></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 1st Place */}
+                {leaderboard[0] && (
+                  <div className="flex flex-col items-center flex-1 transition-all duration-700">
+                    <div className="relative mb-2 flex flex-col items-center">
+                      <div className="text-5xl mb-1 filter drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">👑 🥇</div>
+                      <div className="font-black text-base md:text-lg text-yellow-300 text-center truncate max-w-[140px]">{leaderboard[0].name}</div>
+                      <div className="text-xs text-slate-300 font-medium">{leaderboard[0].rollNumber}</div>
+                    </div>
+                    <div className="w-full bg-gradient-to-t from-slate-900/90 to-yellow-600/20 border-t-4 border-yellow-400 h-44 rounded-t-3xl flex flex-col items-center justify-between p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] relative scale-105 z-10">
+                      <div className="text-xl font-black text-yellow-300">1st</div>
+                      <div className="text-lg font-black text-emerald-400 mt-auto">{leaderboard[0].score} <span className="text-xs text-slate-400 font-bold">PTS</span></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3rd Place */}
+                {leaderboard[2] && (
+                  <div className="flex flex-col items-center flex-1 transition-all duration-700">
+                    <div className="relative mb-2 flex flex-col items-center">
+                      <div className="text-4xl mb-1">🥉</div>
+                      <div className="font-extrabold text-sm md:text-base text-amber-600 text-center truncate max-w-[120px]">{leaderboard[2].name}</div>
+                      <div className="text-xs text-slate-400">{leaderboard[2].rollNumber}</div>
+                    </div>
+                    <div className="w-full bg-gradient-to-t from-slate-900/90 to-amber-900/40 border-t-4 border-amber-600 h-24 rounded-t-3xl flex flex-col items-center justify-between p-4 shadow-[0_0_20px_rgba(180,83,9,0.15)] relative">
+                      <div className="text-lg font-black text-amber-600">3rd</div>
+                      <div className="text-base font-black text-emerald-400 mt-auto">{leaderboard[2].score} <span className="text-[10px] text-slate-500 font-bold">PTS</span></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {gameState === 'finished' && leaderboard.length > 0 && (
+              <h3 className="text-2xl font-black text-slate-400 mb-6 uppercase tracking-widest relative z-10">Scoreboard</h3>
+            )}
             
             <div className="w-full max-w-3xl space-y-4">
               {leaderboard.map((p, i) => (
