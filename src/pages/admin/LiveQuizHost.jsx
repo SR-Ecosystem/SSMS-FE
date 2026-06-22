@@ -166,8 +166,23 @@ const LiveQuizHost = () => {
               <h1 className="text-7xl font-black text-white tracking-widest">{pin}</h1>
             </div>
 
-            <h2 className="text-2xl font-bold mb-8 animate-pulse text-slate-400">Waiting for players...</h2>
-            
+            {players.length > 0 ? (
+              <button 
+                onClick={handleStartGame}
+                className="mb-8 px-12 py-5 bg-white text-slate-900 text-2xl font-black rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center gap-3"
+              >
+                <Play fill="currentColor" size={28} /> Start Quiz
+              </button>
+            ) : (
+              <h2 className="text-2xl font-bold mb-8 animate-pulse text-slate-400">Waiting for players...</h2>
+            )}
+
+            <div className="flex items-center gap-4 bg-slate-800/50 px-8 py-4 rounded-3xl backdrop-blur-md border border-slate-700/50 mb-8">
+              <Users className="w-8 h-8 text-emerald-400" />
+              <span className="text-3xl font-black">{players.length}</span>
+              <span className="text-slate-400 font-medium">Players Joined</span>
+            </div>
+
             <div className="flex flex-wrap justify-center gap-4 max-w-5xl mb-12">
               {players.map((p, i) => (
                 <div key={i} className="bg-slate-800/80 backdrop-blur-md border border-slate-700 px-6 py-3 rounded-full flex items-center gap-3 animate-in zoom-in duration-300 shadow-xl">
@@ -181,21 +196,6 @@ const LiveQuizHost = () => {
                 <p className="text-slate-500 italic">No one has joined yet.</p>
               )}
             </div>
-
-            <div className="flex items-center gap-4 bg-slate-800/50 px-8 py-4 rounded-3xl backdrop-blur-md border border-slate-700/50">
-              <Users className="w-8 h-8 text-emerald-400" />
-              <span className="text-3xl font-black">{players.length}</span>
-              <span className="text-slate-400 font-medium">Players Joined</span>
-            </div>
-
-            {players.length > 0 && (
-              <button 
-                onClick={handleStartGame}
-                className="mt-12 px-12 py-5 bg-white text-slate-900 text-2xl font-black rounded-full hover:scale-105 transition-transform shadow-[0_0_40px_rgba(255,255,255,0.3)] flex items-center gap-3"
-              >
-                <Play fill="currentColor" size={28} /> Start Game
-              </button>
-            )}
           </div>
         )}
 
