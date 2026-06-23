@@ -111,7 +111,12 @@ const LiveQuizHost = () => {
       if (quiz) {
         await axios.put(`/quizzes/${quiz._id}`, { status: 'completed' });
       }
-      socket.close();
+      if (socket) {
+        socket.emit('host-end-game', { pin });
+        setTimeout(() => {
+          socket.close();
+        }, 100);
+      }
     } catch (err) {
       console.error('Error ending quiz:', err);
     }

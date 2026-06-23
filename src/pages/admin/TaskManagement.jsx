@@ -160,22 +160,145 @@ const TaskManagement = () => {
   const handleViewTaskText = (task) => {
     const newWin = window.open('', '_blank');
     if (newWin) {
+      const typeLabel = task.category === 'Project' ? 'Project' : 'Task';
+      const formattedDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }) : 'N/A';
+
       newWin.document.write(`
-        <html>
-          <head>
-            <title>${task.title} - Instructions</title>
-            <style>
-              body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; line-height: 1.6; color: #333; }
-              .ql-editor { font-size: 16px; }
-            </style>
-            <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css" />
-          </head>
-          <body>
-            <h2 style="margin-bottom: 5px;">${task.title}</h2>
-            <p style="color: #666; margin-top: 0;">Due: ${new Date(task.dueDate).toLocaleDateString()}</p>
-            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 20px;" />
-            <div class="ql-editor" style="padding: 0;">${task.description || '<p>No instructions provided.</p>'}</div>
-          </body>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${task.title}</title>
+          <style>
+            * {
+              box-sizing: border-box;
+            }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              line-height: 1.6;
+              color: #334155;
+              background-color: #fafafa;
+              margin: 0;
+              padding: 2rem;
+              display: flex;
+              justify-content: center;
+            }
+            .container {
+              max-width: 800px;
+              width: 100%;
+              background-color: #ffffff;
+              padding: 2.5rem;
+              border-radius: 1rem;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+              border: 1px solid #e2e8f0;
+            }
+            h1 {
+              color: #0f172a;
+              margin-top: 0;
+              font-size: 1.875rem;
+              font-weight: 800;
+              border-bottom: 2px solid #ea580c;
+              padding-bottom: 0.75rem;
+              margin-bottom: 1rem;
+            }
+            .meta-info {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 1rem;
+              margin-bottom: 2rem;
+              font-size: 0.875rem;
+              color: #64748b;
+            }
+            .meta-item {
+              background-color: #f8fafc;
+              padding: 0.25rem 0.75rem;
+              border-radius: 0.375rem;
+              border: 1px solid #e2e8f0;
+            }
+            .meta-item strong {
+              color: #ea580c;
+            }
+            .content {
+              color: #1e293b;
+              font-size: 1rem;
+              overflow-wrap: break-word;
+              word-break: break-word;
+            }
+            .content * {
+              max-width: 100%;
+              overflow-wrap: break-word;
+              word-break: break-word;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              border-radius: 0.5rem;
+              margin: 1.5rem 0;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            }
+            pre {
+              background-color: #f8fafc;
+              padding: 1.25rem;
+              border-radius: 0.5rem;
+              overflow-x: auto;
+              border: 1px solid #e2e8f0;
+              max-width: 100%;
+            }
+            code {
+              font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+              color: #ea580c;
+              background-color: #f1f5f9;
+              padding: 0.2rem 0.4rem;
+              border-radius: 0.25rem;
+              font-size: 0.875rem;
+            }
+            pre code {
+              color: inherit;
+              background-color: transparent;
+              padding: 0;
+              border-radius: 0;
+              font-size: 0.875rem;
+            }
+            a {
+              color: #ea580c;
+              text-decoration: none;
+            }
+            a:hover {
+              text-decoration: underline;
+            }
+            p {
+              margin-top: 0;
+              margin-bottom: 1rem;
+            }
+            ul, ol {
+              margin-top: 0;
+              margin-bottom: 1rem;
+              padding-left: 1.5rem;
+            }
+            li {
+              margin-bottom: 0.25rem;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>${task.title}</h1>
+            <div class="meta-info">
+              <div class="meta-item">Type: <strong>${typeLabel}</strong></div>
+              <div class="meta-item">Batch: <strong>${task.batchId?.batchName || 'N/A'}</strong></div>
+              ${task.dueDate ? `<div class="meta-item">Deadline: <strong>${formattedDate}</strong></div>` : ''}
+              ${task.maxMarks !== undefined ? `<div class="meta-item">Marks: <strong>${task.maxMarks}</strong></div>` : ''}
+            </div>
+            <div class="content">
+              ${task.description || '<p>No instructions provided.</p>'}
+            </div>
+          </div>
+        </body>
         </html>
       `);
       newWin.document.close();
@@ -455,6 +578,7 @@ const TaskManagement = () => {
                   <option value="General">General</option>
                   <option value="CW">Classwork (CW)</option>
                   <option value="HW">Homework (HW)</option>
+                  <option value="Project">Project</option>
                 </select>
               </div>
 

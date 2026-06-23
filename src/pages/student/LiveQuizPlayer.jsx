@@ -114,7 +114,8 @@ const LiveQuizPlayer = () => {
       setGameState('leaderboard');
     });
 
-    newSocket.on('game-finished', async (data) => {
+    newSocket.on('game-finished', (data) => {
+      gameStateRef.current = 'finished';
       setLeaderboard(data?.leaderboard || []);
       setGameState('finished');
       

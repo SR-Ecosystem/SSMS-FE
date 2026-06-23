@@ -6,6 +6,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Verification from './pages/Verification';
+import PublicResources from './pages/PublicResources';
 import Layout from './components/Layout';
 
 // Admin Pages
@@ -50,6 +51,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<Verification />} />
+          <Route path="/public" element={<PublicResources />} />
           
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             {/* Admin Routes */}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { Lock, Loader2, Users, Activity, CheckCircle, Clock, ShieldCheck, Search, Code, GitBranch, Globe, Terminal, XCircle, Layout, ArrowRight, BookOpen, TrendingUp, Cpu, BarChart3, FileText, ClipboardList, Award, Eye, Timer, UserCheck, UserX, Hash, Calendar, ChevronDown, ChevronRight, RefreshCw, GraduationCap, Briefcase, Building2 } from 'lucide-react';
+import { Lock, Loader2, Users, Activity, CheckCircle, Clock, ShieldCheck, Search, Code, GitBranch, Globe, Terminal, XCircle, Layout, ArrowRight, BookOpen, TrendingUp, Cpu, BarChart3, FileText, ClipboardList, Award, Eye, Timer, UserCheck, UserX, Hash, Calendar, ChevronDown, ChevronRight, RefreshCw, GraduationCap, Briefcase, Building2, Flame } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import SkeletonLoader from '../components/SkeletonLoader';
 
 const PASSCODE = 'SA123';
@@ -12,6 +13,11 @@ const formatTime = (totalSeconds) => {
   const m = Math.floor((totalSeconds % 3600) / 60);
   if (h > 0) return `${h}hr ${m}min`;
   return `${m}min`;
+};
+
+const formatScore = (val) => {
+  if (val === undefined || val === null || isNaN(val)) return '0';
+  return String(Math.round((Number(val) + Number.EPSILON) * 100) / 100);
 };
 
 const timeAgo = (date) => {
@@ -39,6 +45,7 @@ const SIDEBAR_ITEMS = [
   { id: 'tasks', label: 'Tasks', icon: ClipboardList },
   { id: 'submissions', label: 'Submissions', icon: FileText },
   { id: 'grades', label: 'Grades', icon: Award },
+  { id: 'mockDrives', label: 'Mock Tests', icon: Briefcase },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'logs', label: 'Activity Logs', icon: Clock },
 ];
@@ -64,6 +71,11 @@ const Verification = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [studentDetails, setStudentDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+
+  // Mock Drive filter states
+  const [mockBatchFilter, setMockBatchFilter] = useState('');
+  const [mockDriveFilter, setMockDriveFilter] = useState('');
+  const [mockStatusFilter, setMockStatusFilter] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -95,6 +107,35 @@ const Verification = () => {
       setStudentDetails(d);
     } catch { /* silent */ }
     finally { setDetailsLoading(false); }
+  };
+
+  const exportToExcel = () => {
+    if (!filteredStudents || filteredStudents.length === 0) return;
+    
+    const dataToExport = filteredStudents.map(student => {
+      const batch = batches.find(b => student.batchId && b._id === student.batchId.toString());
+      return {
+        'Roll Number': student.rollNumber || 'N/A',
+        'Student Name': student.name,
+        'Email Address': student.email || 'N/A',
+        'Phone Number': student.phone || 'N/A',
+        'Batch': batch ? batch.batchName : 'N/A',
+        'Status': student.isActive ? 'Active' : 'Offline',
+        'Attendance (Days Present)': student.daysPresent || 0,
+        'Total Logged Time': formatTime(student.totalSeconds),
+        'Avg Assignment Grade (%)': `${student.avgGrade || 0}%`,
+        'LeetCode Streak (Days)': student.leetcodeStreak || 0,
+        'LeetCode Solved': student.totalLeetcodeSubmissions || 0,
+        'LeetCode Score': (student.leetcodeStreak || 0) * 10,
+        'Mock Drive Total Marks': student.totalMockDriveScore || 0,
+        'Overall Score': student.overallScore || 0
+      };
+    });
+    
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Student_Monitoring_Report");
+    XLSX.writeFile(workbook, `Student_Monitoring_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   // ─── LOGIN SCREEN ────────────────────────────────────────
@@ -130,7 +171,261 @@ const Verification = () => {
     );
   }
 
-  const { stats, students, activeStudents, submissions, tasks, batches, activityTimeline, leetcodeProblems, leetcodeSubmissions } = data;
+  const { stats, students, activeStudents, submissions, tasks, batches, activityTimeline, leetcodeProblems, leetcodeSubmissions, mockDriveScores = [] } = data;
+
+  const uniqueMockDrives = useMemo(() => {
+    if (!mockDriveScores) return [];
+    const map = new Map();
+    mockDriveScores.forEach(score => {
+      if (score.mockDriveId && score.mockDriveId._id) {
+        map.set(score.mockDriveId._id.toString(), score.mockDriveId);
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+  }, [mockDriveScores]);
+
+  const filteredMockScores = useMemo(() => {
+    if (!mockDriveScores) return [];
+    let list = [...mockDriveScores];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      list = list.filter(score => 
+        (score.studentId?.name || '').toLowerCase().includes(term) ||
+        (score.studentId?.rollNumber || '').toLowerCase().includes(term)
+      );
+    }
+
+    if (mockBatchFilter) {
+      list = list.filter(score => {
+        const bId = score.studentId?.batchId;
+        const bIdStr = bId && bId._id ? bId._id.toString() : bId?.toString();
+        return bIdStr === mockBatchFilter;
+      });
+    }
+
+    if (mockDriveFilter) {
+      list = list.filter(score => 
+        score.mockDriveId?._id?.toString() === mockDriveFilter
+      );
+    }
+
+    if (mockStatusFilter) {
+      const isAttended = mockStatusFilter === 'attended';
+      list = list.filter(score => score.attended === isAttended);
+    }
+
+    list.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+    return list;
+  }, [mockDriveScores, searchTerm, mockBatchFilter, mockDriveFilter, mockStatusFilter]);
+
+  const rankedScores = useMemo(() => {
+    let currentRank = 1;
+    let prevPercentage = null;
+    return filteredMockScores.map((score, index) => {
+      if (prevPercentage !== null && score.percentage !== prevPercentage) {
+        currentRank = index + 1;
+      }
+      prevPercentage = score.percentage;
+      return {
+        ...score,
+        rank: score.attended ? currentRank : '-'
+      };
+    });
+  }, [filteredMockScores]);
+
+  const exportMockResultsToExcel = () => {
+    if (!rankedScores || rankedScores.length === 0) return;
+
+    const dataToExport = rankedScores.map(score => {
+      const batch = batches.find(b => {
+        const studentBatch = score.studentId?.batchId;
+        const bIdStr = studentBatch && studentBatch._id ? studentBatch._id.toString() : studentBatch?.toString();
+        return bIdStr && b._id === bIdStr;
+      });
+
+      return {
+        'Rank': score.rank,
+        'Roll Number': score.studentId?.rollNumber || 'N/A',
+        'Student Name': score.studentId?.name || 'N/A',
+        'Batch': batch ? batch.batchName : 'N/A',
+        'Mock Test Title': score.mockDriveId?.title || 'N/A',
+        'Attendance': score.attended ? 'Attended' : 'Absent',
+        'MCQ Score': score.attended ? score.mcq : 0,
+        'Coding Score': score.attended ? score.coding : 0,
+        'Tech HR Score': score.attended ? score.techHr : 0,
+        'HR Score': score.attended ? score.hr : 0,
+        'Total Marks': score.attended ? score.totalMarks : 0,
+        'Percentage': score.attended ? `${score.percentage}%` : '0%',
+        'Grade': score.attended ? score.grade : 'Fail',
+        'Date': score.mockDriveId?.date ? new Date(score.mockDriveId.date).toLocaleDateString() : 'N/A'
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Mock_Test_Wise_Results");
+    XLSX.writeFile(workbook, `Mock_Test_Wise_Results_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const renderMockDrivesModule = () => {
+    const totalDrives = uniqueMockDrives.length;
+    const totalRegistered = rankedScores.length;
+    const totalAttended = rankedScores.filter(s => s.attended).length;
+    const attendedScores = rankedScores.filter(s => s.attended && s.percentage !== undefined);
+    const avgPercentage = attendedScores.length > 0 
+      ? Math.round(attendedScores.reduce((sum, s) => sum + s.percentage, 0) / attendedScores.length)
+      : 0;
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">Mock Test Wise Results</h2>
+            <p className="text-sm text-slate-400">View and analyze students' weekly placement mock drive performances.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 w-full xl:w-auto">
+            <button onClick={exportMockResultsToExcel} className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg py-2 px-3.5 transition-colors flex items-center gap-1.5 shadow-md animate-fade-in">
+              <FileText size={16} /> Export Results
+            </button>
+            <div className="relative flex-1 sm:flex-none sm:w-48">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <input type="text" placeholder="Search student..." className="w-full bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 pl-9 pr-3 focus:outline-none focus:border-indigo-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={mockBatchFilter} onChange={(e) => setMockBatchFilter(e.target.value)}>
+              <option value="">All Batches</option>
+              {batches.map(b => <option key={b._id} value={b._id}>{b.batchName}</option>)}
+            </select>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={mockDriveFilter} onChange={(e) => setMockDriveFilter(e.target.value)}>
+              <option value="">All Mock Drives</option>
+              {uniqueMockDrives.map(d => <option key={d._id} value={d._id}>{d.title}</option>)}
+            </select>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={mockStatusFilter} onChange={(e) => setMockStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option>
+              <option value="attended">Attended</option>
+              <option value="absent">Absent</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Mock Test Drives', value: totalDrives, color: 'purple' },
+            { label: 'Total Registered', value: totalRegistered, color: 'indigo' },
+            { label: 'Total Attended', value: totalAttended, color: 'emerald' },
+            { label: 'Average Score', value: `${avgPercentage}%`, color: 'amber' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-center hover:border-slate-600 transition-colors">
+              <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-1">{stat.label}</p>
+              <p className={`text-2xl font-black text-${stat.color}-400`}>{stat.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-lg">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left whitespace-nowrap text-sm">
+              <thead>
+                <tr className="bg-slate-900 text-xs uppercase tracking-wider text-slate-500 font-bold border-b border-slate-700">
+                  <th className="py-3.5 px-4 text-center">Rank</th>
+                  <th className="py-3.5 px-4">Student</th>
+                  <th className="py-3.5 px-4">Batch</th>
+                  <th className="py-3.5 px-4">Mock Test</th>
+                  <th className="py-3.5 px-4 text-center">MCQ</th>
+                  <th className="py-3.5 px-4 text-center">Coding</th>
+                  <th className="py-3.5 px-4 text-center">Tech HR</th>
+                  <th className="py-3.5 px-4 text-center">HR</th>
+                  <th className="py-3.5 px-4 text-center">Total Marks</th>
+                  <th className="py-3.5 px-4 text-center">Percentage</th>
+                  <th className="py-3.5 px-4 text-center">Grade</th>
+                  <th className="py-3.5 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rankedScores.length === 0 ? (
+                  <tr>
+                    <td colSpan="12" className="text-center text-slate-500 py-12">No mock test scores match the selected filters.</td>
+                  </tr>
+                ) : (
+                  rankedScores.map((score, idx) => {
+                    const studentBatch = batches.find(b => {
+                      const bId = score.studentId?.batchId;
+                      const bIdStr = bId && bId._id ? bId._id.toString() : bId?.toString();
+                      return bIdStr && b._id === bIdStr;
+                    });
+
+                    return (
+                      <tr key={score._id || idx} className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors">
+                        <td className="py-3 px-4 text-center font-bold text-slate-400">
+                          {score.attended ? `#${score.rank}` : '-'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <button onClick={() => score.studentId?.rollNumber && openStudentProfile(score.studentId.rollNumber)} className="flex items-center gap-3 hover:text-indigo-400 transition-colors text-left focus:outline-none">
+                            <div className="w-8 h-8 rounded-full bg-slate-700 text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-600">
+                              {score.studentId?.name?.charAt(0) || '?'}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white leading-tight">{score.studentId?.name || 'Unknown student'}</p>
+                              <p className="text-[10px] text-slate-400 font-mono">{score.studentId?.rollNumber || 'N/A'}</p>
+                            </div>
+                          </button>
+                        </td>
+                        <td className="py-3 px-4">
+                          <p className="text-sm text-slate-300 max-w-[120px] truncate">{studentBatch ? studentBatch.batchName : 'N/A'}</p>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div>
+                            <p className="text-sm text-indigo-400 font-semibold max-w-[180px] truncate">{score.mockDriveId?.title || 'Mock Drive'}</p>
+                            <p className="text-[10px] text-slate-500">{score.mockDriveId?.date ? new Date(score.mockDriveId.date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-center font-semibold text-slate-300">
+                          {score.attended ? formatScore(score.mcq) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center font-semibold text-slate-300">
+                          {score.attended ? formatScore(score.coding) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center font-semibold text-slate-300">
+                          {score.attended ? formatScore(score.techHr) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center font-semibold text-slate-300">
+                          {score.attended ? formatScore(score.hr) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center font-bold text-white">
+                          {score.attended ? `${formatScore(score.totalMarks)} / ${score.mockDriveId?.maxMarks || 749}` : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center font-black text-emerald-400">
+                          {score.attended ? `${formatScore(score.percentage)}%` : '0%'}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            !score.attended ? 'bg-slate-700/50 text-slate-400' :
+                            score.grade === 'Pass' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                            'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                          }`}>
+                            {score.attended ? score.grade : 'Fail'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            score.attended 
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                          }`}>
+                            {score.attended ? 'Attended' : 'Absent'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Filtered data helpers
   const filteredStudents = students.filter(s => {
@@ -162,7 +457,7 @@ const Verification = () => {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {[
               { label: 'Total Students', value: stats.totalStudents, color: 'indigo' },
               { label: 'Active Now', value: stats.activeStudents, color: 'emerald', pulse: true },
@@ -174,6 +469,9 @@ const Verification = () => {
               { label: 'Total Submissions', value: stats.totalSubmissions, color: 'cyan' },
               { label: 'Avg Attendance', value: `${stats.avgAttendanceDays}d`, color: 'teal' },
               { label: 'Avg Performance', value: `${stats.avgPerformance}%`, color: 'orange' },
+              { label: 'Avg Mock Drive', value: `${stats.avgMockDriveScore || 0}%`, color: 'purple' },
+              { label: 'Top LC Streak', value: `${stats.topLeetcodeStreak || 0}d`, color: 'orange' },
+              { label: 'Total LC Solved', value: stats.totalLeetcodeSolved || 0, color: 'amber' },
             ].map((stat, i) => (
               <div key={i} className={`bg-slate-800 border border-slate-700 rounded-2xl p-4 relative overflow-hidden ${stat.pulse ? 'border-b-4 border-b-emerald-500' : ''}`}>
                 <p className="text-slate-400 font-bold text-[10px] uppercase tracking-wider mb-1">{stat.label}</p>
@@ -235,18 +533,52 @@ const Verification = () => {
 
           {/* Top Performers + Submission Breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 md:col-span-2">
-              <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center gap-2"><TrendingUp size={16} className="text-emerald-400" /> Top Performers</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[...students].sort((a, b) => b.avgGrade - a.avgGrade).slice(0, 4).map((s, i) => (
-                  <div key={s._id} className="bg-slate-900 border border-slate-700 p-4 rounded-xl flex flex-col items-center text-center relative">
-                    <div className="w-6 h-6 rounded-bl-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold text-[10px] absolute top-0 right-0 border-b border-l border-emerald-500/20">#{i + 1}</div>
-                    <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold mb-2">{s.name.charAt(0)}</div>
-                    <p className="text-xs font-bold text-white line-clamp-1 w-full">{s.name}</p>
-                    <p className="text-lg font-black text-emerald-400 mt-1">{s.avgGrade}%</p>
-                    <p className="text-[10px] text-slate-500">Avg Grade</p>
-                  </div>
-                ))}
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 md:col-span-2 flex flex-col h-[280px]">
+              <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider flex items-center gap-2">
+                <Award size={16} className="text-amber-400" /> Leaderboard (Top 5)
+              </h3>
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left whitespace-nowrap text-xs">
+                    <thead>
+                      <tr className="bg-slate-900 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
+                        <th className="py-2 px-3 text-center">Rank</th>
+                        <th className="py-2 px-3">Student</th>
+                        <th className="py-2 px-3 text-center">Tasks</th>
+                        <th className="py-2 px-3 text-center">LeetCode</th>
+                        <th className="py-2 px-3 text-center">Quizzes</th>
+                        <th className="py-2 px-3 text-center">Mock Drives</th>
+                        <th className="py-2 px-3 text-center">Overall</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...students]
+                        .sort((a, b) => (b.overallScore || 0) - (a.overallScore || 0))
+                        .slice(0, 5)
+                        .map((s, idx) => (
+                          <tr key={s._id} className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors">
+                            <td className="py-2 px-3 text-center font-bold text-slate-400">#{idx + 1}</td>
+                            <td className="py-2 px-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-[9px]">
+                                  {s.name.charAt(0)}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="font-bold text-white truncate max-w-[120px]">{s.name}</p>
+                                  <p className="text-[9px] text-orange-500 font-medium flex items-center gap-0.5">🔥 {s.leetcodeStreak || 0}d</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-2 px-3 text-center text-slate-300">{formatScore(s.totalTaskScore)}</td>
+                            <td className="py-2 px-3 text-center text-slate-300">{(s.leetcodeStreak || 0) * 10}</td>
+                            <td className="py-2 px-3 text-center text-slate-300">{formatScore(s.totalQuizScore)}</td>
+                            <td className="py-2 px-3 text-center text-slate-300">{formatScore(s.totalMockDriveScore)}</td>
+                            <td className="py-2 px-3 text-center font-black text-emerald-400">{formatScore(s.overallScore)}</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
@@ -269,12 +601,14 @@ const Verification = () => {
         </div>
       );
 
-      // ═══ STUDENTS ════════════════════════════════════════
       case 'students': return (
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
             <h2 className="text-lg font-bold text-white">Student Monitoring ({filteredStudents.length})</h2>
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <button onClick={exportToExcel} className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg py-2 px-3.5 transition-colors flex items-center gap-1.5 shadow-md">
+                <FileText size={16} /> Export Excel
+              </button>
               <div className="relative flex-1 sm:flex-none sm:w-48">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                 <input type="text" placeholder="Search..." className="w-full bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 pl-9 pr-3 focus:outline-none focus:border-indigo-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
@@ -290,12 +624,12 @@ const Verification = () => {
               </select>
             </div>
           </div>
-
+ 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredStudents.map(student => {
               const batch = batches.find(b => student.batchId && b._id === student.batchId.toString());
               return (
-                <div key={student._id} className="bg-slate-800 border border-slate-700 rounded-2xl p-5 hover:border-indigo-500/50 transition-colors">
+                <div key={student._id} className="bg-slate-800 border border-slate-700 rounded-2xl p-5 hover:border-indigo-500/50 transition-colors relative overflow-hidden">
                   <div className="flex items-start gap-4 mb-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 border ${student.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-700 text-slate-400 border-slate-600'}`}>
                       {student.name.charAt(0)}
@@ -306,28 +640,36 @@ const Verification = () => {
                         {student.isActive && <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>}
                       </div>
                       <p className="text-xs text-slate-400 font-mono">{student.rollNumber}</p>
-                      <p className="text-[10px] text-slate-500 truncate">{student.email}</p>
+                      <p className="text-[10px] text-slate-500 truncate mb-1">{student.email}</p>
+                      <div className="flex items-center gap-1 text-[11px] font-semibold text-orange-500">
+                        <Flame size={12} fill="currentColor" className="text-orange-500 animate-pulse" />
+                        <span>{student.leetcodeStreak || 0}d Streak ({student.totalLeetcodeSubmissions || 0} Solved)</span>
+                      </div>
                     </div>
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase border ${student.isActive ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-slate-700 text-slate-400 border-slate-600'}`}>
                       {student.isActive ? 'Active' : 'Offline'}
                     </span>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2 mb-4">
-                    <div className="bg-slate-900 p-2 rounded-lg text-center">
-                      <p className="text-xs font-black text-emerald-400">{formatTime(student.totalSeconds)}</p>
-                      <p className="text-[9px] text-slate-500 uppercase">Time</p>
-                    </div>
-                    <div className="bg-slate-900 p-2 rounded-lg text-center">
+ 
+                  <div className="grid grid-cols-4 gap-1.5 mb-4">
+                    <div className="bg-slate-900/60 p-1.5 rounded-lg text-center border border-slate-700/30">
                       <p className="text-xs font-black text-indigo-400">{student.daysPresent}d</p>
-                      <p className="text-[9px] text-slate-500 uppercase">Attendance</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-wider">Attend.</p>
                     </div>
-                    <div className="bg-slate-900 p-2 rounded-lg text-center">
+                    <div className="bg-slate-900/60 p-1.5 rounded-lg text-center border border-slate-700/30">
                       <p className="text-xs font-black text-amber-400">{student.avgGrade}%</p>
-                      <p className="text-[9px] text-slate-500 uppercase">Avg Grade</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-wider">Avg Grade</p>
+                    </div>
+                    <div className="bg-slate-900/60 p-1.5 rounded-lg text-center border border-slate-700/30">
+                      <p className="text-xs font-black text-purple-400">{formatScore(student.totalMockDriveScore)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-wider">Mock Dr.</p>
+                    </div>
+                    <div className="bg-slate-900/60 p-1.5 rounded-lg text-center border border-slate-700/30">
+                      <p className="text-xs font-black text-emerald-400">{formatScore(student.overallScore)}</p>
+                      <p className="text-[8px] text-slate-500 uppercase tracking-wider">Overall</p>
                     </div>
                   </div>
-
+ 
                   <div className="flex items-center justify-between">
                     <div className="flex gap-1">
                       {student.leetcode && <a href={student.leetcode} target="_blank" rel="noreferrer" className="p-1.5 bg-slate-700 hover:bg-[#ffa116] hover:text-white text-slate-400 rounded transition-colors"><Code size={12} /></a>}
@@ -709,6 +1051,8 @@ const Verification = () => {
         </div>
       );
 
+      case 'mockDrives': return renderMockDrivesModule();
+
       default: return <p className="text-slate-500">Module not found.</p>;
     }
   };
@@ -730,7 +1074,7 @@ const Verification = () => {
 
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
           {SIDEBAR_ITEMS.map(item => (
-            <button key={item.id} onClick={() => { setActiveModule(item.id); setSidebarOpen(false); setSearchTerm(''); setStatusFilter(''); setBatchFilter(''); }}
+            <button key={item.id} onClick={() => { setActiveModule(item.id); setSidebarOpen(false); setSearchTerm(''); setStatusFilter(''); setBatchFilter(''); setMockBatchFilter(''); setMockDriveFilter(''); setMockStatusFilter(''); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${activeModule === item.id ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-700 hover:text-white'}`}>
               <item.icon size={16} />{item.label}
             </button>
@@ -797,6 +1141,11 @@ const Verification = () => {
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.attendance.daysPresent} Days Present</span>
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.tasks.length} Tasks Graded</span>
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.quizzes.length} Quizzes</span>
+                      <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.mockDrives ? studentDetails.mockDrives.length : 0} Mock Drives</span>
+                      <span className="px-3 py-1 bg-slate-800 text-orange-400 rounded-lg text-xs font-bold border border-slate-700 flex items-center gap-1">
+                        <Flame size={12} fill="currentColor" className="text-orange-500 animate-pulse" />
+                        {studentDetails.profile.leetcodeStreak || 0}d Streak ({studentDetails.profile.totalLeetcodeSubmissions || 0} Solved)
+                      </span>
                     </div>
 
                     {/* Contact & Links */}
@@ -813,8 +1162,8 @@ const Verification = () => {
                   </div>
                 </div>
 
-                {/* Tasks and Quizzes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Tasks, Quizzes, and Mock Drives */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col h-[350px]">
                     <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><ClipboardList className="text-indigo-400" size={16} /> Graded Tasks ({studentDetails.tasks.length})</h3>
                     <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
@@ -840,6 +1189,32 @@ const Verification = () => {
                           <div key={i} className="bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between">
                             <div><h4 className="font-bold text-white text-sm line-clamp-1">{q.quizTitle}</h4><p className="text-[10px] text-slate-500">{new Date(q.completedAt).toLocaleDateString()}</p></div>
                             <div className="w-9 h-9 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center shrink-0"><span className="font-bold text-xs text-emerald-400">{q.score}</span></div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col h-[350px]">
+                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Briefcase className="text-purple-400" size={16} /> Mock Drives ({studentDetails.mockDrives ? studentDetails.mockDrives.length : 0})</h3>
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                      {!studentDetails.mockDrives || studentDetails.mockDrives.length === 0 ? <p className="text-slate-500 text-sm text-center mt-8">No mock drives.</p> :
+                        studentDetails.mockDrives.map((m, i) => (
+                          <div key={i} className="bg-slate-900 border border-slate-700 p-3 rounded-xl">
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className="font-bold text-white text-sm line-clamp-1">{m.mockDriveId?.title || 'Mock Drive'}</h4>
+                              <span className="shrink-0 bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded text-[10px] font-bold border border-purple-500/30 ml-2">{m.totalMarks} Marks</span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1 text-[9px] text-slate-400 mt-1.5 border-t border-slate-800/80 pt-1.5">
+                              <div>MCQ: <span className="text-white font-semibold">{m.mcq}</span></div>
+                              <div>Coding: <span className="text-white font-semibold">{m.coding}</span></div>
+                              <div>Tech HR: <span className="text-white font-semibold">{m.techHr}</span></div>
+                              <div>HR: <span className="text-white font-semibold">{m.hr}</span></div>
+                            </div>
+                            <div className="flex justify-between text-[10px] text-slate-500 mt-2 border-t border-slate-800/80 pt-1.5">
+                              <span>Pct: {m.percentage}%</span>
+                              <span className={`font-semibold ${m.grade === 'Pass' ? 'text-emerald-400' : 'text-rose-400'}`}>{m.grade}</span>
+                            </div>
                           </div>
                         ))
                       }

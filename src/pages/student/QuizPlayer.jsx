@@ -115,12 +115,11 @@ const QuizPlayer = () => {
       setGameState('leaderboard');
     });
 
-    newSocket.on('game-finished', async (data) => {
+    newSocket.on('game-finished', (data) => {
+      gameStateRef.current = 'finished';
       setLeaderboard(data?.leaderboard || []);
       setGameState('finished');
       
-      // Performance Optimization: Save attempt to database with random jitter delay (0-2s)
-      // to prevent thundering herd database spikes when 100+ students submit at the exact same moment.
       const delay = Math.random() * 2000;
       setTimeout(async () => {
         try {
