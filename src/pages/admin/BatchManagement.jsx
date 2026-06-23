@@ -3,6 +3,8 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Users, Plus, Edit, Trash2, Loader2, Calendar, UserMinus, X, Download, Clock, RefreshCw, Search, RotateCcw, CheckCircle } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
+import Loader from '../../components/Loader';
+import * as XLSX from 'xlsx';
 
 const BatchManagement = () => {
   const [batches, setBatches] = useState([]);
@@ -117,26 +119,10 @@ const BatchManagement = () => {
         return;
       }
 
-      const headers = Object.keys(data[0]);
-      const csvRows = [];
-      csvRows.push(headers.join(','));
-
-      for (const row of data) {
-        const values = headers.map(header => {
-          const escaped = ('' + row[header]).replace(/"/g, '""');
-          return `"${escaped}"`;
-        });
-        csvRows.push(values.join(','));
-      }
-
-      const csvString = csvRows.join('\n');
-      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${batchName.replace(/\s+/g, '_')}_Report.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Batch Report");
+      XLSX.writeFile(workbook, `${batchName.replace(/\s+/g, '_')}_Report.xlsx`);
 
     } catch (error) {
       console.error('Error downloading report:', error);
