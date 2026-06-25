@@ -113,19 +113,21 @@ const AttendanceTracker = () => {
     return 'Absent';
   };
 
-  // Determine all unique attendance dates
+  // Today's date string in YYYY-MM-DD format (to exclude from % calc) using local timezone
+  const todayStr = useMemo(() => {
+    return new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+  }, []);
+
+  // Determine all unique attendance dates (excludes future dates to prevent grid glitches)
   const uniqueAttendanceDates = useMemo(() => {
     const datesSet = new Set();
     attendanceData.forEach(log => {
-      if (log.date) {
+      if (log.date && log.date <= todayStr) {
         datesSet.add(log.date);
       }
     });
     return Array.from(datesSet).sort(); // Sort in ascending order
-  }, [attendanceData]);
-
-  // Today's date string in YYYY-MM-DD format (to exclude from % calc)
-  const todayStr = new Date().toISOString().split('T')[0];
+  }, [attendanceData, todayStr]);
 
   // Overall Attendance % calculation (excludes today)
   const getAttendanceOverallPercentage = (studentId) => {
@@ -171,8 +173,17 @@ const AttendanceTracker = () => {
     // Sort
     if (sortConfig.key) {
       result.sort((a, b) => {
-        const aVal = a[sortConfig.key] || '';
-        const bVal = b[sortConfig.key] || '';
+        let aVal = a[sortConfig.key];
+        let bVal = b[sortConfig.key];
+
+        if (sortConfig.key === 'overallPercentage') {
+          aVal = getAttendanceOverallPercentage(a._id);
+          bVal = getAttendanceOverallPercentage(b._id);
+        } else {
+          aVal = aVal || '';
+          bVal = bVal || '';
+        }
+
         if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -180,7 +191,7 @@ const AttendanceTracker = () => {
     }
 
     return result;
-  }, [students, filterName, filterRoll, sortConfig]);
+  }, [students, filterName, filterRoll, sortConfig, attendanceData]);
 
   const handleSort = (key) => {
     let direction = 'asc';
@@ -520,8 +531,15 @@ const AttendanceTracker = () => {
                   {uniqueAttendanceDates.length === 0 && <th className="px-4 py-4 border-b border-slate-200 dark:border-slate-700">No Logs Found</th>}
                   
                   {/* OVERALL % HEADER */}
-                  <th scope="col" className="px-6 py-4 border-b dark:border-slate-700 text-center min-w-[110px] bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold">
-                    Overall %
+                  <th 
+                    scope="col" 
+                    className="px-6 py-4 border-b border-l dark:border-slate-700 text-center min-w-[130px] bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold sticky right-0 z-50 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-900 transition-colors group select-none"
+                    onClick={() => handleSort('overallPercentage')}
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      Overall %
+                      {renderSortIcon('overallPercentage')}
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -537,14 +555,14 @@ const AttendanceTracker = () => {
                     const rowBgClass = idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800';
                     
                     return (
-                      <tr key={student._id} className={`${rowBgClass} hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors`}>
-                        <td className={`px-4 py-3 border-b border-r dark:border-slate-700 font-bold text-center text-slate-500 dark:text-slate-400 sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass}`}>
+                      <tr key={student._id} className={`group ${rowBgClass} hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors`}>
+                        <td className={`px-4 py-3 border-b border-r dark:border-slate-700 font-bold text-center text-slate-500 dark:text-slate-400 sticky left-0 z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass} group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors`}>
                           {idx + 1}
                         </td>
-                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 font-medium text-slate-900 dark:text-white sticky left-[60px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass}`}>
+                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 font-medium text-slate-900 dark:text-white sticky left-[60px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass} group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors`}>
                           {student.name}
                         </td>
-                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 text-slate-600 dark:text-slate-400 sticky left-[260px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass}`}>
+                        <td className={`px-6 py-3 border-b border-r dark:border-slate-700 text-slate-600 dark:text-slate-400 sticky left-[260px] z-40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass} group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors`}>
                           {student.rollNumber}
                         </td>
                         {uniqueAttendanceDates.map(date => {
@@ -586,7 +604,7 @@ const AttendanceTracker = () => {
                         {uniqueAttendanceDates.length === 0 && <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 text-slate-500"></td>}
                         
                         {/* OVERALL % CELL */}
-                        <td className="px-6 py-3 border-b dark:border-slate-700 text-center font-bold text-slate-800 dark:text-slate-200">
+                        <td className={`px-6 py-3 border-b border-l dark:border-slate-700 text-center font-bold text-slate-800 dark:text-slate-200 sticky right-0 z-40 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)] ${rowBgClass} group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors`}>
                           {getAttendanceOverallPercentage(student._id)}%
                         </td>
                       </tr>

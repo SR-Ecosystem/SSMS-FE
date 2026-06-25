@@ -6,6 +6,14 @@ import 'react-quill-new/dist/quill.snow.css';
 import { BookOpen, Plus, Loader2, UploadCloud, FileText as FileTextIcon, Edit, Trash2, Link as LinkIcon, RefreshCw, Search, RotateCcw, CheckCircle } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
+const formatLocalISO = (dateStr) => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const offset = d.getTimezoneOffset();
+  const localTime = new Date(d.getTime() - (offset * 60 * 1000));
+  return localTime.toISOString().slice(0, 16);
+};
+
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -26,7 +34,8 @@ const TaskManagement = () => {
     maxMarks: 100, 
     batchId: '',
     taskType: 'text',
-    category: 'General'
+    category: 'General',
+    scheduledAt: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -66,7 +75,8 @@ const TaskManagement = () => {
     setEditingTaskId(null);
     setFormData({
       title: '', description: '', dueDate: '', maxMarks: 100,
-      batchId: batches[0]?._id || '', taskType: 'text', category: 'General'
+      batchId: batches[0]?._id || '', taskType: 'text', category: 'General',
+      scheduledAt: ''
     });
     setSelectedFile(null);
     setShowModal(true);
@@ -82,7 +92,8 @@ const TaskManagement = () => {
       batchId: task.batchId?._id || task.batchId,
       taskType: task.taskType || 'text',
       linkUrl: task.linkUrl || '',
-      category: task.category || 'General'
+      category: task.category || 'General',
+      scheduledAt: task.scheduledAt ? formatLocalISO(task.scheduledAt) : ''
     });
     setSelectedFile(null);
     setShowModal(true);
@@ -147,7 +158,8 @@ const TaskManagement = () => {
       setEditingTaskId(null);
       setFormData({ 
         title: '', description: '', dueDate: '', maxMarks: 100, 
-        batchId: batches[0]?._id || '', taskType: 'text', category: 'General' 
+        batchId: batches[0]?._id || '', taskType: 'text', category: 'General',
+        scheduledAt: '' 
       });
       setSelectedFile(null);
     } catch (error) {
@@ -405,6 +417,7 @@ const TaskManagement = () => {
         ) : (
           filteredTasks.map(task => {
           const isOverdue = new Date() > new Date(task.dueDate).setHours(23, 59, 59, 999);
+          const isScheduled = task.scheduledAt && new Date(task.scheduledAt) > new Date();
           return (
           <div key={task._id} className={`glass-panel p-6 card-hover border-l-4 flex flex-col ${isOverdue ? 'border-l-red-500' : 'border-l-primary-500'}`}>
             <div className="flex justify-between items-start mb-4 gap-4">
@@ -412,6 +425,9 @@ const TaskManagement = () => {
                 <h3 className="font-bold text-base text-slate-800 dark:text-slate-100">{task.title}</h3>
                 {isOverdue && (
                   <span className="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-red-200 dark:border-red-800/50">Overdue</span>
+                )}
+                {isScheduled && (
+                  <span className="bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-blue-200 dark:border-blue-800/50">Scheduled</span>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -462,10 +478,17 @@ const TaskManagement = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-4 text-sm font-medium mt-auto">
-              <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">Max Marks: {task.maxMarks}</span>
-              <span className="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded font-bold">{task.category || 'General'}</span>
-              <span className={`px-2 py-1 rounded ${isOverdue ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/30'}`}>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+            <div className="flex flex-col gap-2.5 text-sm font-medium mt-auto border-t border-slate-100 dark:border-slate-800/60 pt-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded">Max Marks: {task.maxMarks}</span>
+                <span className="text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded font-bold">{task.category || 'General'}</span>
+                <span className={`px-2 py-1 rounded ${isOverdue ? 'text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/30'}`}>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+              </div>
+              {task.scheduledAt && (
+                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
+                  Release Schedule: <span className="font-semibold text-slate-700 dark:text-slate-200">{new Date(task.scheduledAt).toLocaleString()}</span>
+                </div>
+              )}
             </div>
           </div>
         )}))}
@@ -580,6 +603,12 @@ const TaskManagement = () => {
                   <option value="HW">Homework (HW)</option>
                   <option value="Project">Project</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Schedule Release (Optional)</label>
+                <input type="datetime-local" className="input-field" value={formData.scheduledAt || ''} onChange={e => setFormData({...formData, scheduledAt: e.target.value})} />
+                <p className="text-[10.5px] text-slate-500 mt-1">Leave empty to assign immediately. Students will only see this task after this time.</p>
               </div>
 
               <div className="pt-4 flex gap-3">

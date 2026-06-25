@@ -13,9 +13,40 @@ const LeaveApplication = () => {
     endDate: '', 
     startTime: '', 
     endTime: '', 
-    reason: '' 
+    reason: '',
+    attachmentUrl: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      Swal.fire('Error', 'Please upload a PDF document only.', 'error');
+      return;
+    }
+    setSelectedFile(file);
+    setUploadingPdf(true);
+    
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    
+    try {
+      const { data } = await axios.post('/upload', uploadData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setFormData(f => ({ ...f, attachmentUrl: data.url }));
+      Swal.fire('Uploaded!', 'Leave letter PDF uploaded successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'Failed to upload PDF. Please try again.', 'error');
+      setSelectedFile(null);
+    } finally {
+      setUploadingPdf(false);
+    }
+  };
 
   const fetchLeaves = async () => {
     try {
@@ -35,6 +66,10 @@ const LeaveApplication = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.startDate || !formData.reason) return;
+    if (!formData.attachmentUrl) {
+      Swal.fire('Error', 'Please upload a PDF leave application letter.', 'error');
+      return;
+    }
     
     setSubmitting(true);
     try {
@@ -50,8 +85,10 @@ const LeaveApplication = () => {
         endDate: '', 
         startTime: '', 
         endTime: '', 
-        reason: '' 
+        reason: '',
+        attachmentUrl: ''
       });
+      setSelectedFile(null);
       fetchLeaves();
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || 'Failed to submit leave application', 'error');
@@ -172,12 +209,32 @@ const LeaveApplication = () => {
                 onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
               ></textarea>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Upload Leave Application PDF <span className="text-red-500">*</span>
+              </label>
+              <div className="mt-1 flex justify-center px-6 pt-4 pb-4 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-lg bg-slate-50/50 dark:bg-slate-900/10">
+                <div className="space-y-1 text-center">
+                  <div className="flex text-sm text-slate-600 dark:text-slate-400 justify-center">
+                    <label className="relative cursor-pointer bg-transparent rounded-md font-medium text-indigo-600 hover:text-indigo-500">
+                      <span>{selectedFile ? 'Change PDF Letter' : 'Select PDF Letter'}</span>
+                      <input type="file" accept="application/pdf" className="sr-only" onChange={handleFileChange} />
+                    </label>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                    {uploadingPdf ? 'Uploading PDF...' : (selectedFile ? selectedFile.name : 'PDF up to 50MB')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <button 
               type="submit" 
-              disabled={submitting}
-              className="btn-primary w-full flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
+              disabled={submitting || uploadingPdf}
+              className="btn-primary w-full flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
             >
-              {submitting ? 'Submitting...' : <><Send size={18} /> Submit Application</>}
+              {submitting ? 'Submitting...' : uploadingPdf ? 'Uploading PDF...' : <><Send size={18} /> Submit Application</>}
             </button>
           </form>
         </div>
@@ -219,6 +276,18 @@ const LeaveApplication = () => {
                       </td>
                       <td className="p-4 text-slate-600 dark:text-slate-400 max-w-[300px] break-words">
                         <div>{leave.reason}</div>
+                        {leave.attachmentUrl && (
+                          <div className="mt-2">
+                            <a 
+                              href={leave.attachmentUrl.startsWith('http') ? leave.attachmentUrl : `${import.meta.env.VITE_API_URL || ''}${leave.attachmentUrl}`} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 px-2.5 py-1.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors shadow-sm w-max"
+                            >
+                              <FileText size={14} /> View Attached PDF
+                            </a>
+                          </div>
+                        )}
                         {leave.adminResponse && (
                           <div className="mt-1.5 text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200/50 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium max-w-sm">
                             <span className="font-bold text-slate-700 dark:text-slate-300 block text-[9px] uppercase tracking-wider mb-0.5">Response:</span>

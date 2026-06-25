@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Calendar, CheckCircle, XCircle, Clock, User as UserIcon, RefreshCw, Search, Filter, RotateCcw, Loader2 } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Clock, User as UserIcon, RefreshCw, Search, Filter, RotateCcw, Loader2, FileText } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const LeaveRequests = () => {
@@ -215,9 +215,21 @@ const LeaveRequests = () => {
                   <div className="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800 relative flex-1">
                     <div className="absolute top-0 left-0 w-1 h-full bg-slate-300 dark:bg-slate-700 rounded-l-xl"></div>
                     <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-2">Reason for leave</span>
-                    <p className="text-slate-700 dark:text-slate-300 text-sm ml-2 leading-relaxed">
+                    <p className="text-slate-700 dark:text-slate-300 text-sm ml-2 leading-relaxed mb-3">
                       {leave.reason}
                     </p>
+                    {leave.attachmentUrl && (
+                      <div className="ml-2 mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
+                        <a 
+                          href={leave.attachmentUrl.startsWith('http') ? leave.attachmentUrl : `${import.meta.env.VITE_API_URL || ''}${leave.attachmentUrl}`} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40 px-3 py-2 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all shadow-sm w-max cursor-pointer"
+                        >
+                          <FileText size={14} /> View Attached Letter (PDF)
+                        </a>
+                      </div>
+                    )}
                   </div>
                   {leave.adminResponse && (
                     <div className="mt-3 bg-indigo-50/30 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100/50 dark:border-indigo-900/50 relative">
