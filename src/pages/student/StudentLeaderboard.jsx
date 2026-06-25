@@ -113,10 +113,9 @@ const StudentLeaderboard = () => {
             <div className="min-w-[900px]">
               <div className="grid grid-cols-12 gap-4 p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 font-bold text-slate-500 dark:text-slate-400 text-xs sm:text-sm uppercase tracking-wider">
                 <div className="col-span-1 text-center">RANK</div>
-                <div className="col-span-3">STUDENT</div>
+                <div className="col-span-4">STUDENT</div>
                 <div className="col-span-1 text-center">TASKS</div>
                 <div className="col-span-2 text-center">LEETCODE</div>
-                <div className="col-span-1 text-center">QUIZZES</div>
                 <div className="col-span-2 text-center">MOCK DRIVES</div>
                 <div className="col-span-2 text-center">OVER ALL</div>
               </div>
@@ -135,7 +134,7 @@ const StudentLeaderboard = () => {
                         {rankIcon ? rankIcon : <span className="font-black text-lg text-slate-400">{student.rank}</span>}
                       </div>
                       
-                      <div className="col-span-3 flex items-center gap-3 min-w-0">
+                      <div className="col-span-4 flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-500 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
                           {student.name.charAt(0)}
                         </div>
@@ -156,10 +155,6 @@ const StudentLeaderboard = () => {
     
                       <div className="col-span-2 text-center font-semibold text-slate-600 dark:text-slate-300">
                         {formatScore(student.streakScore)}
-                      </div>
-                      
-                      <div className="col-span-1 text-center font-semibold text-slate-600 dark:text-slate-300">
-                        {formatScore(student.totalQuizScore)}
                       </div>
      
                       <div className="col-span-2 text-center font-semibold text-slate-600 dark:text-slate-300">

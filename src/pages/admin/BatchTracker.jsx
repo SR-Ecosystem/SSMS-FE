@@ -2,9 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import Loader from '../../components/Loader';
 import SkeletonLoader from '../../components/SkeletonLoader';
-import { Check, Clock, X, RotateCcw, XCircle, Filter, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import { Check, Clock, X, XCircle, Filter, ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const BatchTracker = () => {
+  const { user } = useAuth();
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -37,10 +39,17 @@ const BatchTracker = () => {
 
   const fetchBatches = async () => {
     try {
-      const res = await axios.get('/batches');
-      setBatches(res.data);
-      if (res.data.length > 0) {
-        setSelectedBatch(res.data[0]._id);
+      let batchList = [];
+      if (user?.role === 'admin') {
+        const res = await axios.get('/batches');
+        batchList = res.data;
+      } else {
+        const res = await axios.get('/enrollments/my');
+        batchList = res.data.map(e => e.batchId).filter(b => b !== null);
+      }
+      setBatches(batchList);
+      if (batchList.length > 0) {
+        setSelectedBatch(batchList[0]._id);
       } else {
         setLoading(false);
       }
@@ -51,8 +60,10 @@ const BatchTracker = () => {
   };
 
   useEffect(() => {
-    fetchBatches();
-  }, []);
+    if (user) {
+      fetchBatches();
+    }
+  }, [user]);
 
   const fetchTrackerData = async () => {
     if (!selectedBatch) return;
@@ -132,6 +143,19 @@ const BatchTracker = () => {
       }
       return 'red';
     }
+  };
+
+  // Overall Task Completion % calculation
+  const getTaskOverallPercentage = (studentId) => {
+    if (allActivities.length === 0) return 0;
+    let submittedCount = 0;
+    allActivities.forEach(activity => {
+      const color = getStatusColor(studentId, activity);
+      if (color === 'green' || color === 'yellow') {
+        submittedCount++;
+      }
+    });
+    return Math.round((submittedCount / allActivities.length) * 100);
   };
 
   // Apply row filters and sorting
@@ -227,14 +251,14 @@ const BatchTracker = () => {
               placeholder="Search student name..." 
               value={filterName}
               onChange={(e) => setFilterName(e.target.value)}
-              className="input-field w-[180px] py-1.5 px-3 text-sm"
+              className="input-field w-[180px] py-1.5 px-3 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
             />
             <input 
               type="text" 
               placeholder="Search roll number..." 
               value={filterRoll}
               onChange={(e) => setFilterRoll(e.target.value)}
-              className="input-field w-[140px] py-1.5 px-3 text-sm"
+              className="input-field w-[140px] py-1.5 px-3 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
             />
           </div>
 
@@ -246,14 +270,14 @@ const BatchTracker = () => {
             <div className="flex items-center gap-1">
               <input 
                 type="date"
-                className="input-field cursor-pointer py-1.5 px-3 text-sm"
+                className="input-field cursor-pointer py-1.5 px-3 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
               />
             </div>
             
             <select 
-              className="input-field min-w-[160px] font-medium py-1.5 px-3 text-sm"
+              className="input-field min-w-[160px] font-medium py-1.5 px-3 text-sm bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
               value={selectedBatch}
               onChange={(e) => setSelectedBatch(e.target.value)}
             >
@@ -358,6 +382,11 @@ const BatchTracker = () => {
                     </th>
                   ))}
                   {dates.length === 0 && <th rowSpan={2} className="px-4 py-4 border-b border-slate-200 dark:border-slate-700">No Assignments Found</th>}
+                  
+                  {/* OVERALL % HEADER */}
+                  <th scope="col" rowSpan={2} className="px-6 py-4 border-b dark:border-slate-700 text-center min-w-[110px] bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold">
+                    Overall %
+                  </th>
                 </tr>
                 {/* SECOND HEADER ROW (TASK TITLES) */}
                 <tr>
@@ -378,13 +407,12 @@ const BatchTracker = () => {
               <tbody>
                 {filteredAndSortedStudents.length === 0 ? (
                   <tr>
-                    <td colSpan={dates.length === 0 ? 4 : 3 + allActivities.length} className="px-6 py-8 text-center text-slate-500 bg-white dark:bg-slate-900 font-medium">
+                    <td colSpan={dates.length === 0 ? 5 : 4 + allActivities.length} className="px-6 py-8 text-center text-slate-500 bg-white dark:bg-slate-900 font-medium">
                       No students match the current search.
                     </td>
                   </tr>
                 ) : (
                   filteredAndSortedStudents.map((student, idx) => {
-                    // IMPORTANT: We use completely opaque background colors here so that scrolling cells don't bleed through
                     const rowBgClass = idx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50 dark:bg-slate-800';
                     
                     return (
@@ -427,6 +455,11 @@ const BatchTracker = () => {
                           })
                         ))}
                         {dates.length === 0 && <td className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 text-slate-500"></td>}
+                        
+                        {/* OVERALL % CELL */}
+                        <td className="px-6 py-3 border-b dark:border-slate-700 text-center font-bold text-slate-800 dark:text-slate-200">
+                          {getTaskOverallPercentage(student._id)}%
+                        </td>
                       </tr>
                     );
                   })

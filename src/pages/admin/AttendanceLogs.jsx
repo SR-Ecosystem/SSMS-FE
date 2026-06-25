@@ -9,6 +9,10 @@ const AttendanceLogs = () => {
   const [logs, setLogs] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [accessGrants, setAccessGrants] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [grantingAccess, setGrantingAccess] = useState(false);
+  const [showAccessPanel, setShowAccessPanel] = useState(true);
   
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,14 +43,16 @@ const AttendanceLogs = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [logsRes, batchesRes, studentsRes] = await Promise.all([
+      const [logsRes, batchesRes, studentsRes, accessRes] = await Promise.all([
         axios.get(`/attendance/summary${selectedBatch ? `?batchId=${selectedBatch}` : ''}`),
         axios.get('/batches'),
-        axios.get(`/auth/students${selectedBatch ? `?batchId=${selectedBatch}` : ''}`)
+        axios.get(`/auth/students${selectedBatch ? `?batchId=${selectedBatch}` : ''}`),
+        axios.get(`/checkin-access/today${selectedBatch ? `?batchId=${selectedBatch}` : ''}`).catch(() => ({ data: [] }))
       ]);
       setLogs(logsRes.data);
       setBatches(batchesRes.data);
       setAllStudents(studentsRes.data);
+      setAccessGrants(accessRes.data);
     } catch (error) {
       console.error('Error fetching attendance summary:', error);
     } finally {
@@ -56,7 +62,145 @@ const AttendanceLogs = () => {
 
   useEffect(() => {
     fetchData();
+    setSelectedStudents([]);
   }, [selectedBatch]);
+
+  const handleGrantAccess = async (accessType) => {
+    if (selectedStudents.length === 0) {
+      Swal.fire('No Selection', 'Please select at least one student first.', 'warning');
+      return;
+    }
+    if (!selectedBatch) {
+      Swal.fire('No Batch', 'Please select a batch first.', 'warning');
+      return;
+    }
+
+    setGrantingAccess(true);
+    try {
+      await axios.post('/checkin-access/grant', {
+        studentIds: selectedStudents,
+        accessType,
+        batchId: selectedBatch
+      });
+      Swal.fire({
+        title: 'Access Granted',
+        text: `Successfully granted ${accessType === 'wfh' ? 'Work From Home' : 'On-Site'} access for selected students today.`,
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setSelectedStudents([]);
+      const accessRes = await axios.get(`/checkin-access/today${selectedBatch ? `?batchId=${selectedBatch}` : ''}`).catch(() => ({ data: [] }));
+      setAccessGrants(accessRes.data);
+    } catch (error) {
+      console.error('Failed to grant access:', error);
+      Swal.fire('Error', error.response?.data?.message || 'Failed to grant check-in access.', 'error');
+    } finally {
+      setGrantingAccess(false);
+    }
+  };
+
+  const handleRevokeAccess = async () => {
+    if (selectedStudents.length === 0) {
+      Swal.fire('No Selection', 'Please select at least one student first.', 'warning');
+      return;
+    }
+    if (!selectedBatch) {
+      Swal.fire('No Batch', 'Please select a batch first.', 'warning');
+      return;
+    }
+
+    setGrantingAccess(true);
+    try {
+      await axios.post('/checkin-access/revoke', {
+        studentIds: selectedStudents,
+        batchId: selectedBatch
+      });
+      Swal.fire({
+        title: 'Access Revoked',
+        text: 'Successfully revoked check-in access for selected students today.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setSelectedStudents([]);
+      const accessRes = await axios.get(`/checkin-access/today${selectedBatch ? `?batchId=${selectedBatch}` : ''}`).catch(() => ({ data: [] }));
+      setAccessGrants(accessRes.data);
+    } catch (error) {
+      console.error('Failed to revoke access:', error);
+      Swal.fire('Error', error.response?.data?.message || 'Failed to revoke check-in access.', 'error');
+    } finally {
+      setGrantingAccess(false);
+    }
+  };
+
+  const handleToggleSelectStudent = (studentId) => {
+    if (selectedStudents.includes(studentId)) {
+      setSelectedStudents(selectedStudents.filter(id => id !== studentId));
+    } else {
+      setSelectedStudents([...selectedStudents, studentId]);
+    }
+  };
+
+  const handleSelectAllStudents = (studentsToSelect) => {
+    const studentIds = studentsToSelect.map(s => s._id);
+    const allSelected = studentIds.every(id => selectedStudents.includes(id));
+
+    if (allSelected) {
+      setSelectedStudents(selectedStudents.filter(id => !studentIds.includes(id)));
+    } else {
+      const newSelections = [...new Set([...selectedStudents, ...studentIds])];
+      setSelectedStudents(newSelections);
+    }
+  };
+
+  const getStudentAccess = (studentId) => {
+    return accessGrants.find(g => {
+      const sId = typeof g.studentId === 'object' && g.studentId !== null ? g.studentId._id : g.studentId;
+      return sId === studentId;
+    });
+  };
+
+  const filteredStudentsForAccess = allStudents.filter(student => {
+    return student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           (student.rollNumber && student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+  });
+
+  const handleGrantAll = async (accessType) => {
+    if (filteredStudentsForAccess.length === 0) {
+      Swal.fire('No Students', 'No students found to grant access to.', 'warning');
+      return;
+    }
+    if (!selectedBatch) {
+      Swal.fire('No Batch', 'Please select a batch first.', 'warning');
+      return;
+    }
+    
+    const studentIds = filteredStudentsForAccess.map(s => s._id);
+    setGrantingAccess(true);
+    try {
+      await axios.post('/checkin-access/grant', {
+        studentIds,
+        accessType,
+        batchId: selectedBatch
+      });
+      Swal.fire({
+        title: 'All Access Granted',
+        text: `Successfully granted ${accessType === 'wfh' ? 'Work From Home' : 'On-Site'} access for all ${studentIds.length} students today.`,
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+      setSelectedStudents([]);
+      const accessRes = await axios.get(`/checkin-access/today${selectedBatch ? `?batchId=${selectedBatch}` : ''}`).catch(() => ({ data: [] }));
+      setAccessGrants(accessRes.data);
+    } catch (error) {
+      console.error('Failed to grant bulk access:', error);
+      Swal.fire('Error', error.response?.data?.message || 'Failed to grant check-in access.', 'error');
+    } finally {
+      setGrantingAccess(false);
+    }
+  };
 
   const formatDuration = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -306,6 +450,201 @@ const AttendanceLogs = () => {
           </h1>
           <p className="text-sm text-slate-500 mt-1">Excel-format aggregated attendance tracking</p>
         </div>
+      </div>
+
+      {/* Daily Check-In Permissions Manager */}
+      <div className="glass-panel p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm relative overflow-hidden bg-gradient-to-r from-emerald-500/5 via-teal-500/5 to-sky-500/5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-slate-100 dark:border-slate-700 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+              <CheckCircle size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                Daily Check-In Permissions Manager
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Grant or revoke students' permission to check in for today.
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={() => setShowAccessPanel(!showAccessPanel)}
+            className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700"
+          >
+            {showAccessPanel ? 'Hide Manager' : 'Show Manager'}
+          </button>
+        </div>
+
+        {showAccessPanel && (
+          <div className="space-y-6">
+            {!selectedBatch ? (
+              <div className="flex flex-col items-center justify-center py-10 text-center bg-slate-50/50 dark:bg-slate-900/10 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                <Filter className="w-10 h-10 text-emerald-500 mb-3 opacity-80 animate-pulse" />
+                <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                  Select a Batch to Manage Permissions
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm">
+                  Daily check-in permissions are managed batch-wise. Select a batch below to view and grant access.
+                </p>
+                <div className="mt-4">
+                  <select 
+                    className="input-field py-2 px-3 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm text-slate-700 dark:text-slate-200 focus:ring-emerald-500 min-w-[200px]"
+                    value={selectedBatch}
+                    onChange={(e) => setSelectedBatch(e.target.value)}
+                  >
+                    <option value="">Choose Batch...</option>
+                    {batches.map(b => (
+                      <option key={b._id} value={b._id}>{b.batchName}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Bulk Actions & Selection Status */}
+                <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                      {selectedStudents.length} {selectedStudents.length === 1 ? 'student' : 'students'} selected
+                    </span>
+                    {selectedStudents.length > 0 && (
+                      <button 
+                        onClick={() => setSelectedStudents([])}
+                        className="text-xs text-slate-400 hover:text-rose-500 hover:underline"
+                      >
+                        Clear Selection
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedStudents.length === 0 ? (
+                      <>
+                        <button
+                          onClick={() => handleGrantAll('on-site')}
+                          disabled={grantingAccess || filteredStudentsForAccess.length === 0}
+                          className="px-4 py-2 text-xs font-black bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {grantingAccess ? <Loader2 size={12} className="animate-spin" /> : null}
+                          Grant All On-Site
+                        </button>
+                        <button
+                          onClick={() => handleGrantAll('wfh')}
+                          disabled={grantingAccess || filteredStudentsForAccess.length === 0}
+                          className="px-4 py-2 text-xs font-black bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {grantingAccess ? <Loader2 size={12} className="animate-spin" /> : null}
+                          Grant All WFH
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleGrantAccess('on-site')}
+                          disabled={grantingAccess}
+                          className="px-4 py-2 text-xs font-black bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-sm shadow-emerald-500/20 hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          {grantingAccess ? <Loader2 size={12} className="animate-spin" /> : null}
+                          Grant On-Site ({selectedStudents.length})
+                        </button>
+                        <button
+                          onClick={() => handleGrantAccess('wfh')}
+                          disabled={grantingAccess}
+                          className="px-4 py-2 text-xs font-black bg-sky-500 hover:bg-sky-600 text-white rounded-lg shadow-sm shadow-sky-500/20 hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          {grantingAccess ? <Loader2 size={12} className="animate-spin" /> : null}
+                          Grant WFH ({selectedStudents.length})
+                        </button>
+                        <button
+                          onClick={handleRevokeAccess}
+                          disabled={grantingAccess}
+                          className="px-4 py-2 text-xs font-black bg-rose-500 hover:bg-rose-600 text-white rounded-lg shadow-sm shadow-rose-500/20 hover:shadow transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          {grantingAccess ? <Loader2 size={12} className="animate-spin" /> : null}
+                          Revoke Access ({selectedStudents.length})
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Students List */}
+                {filteredStudentsForAccess.length === 0 ? (
+                  <div className="text-center py-6 text-slate-400 text-sm">
+                    No students found matching current filters.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider px-3">
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="checkbox"
+                          checked={filteredStudentsForAccess.length > 0 && filteredStudentsForAccess.every(s => selectedStudents.includes(s._id))}
+                          onChange={() => handleSelectAllStudents(filteredStudentsForAccess)}
+                          className="rounded border-slate-300 dark:border-slate-600 text-emerald-500 focus:ring-emerald-500 cursor-pointer h-4 w-4"
+                        />
+                        <span>Select All Students ({filteredStudentsForAccess.length})</span>
+                      </div>
+                      <span>Access Status Today</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                      {filteredStudentsForAccess.map(student => {
+                        const access = getStudentAccess(student._id);
+                        const isSelected = selectedStudents.includes(student._id);
+                        return (
+                          <div 
+                            key={student._id} 
+                            onClick={() => handleToggleSelectStudent(student._id)}
+                            className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group select-none ${
+                              isSelected 
+                                ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800' 
+                                : 'bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-100 dark:border-slate-700/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input 
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {}} // Controlled by outer div click
+                                className="rounded border-slate-300 dark:border-slate-600 text-emerald-500 focus:ring-emerald-500 cursor-pointer h-4 w-4"
+                              />
+                              <div>
+                                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                  {student.name}
+                                </p>
+                                <p className="text-[10px] font-mono text-slate-500 tracking-wider">
+                                  {student.rollNumber || 'No Roll #'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div>
+                              {access ? (
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  access.accessType === 'wfh'
+                                    ? 'bg-sky-100 dark:bg-sky-950/50 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800/50'
+                                    : 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'
+                                }`} title={`Granted by ${access.grantedBy?.name || 'Admin'}`}>
+                                  {access.accessType === 'wfh' ? 'WFH' : 'On-Site'}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/50 dark:border-slate-700/50">
+                                  No Access
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter Bar */}

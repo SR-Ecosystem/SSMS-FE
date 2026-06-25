@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Users, BookOpen, FileText, CheckCircle, 
+import {
+  LayoutDashboard, Users, BookOpen, FileText, CheckCircle,
   LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor,
   Briefcase
 } from 'lucide-react';
@@ -23,13 +24,13 @@ const Layout = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
   // Dark mode state
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme !== 'light'; // Default to dark
   });
-  
+
   const [sessionActive, setSessionActive] = useState(false);
   const [attendanceId, setAttendanceId] = useState(null);
   const [sessionSeconds, setSessionSeconds] = useState(0);
@@ -40,19 +41,18 @@ const Layout = () => {
 
   // Notification count state
   const [pendingCount, setPendingCount] = useState(0);
-  const [quizCount, setQuizCount] = useState(0);
   const [chatCount, setChatCount] = useState(0);
   const [leavesCount, setLeavesCount] = useState(0);
   const [joinsCount, setJoinsCount] = useState(0);
   const [onlineStudentsCount, setOnlineStudentsCount] = useState(0);
-  
+
   const [activeLeaveStatus, setActiveLeaveStatus] = useState({ isOnLeave: false, message: '' });
-  
+
   // Header Notifications state
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
-  
+
   // Persisted cleared notifications
   const [clearedNotifs, setClearedNotifs] = useState(() => {
     try { return JSON.parse(localStorage.getItem('clearedNotifs')) || []; } catch { return []; }
@@ -80,12 +80,11 @@ const Layout = () => {
       }
     };
     if (location.pathname.startsWith('/student/tasks')) updateSeen('tasks', pendingCount);
-    if (location.pathname.startsWith('/student/join-quiz')) updateSeen('quizzes', quizCount);
     if (location.pathname.startsWith('/student/chat')) updateSeen('chats', chatCount);
     if (location.pathname.startsWith('/reviews')) updateSeen('reviews', pendingCount);
     if (location.pathname.startsWith('/enrollments')) updateSeen('joins', joinsCount);
     if (location.pathname.startsWith('/leaves')) updateSeen('leaves', leavesCount);
-  }, [location.pathname, pendingCount, quizCount, chatCount, joinsCount, leavesCount, seenCounts]);
+  }, [location.pathname, pendingCount, chatCount, joinsCount, leavesCount, seenCounts]);
 
   // Global Click Sound Listener
   useEffect(() => {
@@ -111,7 +110,7 @@ const Layout = () => {
       document.documentElement.classList.add('dark');
       setDarkMode(true);
     }
-    
+
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setShowNotifications(false);
@@ -201,7 +200,7 @@ const Layout = () => {
           setPendingCount(data.pendingReviews || 0);
           setLeavesCount(data.pendingLeavesCount || 0);
           setJoinsCount(data.joinRequestsCount || 0);
-          
+
           const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
           if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
             soundManager.playNotification();
@@ -210,22 +209,21 @@ const Layout = () => {
         } else if (user?.role === 'student') {
           const { data } = await axios.get(`/analytics/student/${user._id}`);
           setPendingCount(data.pendingTasks || 0);
-          setQuizCount(data.activeQuizzes || 0);
           setChatCount(data.recentChats || 0);
-          
+
           const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
           if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
             soundManager.playNotification();
           }
           setNotifications(newNotifs);
-          
+
           try {
             const { data: leaveData } = await axios.get('/leaves/active-status');
             setActiveLeaveStatus({ isOnLeave: leaveData.isOnLeave, message: leaveData.message });
           } catch (leaveErr) {
             console.error('Failed to fetch active leave status:', leaveErr);
           }
-          
+
           // Restore today's attendance session state
           try {
             const summaryRes = await axios.get('/attendance/my-summary');
@@ -234,11 +232,11 @@ const Layout = () => {
               const rDate = r.date || (r.firstCheckIn ? new Date(r.firstCheckIn).toISOString().split('T')[0] : '');
               return rDate === todayStr;
             });
-            
+
             if (todayRecords.length > 0) {
               const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
               const activeRecord = todayRecords.find(r => r.isActive);
-              
+
               let additionalSeconds = 0;
               if (activeRecord && activeRecord.lastCheckInTime) {
                 const now = Date.now();
@@ -247,9 +245,9 @@ const Layout = () => {
                   additionalSeconds = Math.floor((now - lastCheckIn) / 1000);
                 }
               }
-              
+
               setSessionSeconds(totalTodaySeconds + additionalSeconds);
-              
+
               if (activeRecord) {
                 setSessionActive(true);
                 setAttendanceId(activeRecord._id);
@@ -282,20 +280,7 @@ const Layout = () => {
     }
   }, [user, location.pathname]); // Re-fetch or clear if path changes
 
-  // Global Quiz Listener
-  useEffect(() => {
-    let socket = null;
-    if (user?.role === 'student') {
-      socket = io(import.meta.env.VITE_API_URL, { withCredentials: true });
-      socket.on('connect', () => {
-        socket.emit('student-listen-quizzes', { studentId: user._id });
-      });
-      // Removed the 'quiz-available' popup listener to prevent interrupting students.
-    }
-    return () => {
-      if (socket) socket.close();
-    };
-  }, [user]);
+
 
   const endSession = async (overrideSeconds) => {
     if (checkingInRef.current) return;
@@ -310,7 +295,7 @@ const Layout = () => {
         setSessionActive(false);
         setAttendanceId(null);
         attendanceIdRef.current = null;
-        
+
         if (timerIntervalRef.current) {
           clearInterval(timerIntervalRef.current);
           timerIntervalRef.current = null;
@@ -326,7 +311,7 @@ const Layout = () => {
           });
           const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
           setSessionSeconds(totalTodaySeconds);
-        } catch(e) { console.error('Failed to sync summary:', e); }
+        } catch (e) { console.error('Failed to sync summary:', e); }
       } catch (e) {
         console.error('Checkout failed:', e);
       } finally {
@@ -346,12 +331,12 @@ const Layout = () => {
       });
       return;
     }
-    
+
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
     }
-    
+
     await logout();
     navigate('/login');
   };
@@ -397,7 +382,6 @@ const Layout = () => {
         { name: 'Task Management', path: '/tasks', icon: <FileText size={20} /> },
         { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={20} />, badge: getBadge('reviews', pendingCount) },
         { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
-        { name: 'Live Quizzes', path: '/quizzes', icon: <Gamepad2 size={20} /> },
         { name: 'Mock Drives', path: '/mock-drives', icon: <Briefcase size={20} /> },
         { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
       ]
@@ -407,7 +391,7 @@ const Layout = () => {
       links: [
         { name: 'Manage Batches', path: '/batches', icon: <BookOpen size={20} /> },
         { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
-        { name: 'Batch Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
+        { name: 'Task Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
         { name: 'Join Requests', path: '/enrollments', icon: <UserIcon size={20} />, badge: getBadge('joins', joinsCount) },
       ]
     },
@@ -415,6 +399,7 @@ const Layout = () => {
       label: 'Operations',
       links: [
         { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} /> },
+        { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={20} /> },
         { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },
         { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
       ]
@@ -438,7 +423,6 @@ const Layout = () => {
       label: 'Learning',
       links: [
         { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
-        { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, badge: getBadge('quizzes', quizCount) },
         { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
       ]
     },
@@ -447,6 +431,7 @@ const Layout = () => {
       links: [
         { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
         { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
+        { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={20} /> },
       ]
     },
     {
@@ -499,14 +484,14 @@ const Layout = () => {
 
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         style={{ fontFamily: "'ALEXANDER', 'Alexandria', sans-serif" }}
         className={`fixed inset-y-4 left-4 z-50 w-64 glass-panel overflow-hidden transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-[120%]'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col`}
       >
@@ -523,7 +508,7 @@ const Layout = () => {
               <span className="text-[9px] font-black tracking-widest text-emerald-600 dark:text-emerald-400/90 uppercase leading-[1.1] drop-shadow-sm">Saran Students <br /> Management</span>
             </div>
           </div>
-          <button 
+          <button
             className="ml-auto lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400"
             onClick={() => setSidebarOpen(false)}
           >
@@ -547,11 +532,10 @@ const Layout = () => {
                     <Link
                       key={link.name}
                       to={link.path}
-                      className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 text-[13px] ${
-                        isActive 
-                          ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm' 
+                      className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 text-[13px] ${isActive
+                          ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm'
                           : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
-                      }`}
+                        }`}
                       onClick={() => setSidebarOpen(false)}
                     >
                       <div className="flex items-center gap-3">
@@ -586,15 +570,15 @@ const Layout = () => {
       <main className="flex-1 flex flex-col min-w-0 lg:ml-[280px]">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-4 lg:px-8 mt-4 mx-4 lg:mx-8 z-30 transition-colors duration-300">
-          <button 
+          <button
             className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 p-2 glass-panel"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu size={20} />
           </button>
-          
+
           <div className="ml-auto flex items-center gap-4 glass-panel px-2 py-1.5 h-14">
-            
+
             {/* Online Students Count */}
             <div className="hidden sm:flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 dark:border-slate-700">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
@@ -611,7 +595,7 @@ const Layout = () => {
 
             {/* Notifications Bell */}
             <div className="relative" ref={notificationRef}>
-              <button 
+              <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative p-2.5 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-white rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                 aria-label="Notifications"
@@ -641,7 +625,7 @@ const Layout = () => {
                     {notifications.length > 0 ? (
                       notifications.map(notif => (
                         <div key={notif.id} className="p-4 border-b border-slate-50 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors relative group">
-                          <button 
+                          <button
                             onClick={() => clearNotification(notif.id)}
                             className="absolute top-4 right-4 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
                             aria-label="Mark as read"
@@ -665,7 +649,7 @@ const Layout = () => {
             </div>
 
             {/* Dark Mode Toggle */}
-            <button 
+            <button
               onClick={toggleDarkMode}
               className="p-2.5 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-white rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-label="Toggle dark mode"

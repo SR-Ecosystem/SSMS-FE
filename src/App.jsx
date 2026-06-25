@@ -1,53 +1,51 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Loader from './components/Loader';
 
 // Pages
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Verification from './pages/Verification';
-import PublicResources from './pages/PublicResources';
-import Layout from './components/Layout';
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Verification = lazy(() => import('./pages/Verification'));
+const PublicResources = lazy(() => import('./pages/PublicResources'));
+const Layout = lazy(() => import('./components/Layout'));
 
 // Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import BatchManagement from './pages/admin/BatchManagement';
-import TaskManagement from './pages/admin/TaskManagement';
-import BatchTracker from './pages/admin/BatchTracker';
-import SubmissionReviews from './pages/admin/SubmissionReviews';
-import EnrollmentRequests from './pages/admin/EnrollmentRequests';
-import AttendanceLogs from './pages/admin/AttendanceLogs';
-import AdminProfile from './pages/admin/AdminProfile';
-import StudentList from './pages/admin/StudentList';
-import QuizManagement from './pages/admin/QuizManagement';
-import LiveQuizHost from './pages/admin/LiveQuizHost';
-import AdminLeetcode from './pages/admin/AdminLeetcode';
-import BatchChat from './pages/BatchChat';
-import LeaveRequests from './pages/admin/LeaveRequests';
-import MockDriveManagement from './pages/admin/MockDriveManagement';
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const BatchManagement = lazy(() => import('./pages/admin/BatchManagement'));
+const TaskManagement = lazy(() => import('./pages/admin/TaskManagement'));
+const BatchTracker = lazy(() => import('./pages/admin/BatchTracker'));
+const AttendanceTracker = lazy(() => import('./pages/admin/AttendanceTracker'));
+const SubmissionReviews = lazy(() => import('./pages/admin/SubmissionReviews'));
+const EnrollmentRequests = lazy(() => import('./pages/admin/EnrollmentRequests'));
+const AttendanceLogs = lazy(() => import('./pages/admin/AttendanceLogs'));
+const AdminProfile = lazy(() => import('./pages/admin/AdminProfile'));
+const StudentList = lazy(() => import('./pages/admin/StudentList'));
+const AdminLeetcode = lazy(() => import('./pages/admin/AdminLeetcode'));
+const BatchChat = lazy(() => import('./pages/BatchChat'));
+const LeaveRequests = lazy(() => import('./pages/admin/LeaveRequests'));
+const MockDriveManagement = lazy(() => import('./pages/admin/MockDriveManagement'));
 
 // Student Pages
-import StudentDashboard from './pages/student/StudentDashboard';
-import AvailableBatches from './pages/student/AvailableBatches';
-import MyBatches from './pages/student/MyBatches';
-import MyTasks from './pages/student/MyTasks';
-import MyGrades from './pages/student/MyGrades';
-import MyAttendance from './pages/student/MyAttendance';
-import UserProfile from './pages/student/UserProfile';
-import StudentSetup from './pages/student/StudentSetup';
-import MyQuizzes from './pages/student/MyQuizzes';
-import QuizPlayer from './pages/student/QuizPlayer';
-import StudentLeaderboard from './pages/student/StudentLeaderboard';
-import StudentLeetcode from './pages/student/StudentLeetcode';
-import LeaveApplication from './pages/student/LeaveApplication';
-import LiveQuizPlayer from './pages/student/LiveQuizPlayer';
-import JoinQuiz from './pages/student/JoinQuiz';
+const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
+const AvailableBatches = lazy(() => import('./pages/student/AvailableBatches'));
+const MyBatches = lazy(() => import('./pages/student/MyBatches'));
+const MyTasks = lazy(() => import('./pages/student/MyTasks'));
+const MyGrades = lazy(() => import('./pages/student/MyGrades'));
+const MyAttendance = lazy(() => import('./pages/student/MyAttendance'));
+const UserProfile = lazy(() => import('./pages/student/UserProfile'));
+const StudentSetup = lazy(() => import('./pages/student/StudentSetup'));
+const StudentLeaderboard = lazy(() => import('./pages/student/StudentLeaderboard'));
+const StudentLeetcode = lazy(() => import('./pages/student/StudentLeetcode'));
+const LeaveApplication = lazy(() => import('./pages/student/LeaveApplication'));
 
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
+        <Suspense fallback={<Loader />}>
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify" element={<Verification />} />
@@ -65,7 +63,10 @@ function App() {
               <ProtectedRoute allowedRoles={['admin']}><TaskManagement /></ProtectedRoute>
             } />
             <Route path="batch-tracker" element={
-              <ProtectedRoute allowedRoles={['admin']}><BatchTracker /></ProtectedRoute>
+              <ProtectedRoute allowedRoles={['admin', 'student']}><BatchTracker /></ProtectedRoute>
+            } />
+            <Route path="attendance-tracker" element={
+              <ProtectedRoute allowedRoles={['admin', 'student']}><AttendanceTracker /></ProtectedRoute>
             } />
             <Route path="reviews" element={
               <ProtectedRoute allowedRoles={['admin']}><SubmissionReviews /></ProtectedRoute>
@@ -82,12 +83,7 @@ function App() {
             <Route path="chat" element={
               <ProtectedRoute allowedRoles={['admin', 'student']}><BatchChat /></ProtectedRoute>
             } />
-            <Route path="quizzes" element={
-              <ProtectedRoute allowedRoles={['admin']}><QuizManagement /></ProtectedRoute>
-            } />
-            <Route path="/host-quiz/:id" element={
-              <ProtectedRoute allowedRoles={['admin']}><LiveQuizHost /></ProtectedRoute>
-            } />
+
             <Route path="leetcode" element={
               <ProtectedRoute allowedRoles={['admin']}><AdminLeetcode /></ProtectedRoute>
             } />
@@ -126,18 +122,7 @@ function App() {
             <Route path="student/attendance" element={
               <ProtectedRoute allowedRoles={['student']}><MyAttendance /></ProtectedRoute>
             } />
-            <Route path="student/quizzes" element={
-              <ProtectedRoute allowedRoles={['student']}><MyQuizzes /></ProtectedRoute>
-            } />
-            <Route path="student/play-quiz/:id" element={
-              <ProtectedRoute allowedRoles={['student']}><QuizPlayer /></ProtectedRoute>
-            } />
-            <Route path="student/join-quiz" element={
-              <ProtectedRoute allowedRoles={['student']}><JoinQuiz /></ProtectedRoute>
-            } />
-            <Route path="student/play-live-quiz/:pin" element={
-              <ProtectedRoute allowedRoles={['student']}><LiveQuizPlayer /></ProtectedRoute>
-            } />
+
             <Route path="student/profile" element={
               <ProtectedRoute allowedRoles={['student']}><UserProfile /></ProtectedRoute>
             } />
@@ -153,6 +138,7 @@ function App() {
             <Route path="*" element={<div className="p-8"><h1 className="text-2xl">Page Under Construction</h1></div>} />
           </Route>
         </Routes>
+        </Suspense>
       </AuthProvider>
     </Router>
   );

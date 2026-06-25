@@ -217,8 +217,14 @@ const LeaveApplication = () => {
                           <span>{leave.startDate || leave.date}</span>
                         )}
                       </td>
-                      <td className="p-4 text-slate-600 dark:text-slate-400">
-                        {leave.reason}
+                      <td className="p-4 text-slate-600 dark:text-slate-400 max-w-[300px] break-words">
+                        <div>{leave.reason}</div>
+                        {leave.adminResponse && (
+                          <div className="mt-1.5 text-xs bg-slate-100 dark:bg-slate-800 p-2 rounded-lg border border-slate-200/50 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 font-medium max-w-sm">
+                            <span className="font-bold text-slate-700 dark:text-slate-300 block text-[9px] uppercase tracking-wider mb-0.5">Response:</span>
+                            {leave.adminResponse}
+                          </div>
+                        )}
                       </td>
                       <td className="p-4 text-right whitespace-nowrap flex justify-end">
                         {renderStatus(leave.status)}

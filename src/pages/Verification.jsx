@@ -546,7 +546,6 @@ const Verification = () => {
                         <th className="py-2 px-3">Student</th>
                         <th className="py-2 px-3 text-center">Tasks</th>
                         <th className="py-2 px-3 text-center">LeetCode</th>
-                        <th className="py-2 px-3 text-center">Quizzes</th>
                         <th className="py-2 px-3 text-center">Mock Drives</th>
                         <th className="py-2 px-3 text-center">Overall</th>
                       </tr>
@@ -571,7 +570,6 @@ const Verification = () => {
                             </td>
                             <td className="py-2 px-3 text-center text-slate-300">{formatScore(s.totalTaskScore)}</td>
                             <td className="py-2 px-3 text-center text-slate-300">{(s.leetcodeStreak || 0) * 10}</td>
-                            <td className="py-2 px-3 text-center text-slate-300">{formatScore(s.totalQuizScore)}</td>
                             <td className="py-2 px-3 text-center text-slate-300">{formatScore(s.totalMockDriveScore)}</td>
                             <td className="py-2 px-3 text-center font-black text-emerald-400">{formatScore(s.overallScore)}</td>
                           </tr>
@@ -1140,7 +1138,6 @@ const Verification = () => {
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{formatTime(studentDetails.attendance.totalSecondsLogged)} Logged</span>
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.attendance.daysPresent} Days Present</span>
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.tasks.length} Tasks Graded</span>
-                      <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.quizzes.length} Quizzes</span>
                       <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-bold border border-slate-700">{studentDetails.mockDrives ? studentDetails.mockDrives.length : 0} Mock Drives</span>
                       <span className="px-3 py-1 bg-slate-800 text-orange-400 rounded-lg text-xs font-bold border border-slate-700 flex items-center gap-1">
                         <Flame size={12} fill="currentColor" className="text-orange-500 animate-pulse" />
@@ -1163,7 +1160,7 @@ const Verification = () => {
                 </div>
 
                 {/* Tasks, Quizzes, and Mock Drives */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col h-[350px]">
                     <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><ClipboardList className="text-indigo-400" size={16} /> Graded Tasks ({studentDetails.tasks.length})</h3>
                     <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
@@ -1175,20 +1172,6 @@ const Verification = () => {
                               <span className="shrink-0 bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-500/30 ml-2">{t.marksObtained}/{t.maxMarks}</span>
                             </div>
                             <p className="text-[10px] text-slate-400 italic line-clamp-1">"{t.feedback}"</p>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col h-[350px]">
-                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2"><Award className="text-emerald-400" size={16} /> Quizzes ({studentDetails.quizzes.length})</h3>
-                    <div className="flex-1 overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                      {studentDetails.quizzes.length === 0 ? <p className="text-slate-500 text-sm text-center mt-8">No quizzes taken.</p> :
-                        studentDetails.quizzes.map((q, i) => (
-                          <div key={i} className="bg-slate-900 border border-slate-700 p-3 rounded-xl flex items-center justify-between">
-                            <div><h4 className="font-bold text-white text-sm line-clamp-1">{q.quizTitle}</h4><p className="text-[10px] text-slate-500">{new Date(q.completedAt).toLocaleDateString()}</p></div>
-                            <div className="w-9 h-9 rounded-full bg-slate-800 border-2 border-emerald-500/30 flex items-center justify-center shrink-0"><span className="font-bold text-xs text-emerald-400">{q.score}</span></div>
                           </div>
                         ))
                       }

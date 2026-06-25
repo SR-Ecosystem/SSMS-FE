@@ -38,16 +38,20 @@ const LeaveRequests = () => {
   const handleUpdateStatus = async (id, status) => {
     try {
       const result = await Swal.fire({
-        title: `Are you sure?`,
-        text: `You are about to ${status} this leave request.`,
-        icon: 'warning',
+        title: `${status === 'approved' ? 'Approve' : 'Reject'} Leave Request`,
+        input: 'textarea',
+        inputLabel: 'Response Message / Reason (Optional)',
+        inputPlaceholder: 'Type a message or reason for the student...',
         showCancelButton: true,
-        confirmButtonText: `Yes, ${status} it!`
+        confirmButtonText: `Confirm ${status === 'approved' ? 'Approval' : 'Rejection'}`,
+        confirmButtonColor: status === 'approved' ? '#10b981' : '#f43f5e',
+        cancelButtonText: 'Cancel'
       });
 
       if (result.isConfirmed) {
+        const adminResponse = result.value || '';
         setActionLoading({ id, status });
-        await axios.put(`/leaves/${id}/status`, { status });
+        await axios.put(`/leaves/${id}/status`, { status, adminResponse });
         Swal.fire('Success', `Leave request has been ${status}.`, 'success');
         fetchData();
       }
@@ -215,6 +219,15 @@ const LeaveRequests = () => {
                       {leave.reason}
                     </p>
                   </div>
+                  {leave.adminResponse && (
+                    <div className="mt-3 bg-indigo-50/30 dark:bg-indigo-950/20 p-4 rounded-xl border border-indigo-100/50 dark:border-indigo-900/50 relative">
+                      <div className={`absolute top-0 left-0 w-1 h-full rounded-l-xl ${leave.status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                      <span className="block text-[10px] font-bold text-indigo-400 dark:text-indigo-500 uppercase tracking-widest mb-1.5 ml-2">Admin Response</span>
+                      <p className="text-slate-700 dark:text-slate-300 text-sm ml-2 leading-relaxed font-semibold">
+                        {leave.adminResponse}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer: Actions and Applied Date */}

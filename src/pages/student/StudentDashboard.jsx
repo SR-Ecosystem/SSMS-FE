@@ -3,7 +3,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
-import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2 } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
@@ -11,7 +11,9 @@ const StudentDashboard = () => {
   const { user } = useAuth();
   const { sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus } = useOutletContext();
   const [analytics, setAnalytics] = useState(null);
-  const [quizAttempts, setQuizAttempts] = useState([]);
+  const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0, leave: 0, inProgress: 0, invalid: 0, total: 0, percentage: 0 });
+  const [checkInAccess, setCheckInAccess] = useState({ hasAccess: false, accessType: null });
+
   const [activeLeetcode, setActiveLeetcode] = useState([]);
   const [leetcodeLinks, setLeetcodeLinks] = useState({});
   const [submittingLeetcode, setSubmittingLeetcode] = useState(false);
@@ -20,14 +22,50 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const [analyticsRes, quizRes, leetcodeRes] = await Promise.all([
+        const [analyticsRes, leetcodeRes, attendanceRes, accessRes] = await Promise.all([
           axios.get(`/analytics/student/${user._id}`),
-          axios.get('/quizzes/student-attempts'),
-          axios.get('/leetcode/active')
+          axios.get('/leetcode/active'),
+          axios.get('/attendance/my-summary'),
+          axios.get('/checkin-access/my-status').catch(() => ({ data: { hasAccess: false } }))
         ]);
         setAnalytics(analyticsRes.data);
-        setQuizAttempts(quizRes.data);
         setActiveLeetcode(leetcodeRes.data);
+        setCheckInAccess(accessRes.data);
+
+        // Calculate attendance stats from logs
+        const logs = attendanceRes.data || [];
+        // Group by date to get unique days
+        const dayMap = {};
+        logs.forEach(log => {
+          const key = log.date;
+          if (!dayMap[key]) {
+            dayMap[key] = { totalSeconds: 0, isLeave: false, isActive: false, leaveHours: 0, status: null };
+          }
+          dayMap[key].totalSeconds += (log.totalSeconds || 0);
+          if (log.isLeave || log.status === 'Leave') dayMap[key].isLeave = true;
+          if (log.isActive) dayMap[key].isActive = true;
+          dayMap[key].leaveHours = Math.max(dayMap[key].leaveHours, log.leaveHours || 0);
+        });
+
+        let present = 0, absent = 0, leave = 0, inProgress = 0, invalid = 0;
+        const todayDateStr = new Date().toISOString().split('T')[0];
+        // Exclude today from percentage calculation (day still in progress)
+        Object.entries(dayMap).forEach(([dateKey, day]) => {
+          if (dateKey === todayDateStr) return; // skip today
+          if (day.isLeave) { leave++; return; }
+          const hours = day.totalSeconds / 3600;
+          const minRequired = 8 - day.leaveHours;
+          if (hours >= minRequired && hours <= 10) { present++; }
+          else if (hours > 10) { invalid++; }
+          else if (day.isActive) { inProgress++; }
+          else { absent++; }
+        });
+
+        const totalDays = Object.keys(dayMap).length;
+        const pastDays = totalDays - (dayMap[todayDateStr] ? 1 : 0);
+        const denominator = pastDays - leave;
+        const pct = denominator > 0 ? Math.round((present / denominator) * 100) : 0;
+        setAttendanceStats({ present, absent, leave, inProgress, invalid, total: totalDays, percentage: pct });
       } catch (error) {
         console.error('Error fetching analytics:', error);
       } finally {
@@ -77,7 +115,6 @@ const StudentDashboard = () => {
     { name: 'My Batches', path: '/student/my-batches', icon: <Users size={20} />, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
     { name: 'Batch Chat', path: '/student/chat', icon: <MessageCircle size={20} />, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
     { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10' },
-    { name: 'My Quizzes', path: '/student/quizzes', icon: <Gamepad2 size={20} />, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-500/10' },
     { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} />, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} />, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10' },
     { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} />, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
@@ -180,7 +217,18 @@ const StudentDashboard = () => {
               <p className="text-teal-50 text-xs font-medium uppercase tracking-wider mb-1 flex items-center gap-1">
                 Student ID Card <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-5px] group-hover:translate-x-0" />
               </p>
-              <h3 className="font-bold text-lg leading-none flex items-center gap-2">SSMS Base</h3>
+              <h3 className="font-bold text-lg leading-none flex items-center gap-2">
+                SSMS Base
+                {checkInAccess.hasAccess && (
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    checkInAccess.accessType === 'wfh' 
+                      ? 'bg-sky-400 text-teal-950 border border-sky-300 animate-pulse' 
+                      : 'bg-emerald-400 text-teal-950 border border-emerald-300'
+                  }`}>
+                    {checkInAccess.accessType === 'wfh' ? 'WFH' : 'On-Site'}
+                  </span>
+                )}
+              </h3>
             </Link>
             <Link to="/student/profile" className="hover:opacity-80 transition-opacity" title="My Profile">
               <UserIcon size={24} className="opacity-80" />
@@ -234,6 +282,19 @@ const StudentDashboard = () => {
                     On Leave
                   </button>
                 </div>
+              ) : !checkInAccess.hasAccess ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-[11px] font-bold text-amber-200 mb-2 max-w-[180px] text-right">
+                    Check-in access not granted today. Please contact admin.
+                  </span>
+                  <button 
+                    disabled
+                    className="bg-white/30 text-teal-800/40 px-8 py-3 rounded-xl text-base font-black flex items-center gap-2 cursor-not-allowed"
+                  >
+                    <Play size={16} className="opacity-40" /> 
+                    Blocked
+                  </button>
+                </div>
               ) : (
                 <button 
                   onClick={() => startSession()} 
@@ -241,7 +302,7 @@ const StudentDashboard = () => {
                   className={`bg-white text-teal-600 hover:bg-teal-50 px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer ${isCheckingIn ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5'}`}
                 >
                   {isCheckingIn ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} fill="currentColor" />} 
-                  Check In
+                  Check In {checkInAccess.accessType === 'wfh' ? '(WFH)' : ''}
                 </button>
               )}
             </div>
@@ -275,17 +336,17 @@ const StudentDashboard = () => {
         </Link>
       </div>
 
-      {/* Row 2: Performance Insights (4) & Recent Quiz Performance (8) */}
+      {/* Row 2: Performance Insights (8) + Attendance (4) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch mb-6">
         
         {/* Performance Insights */}
-        <Link to="/student/grades" className="lg:col-span-4 bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-indigo-500/40 flex flex-col justify-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
+        <Link to="/student/grades" className="lg:col-span-8 bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-indigo-500/40 flex flex-col justify-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col h-full">
             <h3 className="text-sm font-extrabold text-white mb-6 uppercase tracking-wider drop-shadow-sm">Performance Insights</h3>
-            <div className="space-y-4 flex-1 flex flex-col justify-center">
-              <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
+              <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex-1 w-full">
                 <div className="flex justify-between items-end mb-3">
                   <div>
                     <span className="text-indigo-100 font-bold text-xs uppercase tracking-wide">Average Score</span>
@@ -297,72 +358,86 @@ const StudentDashboard = () => {
                     <Target size={20} />
                   </div>
                 </div>
-                <div className="w-full bg-black/20 rounded-full h-1.5 overflow-hidden shadow-inner">
+                <div className="w-full bg-black/20 rounded-full h-2 overflow-hidden shadow-inner">
                   <div className="bg-white h-full rounded-full transition-all duration-1000 relative shadow-[0_0_8px_rgba(255,255,255,0.8)]" style={{ width: `${analytics?.averageScore || 0}%` }}>
                     <div className="absolute inset-0 bg-white/50 w-full animate-[shimmer_2s_infinite]"></div>
                   </div>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${analytics?.performanceTrend === 'Improving' ? 'bg-white/20 text-white' : 'bg-white/20 text-white'}`}>
-                    {analytics?.performanceTrend === 'Improving' ? <TrendingUp size={16} strokeWidth={3} /> : <TrendingDown size={16} strokeWidth={3} />}
+              <div className="grid grid-cols-2 gap-4 flex-1 w-full">
+                <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${analytics?.performanceTrend === 'Improving' ? 'bg-white/20 text-white' : 'bg-white/20 text-white'}`}>
+                    {analytics?.performanceTrend === 'Improving' ? <TrendingUp size={20} strokeWidth={3} /> : <TrendingDown size={20} strokeWidth={3} />}
                   </div>
-                  <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Trend</span>
-                  <span className={`text-sm font-black text-white drop-shadow-sm`}>
+                  <span className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Trend</span>
+                  <span className={`text-base font-black text-white drop-shadow-sm`}>
                     {analytics?.performanceTrend || 'N/A'}
                   </span>
                 </div>
                 
-                <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center mb-2 bg-white/20 text-white">
-                    <Award size={16} strokeWidth={3} />
+                <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-white/20 text-white">
+                    <Award size={20} strokeWidth={3} />
                   </div>
-                  <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Grades</span>
-                  <span className="text-sm font-black text-white drop-shadow-sm">{analytics?.totalGradesReceived || 0} Total</span>
+                  <span className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Grades</span>
+                  <span className="text-base font-black text-white drop-shadow-sm">{analytics?.totalGradesReceived || 0} Total</span>
                 </div>
               </div>
             </div>
           </div>
         </Link>
 
-        {/* Recent Quiz Performance */}
-        <Link to="/student/quizzes" className="lg:col-span-8 bg-gradient-to-br from-purple-400 to-purple-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-purple-500/40 flex flex-col max-h-[340px] hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
-          <div className="absolute bottom-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="flex items-center gap-3 mb-6 shrink-0 relative z-10">
-            <div className="w-8 h-8 rounded-full bg-white/25 shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] flex items-center justify-center text-white">
-              <Gamepad2 size={16} />
-            </div>
-            <div>
-              <h3 className="text-sm font-extrabold text-white leading-none drop-shadow-sm">Recent Quizzes</h3>
-              <p className="text-[10px] text-purple-100 uppercase tracking-wider mt-1 drop-shadow-sm">Your latest quiz scores</p>
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10">
-            {quizAttempts.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {quizAttempts.map(attempt => (
-                <div key={attempt._id} className="bg-white/10 p-4 rounded-2xl border border-white/20 hover:bg-white/20 transition-colors group/item flex items-center justify-between shadow-inner">
-                  <div>
-                    <h4 className="font-bold text-sm text-white truncate pr-2 group-hover/item:text-purple-100 transition-colors mb-1 drop-shadow-sm">{attempt.quizId?.title}</h4>
-                    <div className="text-[10px] text-purple-100 font-medium">
-                      {new Date(attempt.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className="px-3 py-1.5 bg-white/20 text-white rounded-lg text-xs font-black shrink-0 border border-white/30 shadow-sm">
-                    {attempt.score} PTS
-                  </div>
+        {/* Attendance Widget */}
+        <Link to="/attendance-tracker" className="lg:col-span-4 bg-gradient-to-br from-violet-500 to-purple-700 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-purple-500/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-xl -ml-8 -mb-8 pointer-events-none"></div>
+
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform shadow-inner">
+                  <ClipboardCheck size={20} className="text-purple-100" />
                 </div>
-              ))}
+                <h3 className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-sm">Attendance</h3>
               </div>
-            ) : (
-              <div className="text-center py-6 text-purple-100 font-medium bg-white/5 rounded-xl border border-dashed border-white/20 h-full flex flex-col items-center justify-center text-xs px-4">
-                <Gamepad2 size={24} className="mb-2 opacity-40" />
-                You haven't played any quizzes yet.
+              <span className="text-[10px] font-bold text-purple-200 bg-white/10 px-2 py-1 rounded-full border border-white/20">{attendanceStats.total} Days</span>
+            </div>
+
+            {/* Circular % */}
+            <div className="flex-1 flex flex-col items-center justify-center gap-4">
+              <div className="relative w-28 h-28">
+                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.915" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15.915" fill="none" stroke="white" strokeWidth="3" strokeDasharray={`${attendanceStats.percentage} ${100 - attendanceStats.percentage}`} strokeLinecap="round" className="transition-all duration-1000" style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.6))' }} />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-black text-white leading-none drop-shadow-md">{attendanceStats.percentage}%</span>
+                  <span className="text-[9px] font-bold text-purple-200 uppercase tracking-widest mt-0.5">Overall</span>
+                </div>
               </div>
-            )}
+
+              {/* Status Breakdown */}
+              <div className="grid grid-cols-3 gap-2 w-full">
+                <div className="bg-white/10 rounded-xl p-2.5 text-center border border-white/10 group-hover:bg-white/15 transition-colors">
+                  <p className="text-lg font-black text-white leading-none drop-shadow-sm">{attendanceStats.present}</p>
+                  <p className="text-[9px] font-bold text-emerald-200 uppercase tracking-wider mt-1">Present</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-2.5 text-center border border-white/10 group-hover:bg-white/15 transition-colors">
+                  <p className="text-lg font-black text-white leading-none drop-shadow-sm">{attendanceStats.absent}</p>
+                  <p className="text-[9px] font-bold text-rose-200 uppercase tracking-wider mt-1">Absent</p>
+                </div>
+                <div className="bg-white/10 rounded-xl p-2.5 text-center border border-white/10 group-hover:bg-white/15 transition-colors">
+                  <p className="text-lg font-black text-white leading-none drop-shadow-sm">{attendanceStats.leave}</p>
+                  <p className="text-[9px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Leave</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between bg-black/10 rounded-xl p-2.5 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
+              <span className="text-[10px] font-bold text-purple-100">View Full Attendance</span>
+              <ChevronRight size={14} />
+            </div>
           </div>
         </Link>
       </div>
