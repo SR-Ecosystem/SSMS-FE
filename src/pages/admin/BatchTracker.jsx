@@ -131,13 +131,48 @@ const BatchTracker = () => {
   });
   const dates = Object.keys(groupedTasks);
 
+  // Pre-calculate lookup maps for task submissions and leetcode submissions
+  const submissionMap = useMemo(() => {
+    const map = {};
+    if (trackerData?.submissions) {
+      trackerData.submissions.forEach(s => {
+        const studentId = s.studentId;
+        const taskId = s.taskId;
+        if (studentId && taskId) {
+          if (!map[studentId]) {
+            map[studentId] = {};
+          }
+          map[studentId][taskId] = s;
+        }
+      });
+    }
+    return map;
+  }, [trackerData?.submissions]);
+
+  const leetcodeSubmissionMap = useMemo(() => {
+    const map = {};
+    if (trackerData?.leetcodeSubmissions) {
+      trackerData.leetcodeSubmissions.forEach(s => {
+        const studentId = s.studentId;
+        const problemId = s.problemId;
+        if (studentId && problemId) {
+          if (!map[studentId]) {
+            map[studentId] = {};
+          }
+          map[studentId][problemId] = true;
+        }
+      });
+    }
+    return map;
+  }, [trackerData?.leetcodeSubmissions]);
+
   // Helper to determine status color
   const getStatusColor = (studentId, task) => {
     if (task.isLeetCode) {
-      const isSubmitted = trackerData.leetcodeSubmissions.some(s => s.studentId === studentId && s.problemId === task._id);
+      const isSubmitted = leetcodeSubmissionMap[studentId]?.[task._id];
       return isSubmitted ? 'green' : 'red';
     } else {
-      const submission = trackerData.submissions.find(s => s.studentId === studentId && s.taskId === task._id);
+      const submission = submissionMap[studentId]?.[task._id];
       if (submission) {
         return submission.status === 'graded' ? 'green' : 'yellow';
       }

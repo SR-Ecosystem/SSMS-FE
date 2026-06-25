@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { io } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import { Send, Loader2, Hash, Users } from 'lucide-react';
 import Loader from '../components/Loader';
 
 const BatchChat = () => {
-  const { user } = useAuth();
+  const { user, socket } = useAuth();
   const [batches, setBatches] = useState([]);
   const [activeBatchId, setActiveBatchId] = useState(null);
   
@@ -14,7 +13,6 @@ const BatchChat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   
-  const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   // 1. Fetch Batches
@@ -45,11 +43,7 @@ const BatchChat = () => {
 
   // 2. Socket Connection & Room Management
   useEffect(() => {
-    if (!activeBatchId) return;
-
-    // Connect to Socket
-    socketRef.current = io(import.meta.env.VITE_API_URL, { withCredentials: true });
-    const socket = socketRef.current;
+    if (!activeBatchId || !socket) return;
 
     // Fetch message history for the active batch
     const fetchHistory = async () => {
@@ -62,31 +56,40 @@ const BatchChat = () => {
       }
     };
 
-    socket.on('connect', () => {
+    const setupChat = () => {
       socket.emit('join-batch-chat', activeBatchId);
       fetchHistory();
-    });
+    };
 
-    socket.on('chat-message-received', (msg) => {
+    if (socket.connected) {
+      setupChat();
+    } else {
+      socket.on('connect', setupChat);
+    }
+
+    const handleMessage = (msg) => {
       if (msg.batchId === activeBatchId) {
         setMessages(prev => [...prev, msg]);
         scrollToBottom();
       }
-    });
+    };
+
+    socket.on('chat-message-received', handleMessage);
 
     return () => {
       socket.emit('leave-batch-chat', activeBatchId);
-      socket.disconnect();
+      socket.off('chat-message-received', handleMessage);
+      socket.off('connect', setupChat);
     };
-  }, [activeBatchId]);
+  }, [activeBatchId, socket]);
 
 
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !activeBatchId || !socketRef.current) return;
+    if (!newMessage.trim() || !activeBatchId || !socket) return;
 
-    socketRef.current.emit('send-chat-message', {
+    socket.emit('send-chat-message', {
       batchId: activeBatchId,
       senderId: user._id,
       senderName: user.name,

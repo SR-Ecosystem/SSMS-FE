@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 // Set global axios defaults
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -13,6 +14,23 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    if (user && user._id) {
+      const newSocket = io(import.meta.env.VITE_API_URL, {
+        withCredentials: true,
+        query: { userId: user._id, role: user.role }
+      });
+      setSocket(newSocket);
+
+      return () => {
+        newSocket.disconnect();
+      };
+    } else {
+      setSocket(null);
+    }
+  }, [user]);
 
   // Set up axios interceptor for the custom header
   useEffect(() => {
@@ -83,7 +101,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, socket }}>
       {children}
     </AuthContext.Provider>
   );

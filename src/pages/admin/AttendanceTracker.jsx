@@ -78,9 +78,24 @@ const AttendanceTracker = () => {
     setFilterRoll('');
   }, [selectedBatch]);
 
+  // Pre-calculate attendance lookup map for fast O(1) rendering
+  const attendanceMap = useMemo(() => {
+    const map = {};
+    attendanceData.forEach(record => {
+      if (record.studentId && record.date) {
+        const studentId = record.studentId.toString();
+        if (!map[studentId]) {
+          map[studentId] = {};
+        }
+        map[studentId][record.date] = record;
+      }
+    });
+    return map;
+  }, [attendanceData]);
+
   // Helper to determine cell attendance status
   const getCellAttendanceStatus = (studentId, dateStr) => {
-    const record = attendanceData.find(r => r.studentId === studentId && r.date === dateStr);
+    const record = attendanceMap[studentId]?.[dateStr];
     if (record) {
       if (record.isLeave || record.status === 'Leave') {
         return 'Leave';
