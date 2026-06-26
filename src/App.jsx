@@ -15,6 +15,7 @@ const Layout = lazy(() => import('./components/Layout'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const BatchManagement = lazy(() => import('./pages/admin/BatchManagement'));
 const TaskManagement = lazy(() => import('./pages/admin/TaskManagement'));
+const TaskCreateEdit = lazy(() => import('./pages/admin/TaskCreateEdit'));
 const BatchTracker = lazy(() => import('./pages/admin/BatchTracker'));
 const AttendanceTracker = lazy(() => import('./pages/admin/AttendanceTracker'));
 const SubmissionReviews = lazy(() => import('./pages/admin/SubmissionReviews'));
@@ -61,6 +62,12 @@ function App() {
             } />
             <Route path="tasks" element={
               <ProtectedRoute allowedRoles={['admin']}><TaskManagement /></ProtectedRoute>
+            } />
+            <Route path="tasks/create" element={
+              <ProtectedRoute allowedRoles={['admin']}><TaskCreateEdit /></ProtectedRoute>
+            } />
+            <Route path="tasks/edit/:id" element={
+              <ProtectedRoute allowedRoles={['admin']}><TaskCreateEdit /></ProtectedRoute>
             } />
             <Route path="batch-tracker" element={
               <ProtectedRoute allowedRoles={['admin', 'student']}><BatchTracker /></ProtectedRoute>
