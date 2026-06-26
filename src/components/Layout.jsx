@@ -26,26 +26,111 @@ const Layout = () => {
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return {
-      Overview: true,
-      Academic: true,
-      Management: true,
-      Operations: true,
-      Account: true,
-      Main: true,
-      Learning: true,
-      Performance: true,
-      'Batches & Chat': true
+      Overview: false,
+      Academic: false,
+      Management: false,
+      Operations: false,
+      Account: false,
+      Main: false,
+      Learning: false,
+      Performance: false,
+      'Batches & Chat': false
+    };
+  });
+
+  // Pinned sections state (clicked sections that stay open and styled dark)
+  const [pinnedSections, setPinnedSections] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pinnedSections');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      Overview: false,
+      Academic: false,
+      Management: false,
+      Operations: false,
+      Account: false,
+      Main: false,
+      Learning: false,
+      Performance: false,
+      'Batches & Chat': false
     };
   });
 
   const toggleSection = (label) => {
+    setPinnedSections(prev => {
+      const isPinned = !prev[label];
+      const updatedPinned = { ...prev, [label]: isPinned };
+      try {
+        localStorage.setItem('pinnedSections', JSON.stringify(updatedPinned));
+      } catch (e) {}
+      
+      // Sync expanded state with pin state
+      setExpandedSections(prevExpanded => {
+        const updatedExpanded = { ...prevExpanded, [label]: isPinned };
+        try {
+          localStorage.setItem('expandedSections', JSON.stringify(updatedExpanded));
+        } catch (e) {}
+        return updatedExpanded;
+      });
+
+      return updatedPinned;
+    });
+  };
+
+  const openSection = (label) => {
     setExpandedSections(prev => {
-      const updated = { ...prev, [label]: !prev[label] };
+      if (prev[label]) return prev;
+      const updated = { ...prev, [label]: true };
       try {
         localStorage.setItem('expandedSections', JSON.stringify(updated));
       } catch (e) {}
       return updated;
     });
+  };
+
+  const closeSection = (label) => {
+    if (pinnedSections[label]) return; // If pinned, do not collapse on mouse leave
+    setExpandedSections(prev => {
+      if (!prev[label]) return prev;
+      const updated = { ...prev, [label]: false };
+      try {
+        localStorage.setItem('expandedSections', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  // --- HSL Shade Generator for Custom Colors ---
+  const hexToHSL = (hex) => {
+    let r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min;
+    let h = 0, s = 0, l = (max+min)/2;
+    if (d !== 0) { s = l > 0.5 ? d/(2-max-min) : d/(max-min); h = max===r ? ((g-b)/d+(g<b?6:0))*60 : max===g ? ((b-r)/d+2)*60 : ((r-g)/d+4)*60; }
+    return { h: Math.round(h), s: Math.round(s*100), l: Math.round(l*100) };
+  };
+  const hslToHex = (h,s,l) => {
+    s/=100; l/=100;
+    const a = s*Math.min(l,1-l);
+    const f = n => { const k=(n+h/30)%12; return Math.round(255*(l-a*Math.max(Math.min(k-3,9-k,1),-1))); };
+    return '#'+[f(0),f(8),f(4)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  };
+  const generateThemeFromHex = (hex) => {
+    const { h, s } = hexToHSL(hex);
+    const shades = {
+      50: hslToHex(h, Math.min(s,30), 97), 100: hslToHex(h, Math.min(s,40), 94),
+      200: hslToHex(h, Math.min(s,50), 86), 300: hslToHex(h, Math.min(s,55), 74),
+      400: hslToHex(h, s, 60), 500: hex,
+      600: hslToHex(h, s, 42), 700: hslToHex(h, s, 34),
+      800: hslToHex(h, s, 26), 900: hslToHex(h, s, 20)
+    };
+    const accent = hslToHex((h+20)%360, s, 50);
+    return {
+      name: 'Custom', primary: hex, accent,
+      shades,
+      bgLight: { start: shades[100], middle: shades[50], end: '#ffffff' },
+      bgDark: { start: hslToHex(h, Math.min(s,50), 6), middle: hslToHex(h, Math.min(s,40), 3), end: '#010101' }
+    };
   };
 
   const themes = [
@@ -96,18 +181,75 @@ const Layout = () => {
       shades: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337' },
       bgLight: { start: '#ffe4e6', middle: '#fff1f2', end: '#ffffff' },
       bgDark: { start: '#22040b', middle: '#0e0104', end: '#040001' }
+    },
+    {
+      name: 'Midnight',
+      primary: '#6366f1',
+      accent: '#818cf8',
+      shades: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' },
+      bgLight: { start: '#e0e7ff', middle: '#eef2ff', end: '#ffffff' },
+      bgDark: { start: '#0c0a2a', middle: '#050419', end: '#010106' }
+    },
+    {
+      name: 'Sakura',
+      primary: '#ec4899',
+      accent: '#f472b6',
+      shades: { 50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9d174d', 900: '#831843' },
+      bgLight: { start: '#fce7f3', middle: '#fdf2f8', end: '#ffffff' },
+      bgDark: { start: '#200716', middle: '#0e030a', end: '#040002' }
+    },
+    {
+      name: 'Mint',
+      primary: '#2dd4bf',
+      accent: '#5eead4',
+      shades: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' },
+      bgLight: { start: '#ccfbf1', middle: '#f0fdfa', end: '#ffffff' },
+      bgDark: { start: '#041f1b', middle: '#020e0c', end: '#010504' }
+    },
+    {
+      name: 'Slate',
+      primary: '#64748b',
+      accent: '#94a3b8',
+      shades: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
+      bgLight: { start: '#f1f5f9', middle: '#f8fafc', end: '#ffffff' },
+      bgDark: { start: '#0a0f18', middle: '#05080e', end: '#020305' }
+    },
+    {
+      name: 'Coral',
+      primary: '#fb7185',
+      accent: '#f97316',
+      shades: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337' },
+      bgLight: { start: '#ffe4e6', middle: '#fff1f2', end: '#ffffff' },
+      bgDark: { start: '#220812', middle: '#0e0308', end: '#040002' }
+    },
+    {
+      name: 'Cyber',
+      primary: '#22d3ee',
+      accent: '#a78bfa',
+      shades: { 50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63' },
+      bgLight: { start: '#cffafe', middle: '#ecfeff', end: '#ffffff' },
+      bgDark: { start: '#041c22', middle: '#020d11', end: '#010405' }
     }
   ];
 
   const [themeColor, setThemeColor] = useState(() => {
     return localStorage.getItem('theme-color') || 'Emerald';
   });
+  const [customColor, setCustomColor] = useState(() => {
+    return localStorage.getItem('custom-theme-color') || '#6366f1';
+  });
 
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const themeMenuRef = useRef(null);
 
   const applyThemeColor = (themeName) => {
-    const selected = themes.find(t => t.name === themeName) || themes[0];
+    let selected;
+    if (themeName === 'Custom') {
+      const savedCustom = localStorage.getItem('custom-theme-color') || customColor;
+      selected = generateThemeFromHex(savedCustom);
+    } else {
+      selected = themes.find(t => t.name === themeName) || themes[0];
+    }
     document.documentElement.style.setProperty('--color-theme-primary', selected.primary);
     document.documentElement.style.setProperty('--color-theme-accent', selected.accent);
     
@@ -133,6 +275,23 @@ const Layout = () => {
     
     localStorage.setItem('theme-color', themeName);
     setThemeColor(themeName);
+  };
+
+  const handleCustomColorChange = (hex) => {
+    setCustomColor(hex);
+    localStorage.setItem('custom-theme-color', hex);
+    localStorage.setItem('theme-color', 'Custom');
+    setThemeColor('Custom');
+    const custom = generateThemeFromHex(hex);
+    document.documentElement.style.setProperty('--color-theme-primary', custom.primary);
+    document.documentElement.style.setProperty('--color-theme-accent', custom.accent);
+    Object.entries(custom.shades).forEach(([k,v]) => document.documentElement.style.setProperty(`--color-primary-${k}`, v));
+    document.documentElement.style.setProperty('--bg-gradient-start', custom.bgLight.start);
+    document.documentElement.style.setProperty('--bg-gradient-middle', custom.bgLight.middle);
+    document.documentElement.style.setProperty('--bg-gradient-end', custom.bgLight.end);
+    document.documentElement.style.setProperty('--dark-bg-gradient-start', custom.bgDark.start);
+    document.documentElement.style.setProperty('--dark-bg-gradient-middle', custom.bgDark.middle);
+    document.documentElement.style.setProperty('--dark-bg-gradient-end', custom.bgDark.end);
   };
 
   useEffect(() => {
@@ -647,6 +806,14 @@ const Layout = () => {
         } catch (e) {}
         return updated;
       });
+      setPinnedSections(prev => {
+        if (prev[activeSection.label]) return prev;
+        const updated = { ...prev, [activeSection.label]: true };
+        try {
+          localStorage.setItem('pinnedSections', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
     }
   }, [location.pathname, sections]);
 
@@ -677,17 +844,29 @@ const Layout = () => {
         {/* Large blurry spots */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-theme-primary/5 dark:bg-theme-primary/3 rounded-full blur-[100px] animate-float-slow"></div>
         <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-theme-accent/5 dark:bg-theme-accent/3 rounded-full blur-[80px] animate-float-medium"></div>
-        <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-emerald-500/5 dark:bg-emerald-500/3 rounded-full blur-[60px] animate-float-fast"></div>
+        <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-theme-primary/4 dark:bg-theme-primary/3 rounded-full blur-[60px] animate-float-fast"></div>
 
-        {/* Small floating dots */}
-        <div className="absolute w-3 h-3 bg-emerald-500/25 dark:bg-emerald-400/20 rounded-full animate-bubble-1 top-[15%] left-[10%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
-        <div className="absolute w-2 h-2 bg-theme-primary/35 dark:bg-theme-primary/30 rounded-full animate-bubble-2 top-[45%] left-[15%] shadow-[0_0_8px_var(--color-theme-primary)]"></div>
-        <div className="absolute w-4 h-4 bg-theme-accent/25 dark:bg-theme-accent/20 rounded-full animate-bubble-3 top-[75%] left-[25%] shadow-[0_0_12px_var(--color-theme-accent)]"></div>
-        <div className="absolute w-3 h-3 bg-emerald-500/30 dark:bg-emerald-400/20 rounded-full animate-bubble-4 top-[25%] right-[15%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
-        <div className="absolute w-2.5 h-2.5 bg-theme-primary/30 dark:bg-theme-primary/25 rounded-full animate-bubble-5 top-[65%] right-[20%] shadow-[0_0_10px_var(--color-theme-primary)]"></div>
-        <div className="absolute w-3.5 h-3.5 bg-emerald-400/25 dark:bg-emerald-400/15 rounded-full animate-bubble-6 top-[35%] right-[35%] shadow-[0_0_10px_rgba(52,211,153,0.3)]"></div>
-        <div className="absolute w-2 h-2 bg-theme-accent/35 dark:bg-theme-accent/30 rounded-full animate-bubble-7 top-[85%] right-[40%] shadow-[0_0_8px_var(--color-theme-accent)]"></div>
-        <div className="absolute w-3 h-3 bg-emerald-500/20 dark:bg-emerald-400/20 rounded-full animate-bubble-8 top-[55%] left-[45%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
+        {/* Floating Tech Logos */}
+        {/* React */}
+        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-1 top-[12%] left-[8%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1" transform="rotate(120 12 12)"/></svg>
+        {/* JavaScript */}
+        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-2 top-[40%] left-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><rect x="2" y="2" width="20" height="20" rx="2"/><text x="7" y="17" fontSize="10" fontWeight="bold" fill="white" fontFamily="sans-serif">JS</text></svg>
+        {/* HTML5 */}
+        <svg className="absolute w-12 h-12 opacity-[0.04] dark:opacity-[0.06] animate-bubble-3 top-[72%] left-[22%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><path d="M4 2l1.5 17L12 22l6.5-3L20 2H4zm13.1 5H8.7l.3 3h7.8l-.9 9.5L12 21l-3.9-1.5-.3-3h2.8l.2 1.7 1.2.4 1.2-.4.1-2.7H8l-.6-7h9.3l.4-1.5z"/></svg>
+        {/* CSS3 */}
+        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-4 top-[20%] right-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)"><path d="M4 2l1.5 17L12 22l6.5-3L20 2H4zm12.7 5H9.1l.2 2h7.1l-.7 8-3.7 1.3-3.7-1.3-.2-2.8h2.4l.1 1.4 1.4.5 1.4-.5.2-2H8.5l-.6-7h8.5l-.2 1.4z"/></svg>
+        {/* Node.js */}
+        <svg className="absolute w-11 h-11 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[60%] right-[18%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><path d="M12 1.5l9 5.25v10.5l-9 5.25-9-5.25V6.75l9-5.25zM12 8v8m-3.5-6l3.5 2 3.5-2" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round"/><text x="8.5" y="16" fontSize="5" fontWeight="bold" fill="var(--color-theme-primary)" fontFamily="sans-serif">N</text></svg>
+        {/* Python */}
+        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)"><path d="M12 2c-1.7 0-3 .4-3.9 1.1-.9.7-1.1 1.7-1.1 2.9v2h5v1H6.5c-1.6 0-3 1-3.4 2.8-.5 2.1-.5 3.4 0 5.5.4 1.6 1.3 2.7 2.9 2.7h2V15c0-1.8 1.5-3.3 3.3-3.3h5.2c1.5 0 2.7-1.3 2.7-2.8V6c0-1.4-1.2-2.5-2.7-2.9-.9-.3-1.9-.1-2.8-.1h-.7zm-2.8 1.8c.6 0 1 .5 1 1s-.4 1-1 1-1-.5-1-1 .4-1 1-1z"/></svg>
+        {/* MongoDB */}
+        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><path d="M13.7 3.5c-.7-1.3-1.3-1.8-1.5-2.5 0 0-.2.8-.9 1.8-1.4 2-5.3 5.3-5.3 9.7 0 3.3 2.7 6 6 6s6-2.7 6-6c0-4.2-3.2-7.1-4.3-9zm-1.2 14.4c-.1 0-.2-.1-.2-.2v-1.5c-1.7-.3-2.6-1.3-2.6-1.3l.4-.7s1 1 2.4 1c.9 0 1.5-.5 1.5-1.1 0-1.5-4-1.5-4-4.1 0-1.3 1-2.3 2.3-2.5V6.1c0-.1.1-.2.2-.2h.3c.1 0 .2.1.2.2v1.3c1 .2 1.8.8 1.8.8l-.4.7s-.8-.7-1.9-.7c-1.1 0-1.5.6-1.5 1.1 0 1.5 4 1.3 4 4.1 0 1.3-1 2.4-2.3 2.7v1.6c0 .1-.1.2-.2.2h-.3z"/></svg>
+        {/* Git */}
+        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-8 top-[50%] left-[42%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)"><path d="M23.5 11.3L12.7.5c-.7-.7-1.7-.7-2.4 0L8 2.8l3 3c.7-.2 1.5 0 2 .6.6.6.8 1.4.5 2.1l2.9 2.9c.7-.3 1.5-.1 2.1.5.8.8.8 2 0 2.8s-2 .8-2.8 0c-.6-.6-.8-1.6-.4-2.3l-2.7-2.7v7.1c.2.1.4.2.5.4.8.8.8 2 0 2.8s-2 .8-2.8 0-.8-2 0-2.8c.2-.2.5-.4.7-.5V9.2c-.2-.1-.5-.3-.7-.5-.6-.6-.8-1.5-.5-2.3L6.6 3.5.5 9.6c-.7.7-.7 1.7 0 2.4l10.8 10.8c.7.7 1.7.7 2.4 0l10.8-10.8c-.3-.3.3-1.4-.4-2.1-.3-.3-.3-.7-.6-.6z"/></svg>
+        {/* Terminal */}
+        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-1 top-[88%] left-[55%]" style={{animationDelay: '3s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        {/* Database */}
+        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-3 top-[5%] left-[55%]" style={{animationDelay: '5s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
       </div>
       {isSyncing && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
@@ -733,7 +912,11 @@ const Layout = () => {
           {sections.map((section, sIdx) => {
             const isExpanded = expandedSections[section.label];
             return (
-              <div key={section.label} className="mb-2">
+              <div
+                key={section.label}
+                className="mb-2"
+                onMouseLeave={() => closeSection(section.label)}
+              >
                 {sIdx > 0 && (
                   <div className="mx-3 my-2 border-t border-slate-100 dark:border-white/5"></div>
                 )}
@@ -741,10 +924,19 @@ const Layout = () => {
                 {/* Collapsible Section Header */}
                 <button
                   onClick={() => toggleSection(section.label)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300 transition-all duration-200 select-none cursor-pointer group focus:outline-none"
+                  onMouseEnter={() => openSection(section.label)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-200 select-none cursor-pointer group focus:outline-none border-l-[3px] ${
+                    pinnedSections[section.label]
+                      ? 'bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-100 border-theme-primary shadow-md'
+                      : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300 border-transparent'
+                  }`}
                 >
                   <span>{section.label}</span>
-                  <div className="text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">
+                  <div className={`transition-colors ${
+                    pinnedSections[section.label]
+                      ? 'text-white dark:text-theme-primary'
+                      : 'text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-400'
+                  }`}>
                     {isExpanded ? (
                       <ChevronDown size={12} className="transform rotate-0 transition-transform duration-250" />
                     ) : (
@@ -894,11 +1086,12 @@ const Layout = () => {
               </button>
 
               {showThemeMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 origin-top-right animate-in fade-in slide-in-from-top-2">
-                  <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                <div className="absolute right-0 mt-2 w-[280px] bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 origin-top-right">
+                  <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
                     <h3 className="text-xs font-bold text-slate-800 dark:text-white leading-none">Theme Colors</h3>
+                    <span className="text-[10px] text-slate-400 font-medium">{themes.length + 1} themes</span>
                   </div>
-                  <div className="p-2 space-y-1">
+                  <div className="p-3 grid grid-cols-4 gap-2">
                     {themes.map((t) => (
                       <button
                         key={t.name}
@@ -906,19 +1099,58 @@ const Layout = () => {
                           applyThemeColor(t.name);
                           setShowThemeMenu(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors duration-150 cursor-pointer ${
+                        className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all duration-150 cursor-pointer group ${
                           themeColor === t.name
-                            ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-bold'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white'
+                            ? 'bg-slate-100 dark:bg-slate-700 ring-2 ring-offset-1 dark:ring-offset-slate-800'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
                         }`}
+                        style={themeColor === t.name ? { ringColor: t.primary } : {}}
+                        title={t.name}
                       >
-                        <span
-                          className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm shrink-0"
-                          style={{ backgroundColor: t.primary }}
-                        />
-                        <span>{t.name}</span>
+                        <div className="relative">
+                          <span
+                            className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-600 shadow-md block group-hover:scale-110 transition-transform"
+                            style={{ backgroundColor: t.primary, boxShadow: `0 2px 8px ${t.primary}40` }}
+                          />
+                          {themeColor === t.name && (
+                            <svg className="absolute inset-0 w-7 h-7 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          )}
+                        </div>
+                        <span className={`text-[9px] font-semibold leading-none truncate w-full text-center ${
+                          themeColor === t.name ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'
+                        }`}>{t.name}</span>
                       </button>
                     ))}
+                  </div>
+                  {/* Custom Color Picker */}
+                  <div className="border-t border-slate-100 dark:border-slate-700 p-3">
+                    <div className="flex items-center gap-3">
+                      <label
+                        className="relative cursor-pointer group"
+                        title="Pick a custom color"
+                      >
+                        <span
+                          className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-600 shadow-md block group-hover:scale-110 transition-transform"
+                          style={{ background: `conic-gradient(#f43f5e, #f59e0b, #10b981, #0ea5e9, #8b5cf6, #ec4899, #f43f5e)` }}
+                        />
+                        {themeColor === 'Custom' && (
+                          <svg className="absolute inset-0 w-7 h-7 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        )}
+                        <input
+                          type="color"
+                          value={customColor}
+                          onChange={(e) => handleCustomColorChange(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </label>
+                      <div className="flex-1">
+                        <p className={`text-[11px] font-bold leading-none ${
+                          themeColor === 'Custom' ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'
+                        }`}>Custom Color</p>
+                        <p className="text-[9px] text-slate-400 mt-0.5">Pick any color you like</p>
+                      </div>
+                      <span className="text-[10px] font-mono text-slate-400 bg-slate-50 dark:bg-slate-700 px-1.5 py-0.5 rounded">{themeColor === 'Custom' ? customColor : '—'}</span>
+                    </div>
                   </div>
                 </div>
               )}
