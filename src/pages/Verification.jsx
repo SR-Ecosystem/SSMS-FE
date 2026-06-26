@@ -4,7 +4,7 @@ import { Lock, Loader2, Users, Activity, CheckCircle, Clock, ShieldCheck, Search
 import * as XLSX from 'xlsx';
 import SkeletonLoader from '../components/SkeletonLoader';
 
-const PASSCODE = 'SA123';
+const PASSCODES = ['SA123', 'ETH123'];
 
 // ─── Helpers ──────────────────────────────────────────────
 const formatTime = (totalSeconds) => {
@@ -43,9 +43,12 @@ const SIDEBAR_ITEMS = [
   { id: 'live', label: 'Live Activity', icon: Activity },
   { id: 'attendance', label: 'Attendance', icon: UserCheck },
   { id: 'tasks', label: 'Tasks', icon: ClipboardList },
+  { id: 'leetcode', label: 'LeetCode', icon: Code },
   { id: 'submissions', label: 'Submissions', icon: FileText },
   { id: 'grades', label: 'Grades', icon: Award },
   { id: 'mockDrives', label: 'Mock Tests', icon: Briefcase },
+  { id: 'enrollments', label: 'Join Requests', icon: UserCheck },
+  { id: 'leaves', label: 'Leave Requests', icon: Calendar },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'logs', label: 'Activity Logs', icon: Clock },
 ];
@@ -77,9 +80,85 @@ const Verification = () => {
   const [mockDriveFilter, setMockDriveFilter] = useState('');
   const [mockStatusFilter, setMockStatusFilter] = useState('');
 
+  const {
+    stats = {},
+    students = [],
+    activeStudents = [],
+    submissions = [],
+    tasks = [],
+    batches = [],
+    activityTimeline = [],
+    leetcodeProblems = [],
+    leetcodeSubmissions = [],
+    mockDriveScores = [],
+    enrollments = [],
+    leaves = []
+  } = data || {};
+
+  const uniqueMockDrives = useMemo(() => {
+    if (!mockDriveScores) return [];
+    const map = new Map();
+    mockDriveScores.forEach(score => {
+      if (score.mockDriveId && score.mockDriveId._id) {
+        map.set(score.mockDriveId._id.toString(), score.mockDriveId);
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+  }, [mockDriveScores]);
+
+  const filteredMockScores = useMemo(() => {
+    if (!mockDriveScores) return [];
+    let list = [...mockDriveScores];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      list = list.filter(score => 
+        (score.studentId?.name || '').toLowerCase().includes(term) ||
+        (score.studentId?.rollNumber || '').toLowerCase().includes(term)
+      );
+    }
+
+    if (mockBatchFilter) {
+      list = list.filter(score => {
+        const bId = score.studentId?.batchId;
+        const bIdStr = bId && bId._id ? bId._id.toString() : bId?.toString();
+        return bIdStr === mockBatchFilter;
+      });
+    }
+
+    if (mockDriveFilter) {
+      list = list.filter(score => 
+        score.mockDriveId?._id?.toString() === mockDriveFilter
+      );
+    }
+
+    if (mockStatusFilter) {
+      const isAttended = mockStatusFilter === 'attended';
+      list = list.filter(score => score.attended === isAttended);
+    }
+
+    list.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
+    return list;
+  }, [mockDriveScores, searchTerm, mockBatchFilter, mockDriveFilter, mockStatusFilter]);
+
+  const rankedScores = useMemo(() => {
+    let currentRank = 1;
+    let prevPercentage = null;
+    return filteredMockScores.map((score, index) => {
+      if (prevPercentage !== null && score.percentage !== prevPercentage) {
+        currentRank = index + 1;
+      }
+      prevPercentage = score.percentage;
+      return {
+        ...score,
+        rank: score.attended ? currentRank : '-'
+      };
+    });
+  }, [filteredMockScores]);
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (passcode.toUpperCase() === PASSCODE) {
+    if (PASSCODES.includes(passcode.toUpperCase())) {
       setIsAuthenticated(true);
       setError('');
     } else {
@@ -171,68 +250,227 @@ const Verification = () => {
     );
   }
 
-  const { stats, students, activeStudents, submissions, tasks, batches, activityTimeline, leetcodeProblems, leetcodeSubmissions, mockDriveScores = [] } = data;
 
-  const uniqueMockDrives = useMemo(() => {
-    if (!mockDriveScores) return [];
-    const map = new Map();
-    mockDriveScores.forEach(score => {
-      if (score.mockDriveId && score.mockDriveId._id) {
-        map.set(score.mockDriveId._id.toString(), score.mockDriveId);
-      }
-    });
-    return Array.from(map.values()).sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
-  }, [mockDriveScores]);
+  const renderLeavesModule = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">Leave Requests</h2>
+            <p className="text-sm text-slate-400">View and track student leave applications and letters.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 w-full xl:w-auto">
+            <div className="relative flex-1 sm:flex-none sm:w-48">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <input type="text" placeholder="Search student or reason..." className="w-full bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 pl-9 pr-3 focus:outline-none focus:border-indigo-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)}>
+              <option value="">All Batches</option>
+              {batches.map(b => <option key={b._id} value={b._id}>{b.batchName}</option>)}
+            </select>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
 
-  const filteredMockScores = useMemo(() => {
-    if (!mockDriveScores) return [];
-    let list = [...mockDriveScores];
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {leaves && leaves
+            .filter(leave => {
+              const studentName = leave.studentId?.name || '';
+              const studentRoll = leave.studentId?.rollNumber || '';
+              const reasonText = leave.reason || '';
+              const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) || studentRoll.toLowerCase().includes(searchTerm.toLowerCase()) || reasonText.toLowerCase().includes(searchTerm.toLowerCase());
+              
+              const student = students.find(s => s._id === (leave.studentId?._id || leave.studentId)?.toString());
+              const bId = student?.batchId || leave.studentId?.batch;
+              const bIdStr = bId?._id || bId;
+              const matchesBatch = !batchFilter || (bIdStr && bIdStr.toString() === batchFilter);
+              const matchesStatus = !statusFilter || leave.status === statusFilter;
+              return matchesSearch && matchesBatch && matchesStatus;
+            })
+            .map(leave => {
+              const student = students.find(s => s._id === (leave.studentId?._id || leave.studentId)?.toString());
+              const studentBatch = batches.find(b => {
+                const bId = student?.batchId || leave.studentId?.batch;
+                const bIdStr = bId?._id || bId;
+                return bIdStr && b._id === bIdStr.toString();
+              });
+              
+              return (
+                <div key={leave._id} className="bg-slate-800 border border-slate-700 rounded-2xl p-6 relative overflow-hidden flex flex-col group hover:border-slate-600 transition-colors">
+                  <div className={`absolute top-0 left-0 w-full h-1 ${leave.status === 'pending' ? 'bg-amber-500' : leave.status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                  <div className="flex flex-col h-full gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-slate-700 text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-600">
+                        {leave.studentId?.name?.charAt(0) || '?'}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-extrabold text-[15px] text-white leading-tight truncate">{leave.studentId?.name || 'Unknown Student'}</h3>
+                        <p className="text-xs text-slate-400 font-mono mt-0.5 truncate">{leave.studentId?.rollNumber} • {studentBatch ? studentBatch.batchName : 'N/A'}</p>
+                      </div>
+                      <div className={`px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 text-[10px] border tracking-wider uppercase ${
+                        leave.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        leave.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                        'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
+                        {leave.status === 'approved' ? <CheckCircle size={12} /> : leave.status === 'rejected' ? <XCircle size={12} /> : <Clock size={12} />}
+                        {leave.status}
+                      </div>
+                    </div>
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      list = list.filter(score => 
-        (score.studentId?.name || '').toLowerCase().includes(term) ||
-        (score.studentId?.rollNumber || '').toLowerCase().includes(term)
-      );
-    }
+                    <div className="flex flex-col flex-1">
+                      <div className="mb-3">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-[10px] font-bold uppercase tracking-wider">
+                          <Calendar size={12} />
+                          {leave.leaveType === 'multiple_days' ? `${leave.startDate} to ${leave.endDate}` :
+                           leave.leaveType === 'hours' ? `${leave.startDate} (${leave.startTime} - ${leave.endTime})` :
+                           leave.startDate}
+                        </span>
+                      </div>
+                      
+                      <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex-1">
+                        <span className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reason for leave</span>
+                        <p className="text-slate-300 text-sm leading-relaxed mb-3">{leave.reason}</p>
+                        
+                        {leave.attachmentUrl && (
+                          <a 
+                            href={leave.attachmentUrl.startsWith('http') ? leave.attachmentUrl : `${import.meta.env.VITE_API_URL || ''}${leave.attachmentUrl}`} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-lg hover:bg-indigo-500/20 transition-all cursor-pointer"
+                          >
+                            <FileText size={12} /> View Attached Letter (PDF)
+                          </a>
+                        )}
+                      </div>
 
-    if (mockBatchFilter) {
-      list = list.filter(score => {
-        const bId = score.studentId?.batchId;
-        const bIdStr = bId && bId._id ? bId._id.toString() : bId?.toString();
-        return bIdStr === mockBatchFilter;
-      });
-    }
+                      {leave.adminResponse && (
+                        <div className="mt-3 bg-slate-900/40 p-4 rounded-xl border border-slate-700/30">
+                          <span className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Response</span>
+                          <p className="text-slate-300 text-sm leading-relaxed font-semibold">{leave.adminResponse}</p>
+                        </div>
+                      )}
+                    </div>
 
-    if (mockDriveFilter) {
-      list = list.filter(score => 
-        score.mockDriveId?._id?.toString() === mockDriveFilter
-      );
-    }
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 border-t border-slate-700/50 pt-3 mt-1">
+                      <span className="flex items-center gap-1"><Clock size={11} /> Applied: {new Date(leave.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      </div>
+    );
+  };
 
-    if (mockStatusFilter) {
-      const isAttended = mockStatusFilter === 'attended';
-      list = list.filter(score => score.attended === isAttended);
-    }
+  const renderEnrollmentsModule = () => {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">Join Requests</h2>
+            <p className="text-sm text-slate-400">View and track student batch enrollment join requests.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 w-full xl:w-auto">
+            <div className="relative flex-1 sm:flex-none sm:w-48">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <input type="text" placeholder="Search student name..." className="w-full bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 pl-9 pr-3 focus:outline-none focus:border-indigo-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            </div>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)}>
+              <option value="">All Batches</option>
+              {batches.map(b => <option key={b._id} value={b._id}>{b.batchName}</option>)}
+            </select>
+            <select className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
 
-    list.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
-    return list;
-  }, [mockDriveScores, searchTerm, mockBatchFilter, mockDriveFilter, mockStatusFilter]);
-
-  const rankedScores = useMemo(() => {
-    let currentRank = 1;
-    let prevPercentage = null;
-    return filteredMockScores.map((score, index) => {
-      if (prevPercentage !== null && score.percentage !== prevPercentage) {
-        currentRank = index + 1;
-      }
-      prevPercentage = score.percentage;
-      return {
-        ...score,
-        rank: score.attended ? currentRank : '-'
-      };
-    });
-  }, [filteredMockScores]);
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-lg">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left whitespace-nowrap text-sm">
+              <thead>
+                <tr className="bg-slate-900 text-xs uppercase tracking-wider text-slate-500 font-bold border-b border-slate-700">
+                  <th className="py-3.5 px-4">Student</th>
+                  <th className="py-3.5 px-4">Requested Batch</th>
+                  <th className="py-3.5 px-4 text-center">Request Date</th>
+                  <th className="py-3.5 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {enrollments && enrollments
+                  .filter(req => {
+                    const studentName = req.studentId?.name || '';
+                    const studentEmail = req.studentId?.email || '';
+                    const batchName = req.batchId?.batchName || '';
+                    const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) || studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) || batchName.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesBatch = !batchFilter || (req.batchId?._id || req.batchId)?.toString() === batchFilter;
+                    const matchesStatus = !statusFilter || req.status === statusFilter;
+                    return matchesSearch && matchesBatch && matchesStatus;
+                  })
+                  .length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-center text-slate-500 py-12">No join requests match the selected filters.</td>
+                    </tr>
+                  ) : (
+                    enrollments
+                      .filter(req => {
+                        const studentName = req.studentId?.name || '';
+                        const studentEmail = req.studentId?.email || '';
+                        const batchName = req.batchId?.batchName || '';
+                        const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) || studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) || batchName.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesBatch = !batchFilter || (req.batchId?._id || req.batchId)?.toString() === batchFilter;
+                        const matchesStatus = !statusFilter || req.status === statusFilter;
+                        return matchesSearch && matchesBatch && matchesStatus;
+                      })
+                      .map((req, idx) => (
+                        <tr key={req._id || idx} className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors">
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-slate-700 text-indigo-400 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-600">
+                                {req.studentId?.name?.charAt(0) || '?'}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-white leading-tight">{req.studentId?.name || 'Unknown student'}</p>
+                                <p className="text-[10px] text-slate-400 font-mono">{req.studentId?.email || 'N/A'}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-xs font-bold">
+                              {req.batchId?.batchName || 'Unknown Batch'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center text-xs text-slate-400 font-medium">
+                            {new Date(req.createdAt).toLocaleString()}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                              req.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                              req.status === 'rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                              'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            }`}>
+                              {req.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const exportMockResultsToExcel = () => {
     if (!rankedScores || rankedScores.length === 0) return;
@@ -803,39 +1041,136 @@ const Verification = () => {
       // ═══ TASKS ═══════════════════════════════════════════
       case 'tasks': return (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-white">Task Monitoring ({tasks.length})</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">Task Monitoring ({tasks.length})</h2>
+            <select 
+              className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 font-medium" 
+              value={batchFilter} 
+              onChange={(e) => setBatchFilter(e.target.value)}
+            >
+              <option value="">All Batches</option>
+              {batches.map(b => <option key={b._id} value={b._id}>{b.batchName}</option>)}
+            </select>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {tasks.map(task => {
-              const taskSubs = submissions.filter(s => s.taskId && s.taskId._id === task._id);
-              const gradedSubs = taskSubs.filter(s => s.status === 'graded');
-              const batchStudents = students.filter(s => s.batchId && task.batchId && s.batchId.toString() === (task.batchId._id || task.batchId).toString());
-              const completionPct = batchStudents.length > 0 ? Math.round((taskSubs.length / batchStudents.length) * 100) : 0;
-              return (
-                <div key={task._id} className="bg-slate-800 border border-slate-700 rounded-2xl p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-white text-sm line-clamp-2">{task.title}</h3>
-                      <p className="text-[10px] text-slate-400 mt-1">{task.batchId?.batchName || 'Unknown Batch'} · {task.category}</p>
+            {tasks
+              .filter(task => !batchFilter || (task.batchId && (task.batchId._id || task.batchId).toString() === batchFilter))
+              .map(task => {
+                const isScheduled = task.scheduledAt && new Date(task.scheduledAt) > new Date();
+                const taskSubs = submissions.filter(s => s.taskId && s.taskId._id === task._id);
+                const gradedSubs = taskSubs.filter(s => s.status === 'graded');
+                const batchStudents = students.filter(s => s.batchId && task.batchId && s.batchId.toString() === (task.batchId._id || task.batchId).toString());
+                const completionPct = batchStudents.length > 0 ? Math.round((taskSubs.length / batchStudents.length) * 100) : 0;
+                
+                return (
+                  <div key={task._id} className={`border rounded-2xl p-5 flex flex-col justify-between min-h-[190px] ${isScheduled ? 'border-amber-500/50 bg-amber-950/5' : 'bg-slate-800 border-slate-700'}`}>
+                    <div>
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-white text-sm line-clamp-2 flex items-center gap-2 flex-wrap">
+                            {task.title}
+                            {isScheduled && (
+                              <span className="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-500/30 uppercase tracking-wide">Scheduled</span>
+                            )}
+                          </h3>
+                          <p className="text-[10px] text-slate-400 mt-1">{task.batchId?.batchName || 'Unknown Batch'} · {task.category}</p>
+                        </div>
+                        <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 shrink-0 ml-2">{task.maxMarks}M</span>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div className="bg-slate-900 p-2 rounded text-center"><p className="text-sm font-black text-white">{taskSubs.length}</p><p className="text-[9px] text-slate-500">Submitted</p></div>
+                        <div className="bg-slate-900 p-2 rounded text-center"><p className="text-sm font-black text-emerald-400">{gradedSubs.length}</p><p className="text-[9px] text-slate-500">Graded</p></div>
+                        <div className="bg-slate-900 p-2 rounded text-center"><p className="text-sm font-black text-amber-400">{completionPct}%</p><p className="text-[9px] text-slate-500">Complete</p></div>
+                      </div>
                     </div>
-                    <span className="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20 shrink-0 ml-2">{task.maxMarks}M</span>
-                  </div>
 
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="bg-slate-900 p-2 rounded text-center"><p className="text-sm font-black text-white">{taskSubs.length}</p><p className="text-[9px] text-slate-500">Submitted</p></div>
-                    <div className="bg-slate-900 p-2 rounded text-center"><p className="text-sm font-black text-emerald-400">{gradedSubs.length}</p><p className="text-[9px] text-slate-500">Graded</p></div>
-                    <div className="bg-slate-900 p-2 rounded text-center"><p className="text-sm font-black text-amber-400">{completionPct}%</p><p className="text-[9px] text-slate-500">Complete</p></div>
+                    <div>
+                      <div className="w-full bg-slate-700 rounded-full h-1.5 mb-2">
+                        <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(completionPct, 100)}%` }}></div>
+                      </div>
+                      <div className="flex justify-between text-[10px] text-slate-500">
+                        <span>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}</span>
+                        <span>{isScheduled ? `Release: ${new Date(task.scheduledAt).toLocaleString()}` : `Created: ${new Date(task.createdAt).toLocaleDateString()}`}</span>
+                      </div>
+                    </div>
                   </div>
+                );
+              })}
+          </div>
+        </div>
+      );
 
-                  <div className="w-full bg-slate-700 rounded-full h-1.5 mb-2">
-                    <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(completionPct, 100)}%` }}></div>
-                  </div>
-                  <div className="flex justify-between text-[10px] text-slate-500">
-                    <span>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}</span>
-                    <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              );
-            })}
+      // ═══ LEETCODE ════════════════════════════════════════
+      case 'leetcode': return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-white">LeetCode Challenges Monitoring ({leetcodeProblems ? leetcodeProblems.length : 0})</h2>
+            <select 
+              className="bg-slate-800 border border-slate-700 text-sm text-white rounded-lg py-2 px-3 focus:outline-none focus:border-indigo-500 font-medium" 
+              value={batchFilter} 
+              onChange={(e) => setBatchFilter(e.target.value)}
+            >
+              <option value="">All Batches</option>
+              {batches.map(b => <option key={b._id} value={b._id}>{b.batchName}</option>)}
+            </select>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {!leetcodeProblems || leetcodeProblems.length === 0 ? (
+              <p className="col-span-full text-center text-slate-500 py-12">No LeetCode problems allocated.</p>
+            ) : (
+              leetcodeProblems
+                .filter(p => !batchFilter || (p.batchId && (p.batchId._id || p.batchId).toString() === batchFilter))
+                .map(problem => {
+                  const isScheduled = problem.scheduledAt && new Date(problem.scheduledAt) > new Date();
+                  const isActive = new Date(problem.deadline) > new Date() && !isScheduled;
+                  const problemSubs = leetcodeSubmissions ? leetcodeSubmissions.filter(s => {
+                    const pId = s.problemId?._id || s.problemId;
+                    return pId && pId.toString() === problem._id.toString();
+                  }) : [];
+                  const batchStudents = students.filter(s => s.batchId && problem.batchId && s.batchId.toString() === (problem.batchId._id || problem.batchId).toString());
+                  const completionPct = batchStudents.length > 0 ? Math.round((problemSubs.length / batchStudents.length) * 100) : 0;
+                  
+                  return (
+                    <div key={problem._id} className={`border rounded-2xl p-5 flex flex-col justify-between min-h-[190px] ${isScheduled ? 'border-amber-500/50 bg-amber-950/5' : 'bg-slate-800 border-slate-700'}`}>
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-white text-sm line-clamp-2 flex items-center gap-2 flex-wrap">
+                              {problem.title}
+                              {isScheduled && <span className="bg-amber-500/20 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-500/30 uppercase tracking-wide">Scheduled</span>}
+                              {isActive && <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/30 uppercase tracking-wide">Active</span>}
+                            </h3>
+                            <p className="text-[10px] text-slate-400 mt-1">{problem.batchId?.batchName || 'Unknown Batch'}</p>
+                          </div>
+                        </div>
+                        
+                        <a href={problem.problemLink} target="_blank" rel="noreferrer" className="text-xs text-indigo-400 hover:underline truncate block mb-4 max-w-full">
+                          {problem.problemLink}
+                        </a>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+                          <span>Submissions: <strong className="text-white font-bold">{problemSubs.length}</strong> / {batchStudents.length}</span>
+                          <span>{completionPct}% Complete</span>
+                        </div>
+                        <div className="w-full bg-slate-700 rounded-full h-1.5 mb-3">
+                          <div className="bg-indigo-500 h-1.5 rounded-full transition-all" style={{ width: `${Math.min(completionPct, 100)}%` }}></div>
+                        </div>
+                        <div className="flex justify-between text-[10px] text-slate-500">
+                          <span>{isScheduled ? 'Release Schedule' : 'Deadline'}</span>
+                          <span className="font-medium text-slate-400">
+                            {new Date(isScheduled ? problem.scheduledAt : problem.deadline).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+            )}
           </div>
         </div>
       );
@@ -1050,6 +1385,10 @@ const Verification = () => {
       );
 
       case 'mockDrives': return renderMockDrivesModule();
+
+      case 'enrollments': return renderEnrollmentsModule();
+
+      case 'leaves': return renderLeavesModule();
 
       default: return <p className="text-slate-500">Module not found.</p>;
     }
