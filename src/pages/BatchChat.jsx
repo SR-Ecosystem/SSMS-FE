@@ -109,7 +109,7 @@ const BatchChat = () => {
       <div className="w-80 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col shrink-0">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <Users className="text-emerald-500" /> My Groups
+            <Users className="text-theme-primary" /> My Groups
           </h2>
         </div>
         
@@ -120,18 +120,18 @@ const BatchChat = () => {
               onClick={() => setActiveBatchId(batch._id)}
               className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-4 ${
                 activeBatchId === batch._id 
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' 
+                  ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' 
                   : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
               }`}
             >
               <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${
-                activeBatchId === batch._id ? 'bg-white/20' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                activeBatchId === batch._id ? 'bg-white/20' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
               }`}>
                 <Hash size={20} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold truncate">{batch.batchName}</p>
-                <p className={`text-sm truncate ${activeBatchId === batch._id ? 'text-emerald-100' : 'text-slate-500 dark:text-slate-500'}`}>
+                <p className={`text-sm truncate ${activeBatchId === batch._id ? 'text-primary-100' : 'text-slate-500 dark:text-slate-500'}`}>
                   {user.role === 'admin' ? 'Admin Access' : 'Joined'}
                 </p>
               </div>
@@ -148,14 +148,14 @@ const BatchChat = () => {
         <div className="flex-1 flex flex-col bg-[#f0f2f5] dark:bg-[#0b141a]">
           {/* Chat Header */}
           <div className="h-20 px-8 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center shrink-0">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mr-4">
+            <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center mr-4">
               <Hash size={20} />
             </div>
             <div>
               <h3 className="font-bold text-lg text-slate-800 dark:text-white">
                 {batches.find(b => b._id === activeBatchId)?.batchName}
               </h3>
-              <p className="text-sm text-emerald-500 font-medium">Group Chat</p>
+              <p className="text-sm text-theme-primary font-medium">Group Chat</p>
             </div>
           </div>
 
@@ -180,12 +180,12 @@ const BatchChat = () => {
                     
                     <div className={`px-5 py-3 rounded-2xl shadow-sm relative ${
                       isMe 
-                        ? 'bg-emerald-500 text-white rounded-tr-sm' 
+                        ? 'bg-primary-500 text-white rounded-tr-sm' 
                         : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-sm'
                     }`}>
                       <p className="text-[15px] leading-relaxed break-words">{msg.text}</p>
                       
-                      <div className={`text-[10px] text-right mt-1 font-medium ${isMe ? 'text-emerald-100' : 'text-slate-400'}`}>
+                      <div className={`text-[10px] text-right mt-1 font-medium ${isMe ? 'text-primary-100' : 'text-slate-400'}`}>
                         {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -202,14 +202,14 @@ const BatchChat = () => {
               <input
                 type="text"
                 placeholder="Type a message..."
-                className="flex-1 bg-slate-100 dark:bg-slate-900 border-none rounded-full px-6 py-4 outline-none focus:ring-2 focus:ring-emerald-500/50 dark:text-white transition-all shadow-inner"
+                className="flex-1 bg-slate-100 dark:bg-slate-900 border-none rounded-full px-6 py-4 outline-none focus:ring-2 focus:ring-primary-500/50 dark:text-white transition-all shadow-inner"
                 value={newMessage}
                 onChange={e => setNewMessage(e.target.value)}
               />
               <button 
                 type="submit" 
                 disabled={!newMessage.trim()}
-                className="w-14 h-14 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 text-white rounded-full flex items-center justify-center transition-colors shadow-lg shadow-emerald-500/30 shrink-0"
+                className="w-14 h-14 bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:hover:bg-primary-500 text-white rounded-full flex items-center justify-center transition-colors shadow-lg shadow-primary-500/30 shrink-0"
               >
                 <Send size={20} className="ml-1" />
               </button>

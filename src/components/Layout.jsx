@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, FileText, CheckCircle,
   LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor,
-  Briefcase
+  Briefcase, ChevronDown, ChevronRight, Palette
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
@@ -19,6 +19,137 @@ const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
+  // Collapsible sidebar sections state
+  const [expandedSections, setExpandedSections] = useState(() => {
+    try {
+      const saved = localStorage.getItem('expandedSections');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      Overview: true,
+      Academic: true,
+      Management: true,
+      Operations: true,
+      Account: true,
+      Main: true,
+      Learning: true,
+      Performance: true,
+      'Batches & Chat': true
+    };
+  });
+
+  const toggleSection = (label) => {
+    setExpandedSections(prev => {
+      const updated = { ...prev, [label]: !prev[label] };
+      try {
+        localStorage.setItem('expandedSections', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const themes = [
+    {
+      name: 'Emerald',
+      primary: '#10b981',
+      accent: '#14b8a6',
+      shades: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
+      bgLight: { start: '#dcfce7', middle: '#f0fdf4', end: '#ffffff' },
+      bgDark: { start: '#052217', middle: '#02120c', end: '#010604' }
+    },
+    {
+      name: 'Amethyst',
+      primary: '#8b5cf6',
+      accent: '#6366f1',
+      shades: { 50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95' },
+      bgLight: { start: '#ede9fe', middle: '#f5f3ff', end: '#ffffff' },
+      bgDark: { start: '#120d2b', middle: '#070512', end: '#020106' }
+    },
+    {
+      name: 'Crimson',
+      primary: '#f97316',
+      accent: '#ef4444',
+      shades: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' },
+      bgLight: { start: '#ffedd5', middle: '#fff7ed', end: '#ffffff' },
+      bgDark: { start: '#220b02', middle: '#0e0400', end: '#040100' }
+    },
+    {
+      name: 'Ocean',
+      primary: '#0ea5e9',
+      accent: '#3b82f6',
+      shades: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' },
+      bgLight: { start: '#e0f2fe', middle: '#f0f9ff', end: '#ffffff' },
+      bgDark: { start: '#041727', middle: '#010911', end: '#000306' }
+    },
+    {
+      name: 'Amber',
+      primary: '#f59e0b',
+      accent: '#eab308',
+      shades: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' },
+      bgLight: { start: '#fef3c7', middle: '#fffbeb', end: '#ffffff' },
+      bgDark: { start: '#1d1102', middle: '#0b0600', end: '#030100' }
+    },
+    {
+      name: 'Rose',
+      primary: '#f43f5e',
+      accent: '#d946ef',
+      shades: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337' },
+      bgLight: { start: '#ffe4e6', middle: '#fff1f2', end: '#ffffff' },
+      bgDark: { start: '#22040b', middle: '#0e0104', end: '#040001' }
+    }
+  ];
+
+  const [themeColor, setThemeColor] = useState(() => {
+    return localStorage.getItem('theme-color') || 'Emerald';
+  });
+
+  const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const themeMenuRef = useRef(null);
+
+  const applyThemeColor = (themeName) => {
+    const selected = themes.find(t => t.name === themeName) || themes[0];
+    document.documentElement.style.setProperty('--color-theme-primary', selected.primary);
+    document.documentElement.style.setProperty('--color-theme-accent', selected.accent);
+    
+    // Inject all 10 shades for the selected theme dynamically
+    document.documentElement.style.setProperty('--color-primary-50', selected.shades[50]);
+    document.documentElement.style.setProperty('--color-primary-100', selected.shades[100]);
+    document.documentElement.style.setProperty('--color-primary-200', selected.shades[200]);
+    document.documentElement.style.setProperty('--color-primary-300', selected.shades[300]);
+    document.documentElement.style.setProperty('--color-primary-400', selected.shades[400]);
+    document.documentElement.style.setProperty('--color-primary-500', selected.shades[500]);
+    document.documentElement.style.setProperty('--color-primary-600', selected.shades[600]);
+    document.documentElement.style.setProperty('--color-primary-700', selected.shades[700]);
+    document.documentElement.style.setProperty('--color-primary-800', selected.shades[800]);
+    document.documentElement.style.setProperty('--color-primary-900', selected.shades[900]);
+
+    // Inject the gradient background variables dynamically
+    document.documentElement.style.setProperty('--bg-gradient-start', selected.bgLight.start);
+    document.documentElement.style.setProperty('--bg-gradient-middle', selected.bgLight.middle);
+    document.documentElement.style.setProperty('--bg-gradient-end', selected.bgLight.end);
+    document.documentElement.style.setProperty('--dark-bg-gradient-start', selected.bgDark.start);
+    document.documentElement.style.setProperty('--dark-bg-gradient-middle', selected.bgDark.middle);
+    document.documentElement.style.setProperty('--dark-bg-gradient-end', selected.bgDark.end);
+    
+    localStorage.setItem('theme-color', themeName);
+    setThemeColor(themeName);
+  };
+
+  useEffect(() => {
+    applyThemeColor(themeColor);
+  }, [themeColor]);
+
+  // Close theme menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target)) {
+        setShowThemeMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
@@ -31,13 +162,39 @@ const Layout = () => {
     return savedTheme !== 'light'; // Default to dark
   });
 
-  const [sessionActive, setSessionActive] = useState(false);
-  const [attendanceId, setAttendanceId] = useState(null);
+  const [sessionActive, setSessionActive] = useState(() => {
+    try {
+      return localStorage.getItem('sessionActive') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [attendanceId, setAttendanceId] = useState(() => {
+    try {
+      return localStorage.getItem('attendanceId') || null;
+    } catch {
+      return null;
+    }
+  });
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [isSyncing, setIsSyncing] = useState(user?.role === 'student');
   const sessionSecondsRef = useRef(0);
   useEffect(() => { sessionSecondsRef.current = sessionSeconds; }, [sessionSeconds]);
   const attendanceIdRef = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem('sessionActive', sessionActive ? 'true' : 'false');
+  }, [sessionActive]);
+
+  useEffect(() => {
+    if (attendanceId) {
+      localStorage.setItem('attendanceId', attendanceId);
+      attendanceIdRef.current = attendanceId;
+    } else {
+      localStorage.removeItem('attendanceId');
+      attendanceIdRef.current = null;
+    }
+  }, [attendanceId]);
 
   // Notification count state
   const [pendingCount, setPendingCount] = useState(0);
@@ -253,9 +410,25 @@ const Layout = () => {
                 setAttendanceId(activeRecord._id);
                 attendanceIdRef.current = activeRecord._id;
               } else {
-                setSessionActive(false);
-                setAttendanceId(null);
-                attendanceIdRef.current = null;
+                const wasActiveOnFrontend = localStorage.getItem('sessionActive') === 'true';
+                if (wasActiveOnFrontend) {
+                  console.log('Session was active on frontend but inactive on backend. Auto-resuming check-in...');
+                  try {
+                    const { data: checkinData } = await axios.post('/attendance/checkin');
+                    setAttendanceId(checkinData._id);
+                    attendanceIdRef.current = checkinData._id;
+                    setSessionActive(true);
+                  } catch (err) {
+                    console.error('Auto-resume check-in failed:', err);
+                    setSessionActive(false);
+                    setAttendanceId(null);
+                    attendanceIdRef.current = null;
+                  }
+                } else {
+                  setSessionActive(false);
+                  setAttendanceId(null);
+                  attendanceIdRef.current = null;
+                }
               }
             } else {
               setSessionActive(false);
@@ -337,6 +510,8 @@ const Layout = () => {
       timerIntervalRef.current = null;
     }
 
+    localStorage.removeItem('sessionActive');
+    localStorage.removeItem('attendanceId');
     await logout();
     navigate('/login');
   };
@@ -454,6 +629,27 @@ const Layout = () => {
 
   const sections = user?.role === 'admin' ? adminSections : studentSections;
 
+  // Auto-expand section containing the active path on mount and navigation
+  useEffect(() => {
+    if (!sections) return;
+    const activeSection = sections.find(section => 
+      section.links.some(link => 
+        location.pathname === link.path || 
+        (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path))
+      )
+    );
+    if (activeSection) {
+      setExpandedSections(prev => {
+        if (prev[activeSection.label]) return prev;
+        const updated = { ...prev, [activeSection.label]: true };
+        try {
+          localStorage.setItem('expandedSections', JSON.stringify(updated));
+        } catch (e) {}
+        return updated;
+      });
+    }
+  }, [location.pathname, sections]);
+
   if (user?.role === 'student' && isMobile) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center">
@@ -475,7 +671,24 @@ const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen transition-colors duration-500 flex bg-transparent">
+    <div className="min-h-screen transition-colors duration-500 flex bg-transparent relative">
+      {/* Background Animated Dots */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Large blurry spots */}
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-theme-primary/5 dark:bg-theme-primary/3 rounded-full blur-[100px] animate-float-slow"></div>
+        <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-theme-accent/5 dark:bg-theme-accent/3 rounded-full blur-[80px] animate-float-medium"></div>
+        <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-emerald-500/5 dark:bg-emerald-500/3 rounded-full blur-[60px] animate-float-fast"></div>
+
+        {/* Small floating dots */}
+        <div className="absolute w-3 h-3 bg-emerald-500/25 dark:bg-emerald-400/20 rounded-full animate-bubble-1 top-[15%] left-[10%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
+        <div className="absolute w-2 h-2 bg-theme-primary/35 dark:bg-theme-primary/30 rounded-full animate-bubble-2 top-[45%] left-[15%] shadow-[0_0_8px_var(--color-theme-primary)]"></div>
+        <div className="absolute w-4 h-4 bg-theme-accent/25 dark:bg-theme-accent/20 rounded-full animate-bubble-3 top-[75%] left-[25%] shadow-[0_0_12px_var(--color-theme-accent)]"></div>
+        <div className="absolute w-3 h-3 bg-emerald-500/30 dark:bg-emerald-400/20 rounded-full animate-bubble-4 top-[25%] right-[15%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
+        <div className="absolute w-2.5 h-2.5 bg-theme-primary/30 dark:bg-theme-primary/25 rounded-full animate-bubble-5 top-[65%] right-[20%] shadow-[0_0_10px_var(--color-theme-primary)]"></div>
+        <div className="absolute w-3.5 h-3.5 bg-emerald-400/25 dark:bg-emerald-400/15 rounded-full animate-bubble-6 top-[35%] right-[35%] shadow-[0_0_10px_rgba(52,211,153,0.3)]"></div>
+        <div className="absolute w-2 h-2 bg-theme-accent/35 dark:bg-theme-accent/30 rounded-full animate-bubble-7 top-[85%] right-[40%] shadow-[0_0_8px_var(--color-theme-accent)]"></div>
+        <div className="absolute w-3 h-3 bg-emerald-500/20 dark:bg-emerald-400/20 rounded-full animate-bubble-8 top-[55%] left-[45%] shadow-[0_0_10px_rgba(16,185,129,0.3)]"></div>
+      </div>
       {isSyncing && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
           <Loader text="Syncing Attendance..." />
@@ -498,14 +711,14 @@ const Layout = () => {
         <div className="h-24 flex items-center px-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-black/10">
           <div className="flex items-center gap-4 group cursor-pointer">
             <div className="relative">
-              <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-150 group-hover:bg-emerald-500/30 transition-all duration-500"></div>
+              <div className="absolute inset-0 bg-theme-primary/20 blur-xl rounded-full scale-150 group-hover:bg-theme-primary/30 transition-all duration-500"></div>
               <div className="relative w-14 h-14 rounded-xl bg-white shadow-[0_8px_15px_-3px_rgba(0,0,0,0.5)] border-t border-white/80 border-b-[4px] border-slate-300 dark:border-b-slate-900/80 dark:border-x-black/20 p-0.1 flex items-center justify-center transition-all duration-300 group-hover:-translate-y-1 group-active:translate-y-0.5 group-active:border-b-[1px] overflow-hidden">
                 <img src="/logo.png" alt="SSMS Logo" className="w-full h-full object-contain rounded-lg" />
               </div>
             </div>
             <div className="flex flex-col relative z-10">
               <span className="font-extrabold text-[22px] leading-none tracking-tight bg-gradient-to-b from-slate-700 to-slate-900 dark:from-white dark:to-slate-300 text-transparent bg-clip-text drop-shadow-md mb-1 transition-all group-hover:drop-shadow-lg">SSMS</span>
-              <span className="text-[9px] font-black tracking-widest text-emerald-600 dark:text-emerald-400/90 uppercase leading-[1.1] drop-shadow-sm">Saran Students <br /> Management</span>
+              <span className="text-[9px] font-black tracking-widest text-theme-primary uppercase leading-[1.1] drop-shadow-sm">Saran Students <br /> Management</span>
             </div>
           </div>
           <button
@@ -517,42 +730,64 @@ const Layout = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto py-3 px-3 custom-scrollbar pr-2">
-          {sections.map((section, sIdx) => (
-            <div key={section.label}>
-              {sIdx > 0 && (
-                <div className="mx-3 my-2 border-t border-slate-100 dark:border-white/5"></div>
-              )}
-              <p className="px-4 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">
-                {section.label}
-              </p>
-              <div className="space-y-0.5">
-                {section.links.map((link) => {
-                  const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
-                  return (
-                    <Link
-                      key={link.name}
-                      to={link.path}
-                      className={`flex items-center justify-between px-4 py-2.5 rounded-xl transition-all duration-300 text-[13px] ${isActive
-                          ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm'
-                          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
-                        }`}
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      <div className="flex items-center gap-3">
-                        {link.icon}
-                        {link.name}
-                      </div>
-                      {link.badge > 0 && !isActive && (
-                        <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                          {link.badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+          {sections.map((section, sIdx) => {
+            const isExpanded = expandedSections[section.label];
+            return (
+              <div key={section.label} className="mb-2">
+                {sIdx > 0 && (
+                  <div className="mx-3 my-2 border-t border-slate-100 dark:border-white/5"></div>
+                )}
+                
+                {/* Collapsible Section Header */}
+                <button
+                  onClick={() => toggleSection(section.label)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300 transition-all duration-200 select-none cursor-pointer group focus:outline-none"
+                >
+                  <span>{section.label}</span>
+                  <div className="text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">
+                    {isExpanded ? (
+                      <ChevronDown size={12} className="transform rotate-0 transition-transform duration-250" />
+                    ) : (
+                      <ChevronRight size={12} className="transform rotate-0 transition-transform duration-250" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Section Links */}
+                {isExpanded && (
+                  <div className="space-y-1 mt-1 transition-all duration-300 animate-in fade-in slide-in-from-top-1 duration-200">
+                    {section.links.map((link) => {
+                      const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
+                      return (
+                        <Link
+                          key={link.name}
+                          to={link.path}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-[13px] border-l-4 ${
+                            isActive
+                              ? 'bg-gradient-to-r from-theme-primary/10 to-theme-accent/5 text-theme-primary font-bold border-theme-primary shadow-[0_2px_10px_-3px_var(--color-theme-primary)]'
+                              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/40 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium border-transparent hover:border-slate-300 dark:hover:border-slate-700'
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`transition-transform duration-250 ${isActive ? 'text-theme-primary scale-105' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'}`}>
+                              {link.icon}
+                            </span>
+                            <span>{link.name}</span>
+                          </div>
+                          {link.badge > 0 && !isActive && (
+                            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                              {link.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="p-4 border-t border-slate-100 dark:border-white/10">
@@ -567,7 +802,7 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 lg:ml-[280px]">
+      <main className="flex-1 flex flex-col min-w-0 lg:ml-[280px] z-10 relative">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-4 lg:px-8 mt-4 mx-4 lg:mx-8 z-30 transition-colors duration-300">
           <button
@@ -579,15 +814,15 @@ const Layout = () => {
 
           <div className="ml-auto flex items-center gap-4 glass-panel px-2 py-1.5 h-14">
 
-            {/* Online Students Count */}
+             {/* Online Students Count */}
             <div className="hidden sm:flex items-center gap-2 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-full text-sm font-medium border border-slate-200 dark:border-slate-700">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <div className="w-2 h-2 rounded-full bg-theme-primary animate-pulse"></div>
               <span>{onlineStudentsCount} Online</span>
             </div>
 
             {/* Student Timer */}
             {user?.role === 'student' && sessionActive && (
-              <div className="hidden sm:flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full text-sm font-medium border border-emerald-100 dark:border-emerald-800">
+              <div className="hidden sm:flex items-center gap-2 bg-theme-primary/10 text-theme-primary px-3 py-1.5 rounded-full text-sm font-medium border border-theme-primary/20">
                 <Clock size={16} className="animate-pulse" />
                 <span>{formatTime(sessionSeconds)}</span>
               </div>
@@ -648,6 +883,47 @@ const Layout = () => {
               )}
             </div>
 
+            {/* Theme Selector Toggle */}
+            <div className="relative" ref={themeMenuRef}>
+              <button
+                onClick={() => setShowThemeMenu(!showThemeMenu)}
+                className="p-2.5 text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-white rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                aria-label="Select theme color"
+              >
+                <Palette size={18} />
+              </button>
+
+              {showThemeMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50 origin-top-right animate-in fade-in slide-in-from-top-2">
+                  <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                    <h3 className="text-xs font-bold text-slate-800 dark:text-white leading-none">Theme Colors</h3>
+                  </div>
+                  <div className="p-2 space-y-1">
+                    {themes.map((t) => (
+                      <button
+                        key={t.name}
+                        onClick={() => {
+                          applyThemeColor(t.name);
+                          setShowThemeMenu(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-left transition-colors duration-150 cursor-pointer ${
+                          themeColor === t.name
+                            ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-bold'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <span
+                          className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm shrink-0"
+                          style={{ backgroundColor: t.primary }}
+                        />
+                        <span>{t.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
@@ -661,15 +937,18 @@ const Layout = () => {
               <p className="text-sm font-bold text-slate-800 dark:text-white leading-tight">{user?.name}</p>
               <p className="text-xs font-medium text-slate-400 dark:text-slate-500 capitalize">{user?.role}</p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md mr-1 overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-theme-primary to-theme-accent text-white flex items-center justify-center shadow-md mr-1 overflow-hidden">
               <UserIcon size={18} />
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-4 lg:p-8 pt-4">
-          <Outlet context={{ sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus }} />
+        <div className="flex-1 overflow-auto p-4 lg:p-8 pt-4 z-10 relative">
+          <Outlet context={{ 
+            sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus,
+            themeColor, activeTheme: themes.find(t => t.name === themeColor) || themes[0]
+          }} />
         </div>
       </main>
     </div>

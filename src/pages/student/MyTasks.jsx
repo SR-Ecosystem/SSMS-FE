@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill-new';
@@ -28,6 +29,7 @@ const MyTasks = () => {
   const [isEnrolled, setIsEnrolled] = useState(true); // default to true until checked
   const [activeTask, setActiveTask] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const { themeColor, activeTheme } = useOutletContext();
   
   const [subData, setSubData] = useState({ 
     submissionType: 'text', 
@@ -337,7 +339,7 @@ const MyTasks = () => {
 
           return (
             <div key={task._id} className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl shadow-slate-200/50 dark:shadow-black/50 p-6 sm:p-8 flex flex-col group hover:scale-[1.02] transition-transform duration-300 ${isOverdue ? 'border-l-4 border-l-red-500' : ''}`}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/10 transition-colors"></div>
               
               <div className="relative z-10 flex justify-between items-start mb-4">
                 <div className="flex flex-col items-start gap-2">
@@ -361,7 +363,7 @@ const MyTasks = () => {
                     href={task.fileUrl.startsWith('http') ? task.fileUrl : `${import.meta.env.VITE_API_URL}${task.fileUrl}`} 
                     target="_blank" 
                     rel="noreferrer" 
-                    className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 text-sm rounded-lg w-max hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors font-bold shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 text-theme-primary bg-primary-500/10 px-3 py-2 text-sm rounded-lg w-max hover:bg-primary-500/25 transition-colors font-bold shadow-sm cursor-pointer"
                   >
                     <FileTextIcon size={16} />
                     Download Instructions
@@ -408,7 +410,7 @@ const MyTasks = () => {
                     </span>
                   </div>
                 ) : (
-                  <button onClick={() => setActiveTask(task)} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-2 px-5 text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-0.5 whitespace-nowrap cursor-pointer">
+                  <button onClick={() => setActiveTask(task)} className="bg-gradient-to-r from-primary-500 to-theme-accent hover:from-primary-600 hover:to-theme-accent text-white font-bold py-2 px-5 text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-theme-primary/30 transition-all hover:-translate-y-0.5 whitespace-nowrap cursor-pointer">
                     <Upload size={18} /> {submission?.status === 'resubmit' ? 'Resubmit Task' : 'View & Submit'}
                   </button>
                 )}

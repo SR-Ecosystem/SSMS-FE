@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { Loader2, Award, FileCheck, Trophy, Sparkles, Rocket, Star, ShieldAlert, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +31,7 @@ const MyGrades = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('assignments'); // assignments, mockDrives
   const { user } = useAuth();
+  const { themeColor, activeTheme } = useOutletContext();
 
   const fetchGradesData = async () => {
     try {
@@ -64,13 +66,13 @@ const MyGrades = () => {
         <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex items-center gap-1 max-w-max border border-slate-200 dark:border-slate-700/50">
           <button
             onClick={() => setActiveTab('assignments')}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'assignments' ? 'bg-white dark:bg-slate-950 text-emerald-500 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'assignments' ? 'bg-white dark:bg-slate-950 text-theme-primary shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
           >
             Assignments
           </button>
           <button
             onClick={() => setActiveTab('mockDrives')}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'mockDrives' ? 'bg-white dark:bg-slate-950 text-emerald-500 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'mockDrives' ? 'bg-white dark:bg-slate-950 text-theme-primary shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
           >
             Mock Drives
           </button>
@@ -92,7 +94,7 @@ const MyGrades = () => {
 
             return (
               <div key={grade._id} className="glass-panel overflow-hidden card-hover rounded-3xl border border-slate-100 dark:border-slate-700 flex flex-col">
-                <div className="bg-gradient-to-br from-emerald-400 to-teal-500 p-6 text-white text-center relative overflow-hidden">
+                <div className="bg-gradient-to-br from-primary-400 to-theme-accent p-6 text-white text-center relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-6 -mt-6 blur-xl"></div>
                   <div className="relative z-10 flex flex-col items-center">
                     <span className="mb-2 drop-shadow-md text-white/90 flex justify-center"><Icon size={40} strokeWidth={1.5} /></span>
@@ -103,7 +105,7 @@ const MyGrades = () => {
                 <div className="p-5 text-center flex-1 flex flex-col">
                   <h4 className="font-extrabold text-slate-800 dark:text-slate-100 mb-4 line-clamp-2">{grade.submissionId?.taskId?.title || 'Unknown Task'}</h4>
                   <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 text-left border border-slate-100 dark:border-slate-700/50 flex-1">
-                    <p className="text-xs font-bold text-emerald-500 mb-2 flex items-center gap-1.5"><FileCheck size={14}/> Saran Feedback</p>
+                    <p className="text-xs font-bold text-theme-primary mb-2 flex items-center gap-1.5"><FileCheck size={14}/> Saran Feedback</p>
                     <p className="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap leading-relaxed">{grade.feedback}</p>
                   </div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-4">Graded on {formatDateTime(grade.createdAt)}</p>
@@ -156,7 +158,7 @@ const MyGrades = () => {
                     </div>
                     <div className="border-t border-slate-200 dark:border-slate-700 pt-2 flex justify-between items-center text-sm">
                       <span className="text-slate-500 dark:text-slate-400 font-bold">Percentage:</span>
-                      <span className="font-black text-emerald-500">{formatScore(score.percentage)}%</span>
+                      <span className="font-black text-theme-primary">{formatScore(score.percentage)}%</span>
                     </div>
                   </div>
                   

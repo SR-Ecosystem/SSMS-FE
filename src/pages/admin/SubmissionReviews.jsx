@@ -231,7 +231,7 @@ const SubmissionReviews = () => {
           <button
             onClick={handleAutoEvaluate}
             disabled={evaluating}
-            className="flex items-center gap-2 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors shrink-0"
+            className="flex items-center gap-2 px-3 py-1.5 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-bold rounded-xl border border-primary-200 dark:border-primary-800 hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors shrink-0"
             title="Auto Evaluate All Pending Submissions"
           >
             {evaluating ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
@@ -359,8 +359,8 @@ const SubmissionReviews = () => {
 
       {/* Floating Progress Indicator */}
       {evalProgress.active && (
-        <div className="fixed bottom-6 right-6 bg-white dark:bg-slate-800 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-emerald-200 dark:border-emerald-800/50 p-4 z-50 flex items-center gap-4 transition-all duration-300 transform translate-y-0 opacity-100">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+        <div className="fixed bottom-6 right-6 bg-white dark:bg-slate-800 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-primary-200 dark:border-primary-800/50 p-4 z-50 flex items-center gap-4 transition-all duration-300 transform translate-y-0 opacity-100">
+          <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-600 dark:text-primary-400">
             <Zap size={24} className="animate-pulse" />
           </div>
           <div>
@@ -368,11 +368,11 @@ const SubmissionReviews = () => {
             <div className="flex items-center gap-3">
               <div className="w-32 h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden shadow-inner">
                 <div 
-                  className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-300 ease-out" 
+                  className="h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-300 ease-out" 
                   style={{ width: `${(evalProgress.completed / evalProgress.total) * 100}%` }}
                 ></div>
               </div>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 min-w-[3ch]">{evalProgress.completed}/{evalProgress.total}</span>
+              <span className="text-xs font-bold text-primary-600 dark:text-primary-400 min-w-[3ch]">{evalProgress.completed}/{evalProgress.total}</span>
             </div>
           </div>
         </div>
@@ -590,7 +590,7 @@ const SubmissionReviews = () => {
                 </div>
                 <div className="pt-4 flex gap-3">
                   <button type="button" onClick={() => setActiveReview(null)} className="flex-1 py-3 px-4 rounded-lg font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 hover:bg-slate-200 transition-colors">Cancel</button>
-                  <button type="submit" disabled={savingGrade} className={`flex-1 py-3 flex justify-center items-center gap-2 rounded-lg font-bold text-white transition-colors ${existingGradeId ? 'bg-emerald-600 hover:bg-emerald-700' : 'btn-primary'}`}>
+                  <button type="submit" disabled={savingGrade} className={`flex-1 py-3 flex justify-center items-center gap-2 rounded-lg font-bold text-white transition-colors ${existingGradeId ? 'bg-primary-600 hover:bg-primary-700' : 'btn-primary'}`}>
                     {savingGrade ? <Loader2 size={20} className="animate-spin" /> : <CheckCircle size={20}/>}
                     {savingGrade ? 'Saving...' : (existingGradeId ? 'Update Grade' : 'Submit Final Grade')}
                   </button>

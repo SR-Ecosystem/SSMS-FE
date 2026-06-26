@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { Loader2, Calendar, Download, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import * as XLSX from 'xlsx';
 
 const MyAttendance = () => {
+  const { themeColor, activeTheme } = useOutletContext();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('Day'); // Day, Week, Month, Year
@@ -162,7 +164,7 @@ const MyAttendance = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2 drop-shadow-sm">
-            <Calendar className="text-emerald-400 drop-shadow-sm" />
+            <Calendar className="text-theme-primary drop-shadow-sm" />
             My Attendance Record
           </h1>
           <p className="text-sm text-slate-300 mt-1 drop-shadow-sm">Excel-format aggregated attendance tracking</p>
@@ -170,7 +172,7 @@ const MyAttendance = () => {
         
         <div className="flex flex-wrap items-center gap-3">
           <select 
-            className="input-field py-2 text-sm font-bold text-white bg-slate-800 border-slate-700 w-full sm:w-auto min-w-[140px] focus:ring-emerald-500 focus:border-emerald-500 shadow-inner rounded-xl"
+            className="input-field py-2 text-sm font-bold text-white bg-slate-800 border-slate-700 w-full sm:w-auto min-w-[140px] focus:ring-theme-primary focus:border-theme-primary shadow-inner rounded-xl"
             value={viewMode}
             onChange={(e) => setViewMode(e.target.value)}
           >
@@ -179,25 +181,25 @@ const MyAttendance = () => {
             <option value="Month">Monthly View</option>
             <option value="Year">Yearly View</option>
           </select>
-          <button onClick={handleExport} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0.5">
+          <button onClick={handleExport} className="bg-gradient-to-r from-primary-500 to-theme-accent hover:from-primary-600 hover:to-theme-accent text-white font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-theme-primary/30 hover:-translate-y-0.5 active:translate-y-0.5">
             <Download size={16} /> Export
           </button>
         </div>
       </div>
 
       {/* Info Banner */}
-      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-start md:items-center text-sm shadow-inner relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mt-10 -mr-10"></div>
-        <div className="flex items-center gap-2 text-emerald-400 font-bold bg-emerald-500/20 border border-emerald-500/30 px-3 py-1.5 rounded-lg shrink-0 shadow-sm relative z-10">
+      <div className="bg-primary-500/10 border border-primary-500/20 rounded-2xl p-4 flex flex-col md:flex-row gap-4 items-start md:items-center text-sm shadow-inner relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl pointer-events-none -mt-10 -mr-10"></div>
+        <div className="flex items-center gap-2 text-theme-primary font-bold bg-primary-500/20 border border-primary-500/30 px-3 py-1.5 rounded-lg shrink-0 shadow-sm relative z-10">
           <CheckCircle size={16} /> Present
         </div>
-        <p className="text-emerald-100 relative z-10 drop-shadow-sm">
+        <p className="text-primary-100 relative z-10 drop-shadow-sm">
           You must log between <strong>8 hours</strong> and <strong>10 hours</strong> of session time in a single day to be marked as Present.
         </p>
       </div>
 
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-1 rounded-3xl border-t border-white/20 border-b-[3px] border-black/40 shadow-xl shadow-black/30 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
         <div className="bg-slate-900/50 rounded-[1.4rem] overflow-hidden backdrop-blur-xl relative z-10">
           {aggregatedLogs.length === 0 ? (
             <div className="p-12 text-center text-slate-400 flex flex-col items-center">
@@ -222,7 +224,7 @@ const MyAttendance = () => {
                       <th className="p-4 font-bold">Daily Status</th>
                     ) : (
                       <>
-                        <th className="p-4 font-bold text-emerald-400">Days Present</th>
+                        <th className="p-4 font-bold text-theme-primary">Days Present</th>
                         <th className="p-4 font-bold text-amber-400">Invalid (&gt;10h)</th>
                         <th className="p-4 font-bold text-rose-400">Absent/Partial</th>
                       </>
@@ -249,7 +251,7 @@ const MyAttendance = () => {
                           </td>
                         </>
                       )}
-                      <td className="p-4 font-mono font-bold text-emerald-100 bg-white/5 group-hover:bg-white/10 rounded-xl m-1 transition-colors">
+                      <td className="p-4 font-mono font-bold text-primary-100 bg-white/5 group-hover:bg-white/10 rounded-xl m-1 transition-colors">
                         {formatDuration(log.totalSeconds)}
                       </td>
                     {viewMode === 'Day' ? (
@@ -258,7 +260,7 @@ const MyAttendance = () => {
                       </td>
                     ) : (
                       <>
-                        <td className="p-4 font-bold text-emerald-600">{log.daysPresent}</td>
+                        <td className="p-4 font-bold text-theme-primary">{log.daysPresent}</td>
                         <td className="p-4 font-bold text-amber-600">{log.daysInvalid}</td>
                         <td className="p-4 font-bold text-rose-600">{log.daysAbsent}</td>
                       </>

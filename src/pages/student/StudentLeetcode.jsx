@@ -103,12 +103,12 @@ const StudentLeetcode = () => {
         
         <div className="flex items-center gap-4">
           {/* Total Solved Counter */}
-          <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-500">
-              <CheckCircle size={24} className="text-emerald-500" />
+          <div className="flex items-center gap-3 bg-primary-50 dark:bg-primary-900/20 px-4 py-3 rounded-2xl border border-primary-100 dark:border-primary-800/50 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-theme-primary">
+              <CheckCircle size={24} className="text-theme-primary" />
             </div>
             <div>
-              <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider">Total Solved</p>
+              <p className="text-xs font-bold text-theme-primary uppercase tracking-wider">Total Solved</p>
               <p className="text-2xl font-black text-slate-800 dark:text-white leading-none">
                 {user?.totalLeetcodeSubmissions || 0} <span className="text-sm font-medium text-slate-500">Problems</span>
               </p>
@@ -244,8 +244,8 @@ const StudentLeetcode = () => {
 
                           <div className="w-full md:w-auto md:min-w-[300px]">
                             {problem.isSubmitted ? (
-                              <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 rounded-xl p-3 flex flex-col gap-2">
-                                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                              <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800/50 rounded-xl p-3 flex flex-col gap-2">
+                                <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-bold text-sm">
                                   <CheckCircle size={18} />
                                   Solution Submitted
                                 </div>
@@ -253,7 +253,7 @@ const StudentLeetcode = () => {
                                   href={problem.solutionLink} 
                                   target="_blank" 
                                   rel="noreferrer" 
-                                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline truncate block"
+                                  className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:underline truncate block"
                                 >
                                   {problem.solutionLink}
                                 </a>

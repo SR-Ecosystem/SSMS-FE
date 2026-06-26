@@ -9,7 +9,10 @@ import SkeletonLoader from '../../components/SkeletonLoader';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
-  const { sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus } = useOutletContext();
+  const { 
+    sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus,
+    themeColor, activeTheme
+  } = useOutletContext();
   const [analytics, setAnalytics] = useState(null);
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0, leave: 0, inProgress: 0, invalid: 0, total: 0, percentage: 0 });
   const [checkInAccess, setCheckInAccess] = useState({ hasAccess: false, accessType: null });
@@ -117,7 +120,7 @@ const StudentDashboard = () => {
     { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10' },
     { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} />, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} />, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10' },
-    { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} />, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+    { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} />, color: 'text-theme-primary', bg: 'bg-primary-50 dark:bg-primary-500/10' },
     { name: 'Apply Leave', path: '/student/leaves', icon: <Calendar size={20} />, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-500/10' },
     { name: 'Login Activity', path: '/student/attendance', icon: <Clock size={20} />, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
     { name: 'My Profile', path: '/student/profile', icon: <UserIcon size={20} />, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-500/10' },
@@ -128,7 +131,7 @@ const StudentDashboard = () => {
       {/* Header section styling matching the Wallet App */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-emerald-500/30">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-theme-accent text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-theme-primary/30">
             {user?.name.charAt(0)}
           </div>
           <div>
@@ -153,11 +156,11 @@ const StudentDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch mb-6">
         
         {/* Top Left: Task Completion Donut */}
-        <Link to="/student/tasks" className="md:col-span-4 lg:col-span-3 bg-gradient-to-br from-emerald-400 to-emerald-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-emerald-500/40 flex flex-col items-center justify-center text-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 hover:shadow-[0_12px_20px_-6px_rgba(16,185,129,0.5)] transition-all cursor-pointer block relative overflow-hidden group text-white">
+        <Link to="/student/tasks" className="md:col-span-4 lg:col-span-3 bg-gradient-to-br from-primary-400 to-primary-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col items-center justify-center text-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 hover:shadow-[0_12px_20px_-6px_var(--color-theme-primary)] transition-all cursor-pointer block relative overflow-hidden group text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
           <div className="mb-2 relative z-10">
             <h3 className="text-sm font-bold text-white mb-1 drop-shadow-sm">Task Completion</h3>
-            <p className="text-xs text-emerald-50 font-medium drop-shadow-sm">Your progress overview</p>
+            <p className="text-xs text-primary-50 font-medium drop-shadow-sm">Your progress overview</p>
           </div>
           
           <div className="flex flex-col items-center w-full gap-5 mt-2 relative z-10">
@@ -207,14 +210,14 @@ const StudentDashboard = () => {
         </Link>
 
         {/* Center: The "Credit Card" Widget (ID Card / Timer) */}
-        <div className="md:col-span-8 lg:col-span-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-teal-500/40 flex flex-col group">
+        <div className="md:col-span-8 lg:col-span-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-theme-accent to-primary-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-accent/40 flex flex-col group">
           {/* Card Decorations */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl"></div>
           
           <div className="relative z-10 flex justify-between items-start mb-4">
             <Link to="/student/attendance" className="group flex flex-col hover:opacity-80 transition-opacity">
-              <p className="text-teal-50 text-xs font-medium uppercase tracking-wider mb-1 flex items-center gap-1">
+              <p className="text-primary-50 text-xs font-medium uppercase tracking-wider mb-1 flex items-center gap-1">
                 Student ID Card <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-5px] group-hover:translate-x-0" />
               </p>
               <h3 className="font-bold text-lg leading-none flex items-center gap-2">
@@ -222,8 +225,8 @@ const StudentDashboard = () => {
                 {checkInAccess.hasAccess && (
                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                     checkInAccess.accessType === 'wfh' 
-                      ? 'bg-sky-400 text-teal-950 border border-sky-300 animate-pulse' 
-                      : 'bg-emerald-400 text-teal-950 border border-emerald-300'
+                      ? 'bg-sky-400 text-slate-950 border border-sky-300 animate-pulse' 
+                      : 'bg-primary-400 text-slate-950 border border-primary-300'
                   }`}>
                     {checkInAccess.accessType === 'wfh' ? 'WFH' : 'On-Site'}
                   </span>
@@ -237,26 +240,26 @@ const StudentDashboard = () => {
 
           <div className="relative z-10 grid grid-cols-2 gap-y-4 gap-x-6 my-4">
             <div>
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Student Name</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Student Name</p>
               <p className="font-bold text-lg leading-tight">{user?.name || 'NOT SET'}</p>
             </div>
             <div>
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Roll Number</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Roll Number</p>
               <p className="font-mono font-bold text-lg tracking-wider leading-tight">{user?.rollNumber || 'NOT SET'}</p>
             </div>
             <div>
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Email Address</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Email Address</p>
               <p className="font-medium text-sm truncate opacity-90">{user?.email || 'NOT SET'}</p>
             </div>
             <div>
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Phone Number</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-0.5">Phone Number</p>
               <p className="font-mono font-medium text-sm opacity-90">{user?.phone || 'NOT SET'}</p>
             </div>
           </div>
 
-          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-teal-400/30">
+          <div className="relative z-10 flex items-center justify-between mt-auto pt-4 border-t border-primary-400/30">
             <div>
-              <p className="text-xs text-teal-100 mb-1">Session Duration</p>
+              <p className="text-xs text-primary-100 mb-1">Session Duration</p>
               <p className="font-mono font-bold text-2xl">{formatTime(sessionSeconds)}</p>
             </div>
             <div>
@@ -276,7 +279,7 @@ const StudentDashboard = () => {
                   </span>
                   <button 
                     disabled
-                    className="bg-white/50 text-teal-800/50 px-8 py-3 rounded-xl text-base font-black flex items-center gap-2 cursor-not-allowed"
+                    className="bg-white/50 text-slate-800/50 px-8 py-3 rounded-xl text-base font-black flex items-center gap-2 cursor-not-allowed"
                   >
                     <Calendar size={16} /> 
                     On Leave
@@ -289,7 +292,7 @@ const StudentDashboard = () => {
                   </span>
                   <button 
                     disabled
-                    className="bg-white/30 text-teal-800/40 px-8 py-3 rounded-xl text-base font-black flex items-center gap-2 cursor-not-allowed"
+                    className="bg-white/30 text-slate-800/40 px-8 py-3 rounded-xl text-base font-black flex items-center gap-2 cursor-not-allowed"
                   >
                     <Play size={16} className="opacity-40" /> 
                     Blocked
@@ -299,7 +302,7 @@ const StudentDashboard = () => {
                 <button 
                   onClick={() => startSession()} 
                   disabled={isCheckingIn}
-                  className={`bg-white text-teal-600 hover:bg-teal-50 px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer ${isCheckingIn ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5'}`}
+                  className={`bg-white text-theme-primary hover:bg-primary-50 px-8 py-3 rounded-xl text-base font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer ${isCheckingIn ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5'}`}
                 >
                   {isCheckingIn ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} fill="currentColor" />} 
                   Check In {checkInAccess.accessType === 'wfh' ? '(WFH)' : ''}
@@ -310,18 +313,18 @@ const StudentDashboard = () => {
         </div>
 
         {/* Top Right: Leaderboard Bento */}
-        <Link to="/student/leaderboard" className="md:col-span-12 lg:col-span-3 relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-orange-500/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
+        <Link to="/student/leaderboard" className="md:col-span-12 lg:col-span-3 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-theme-accent p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4 group-hover:scale-110 transition-transform shadow-inner">
-              <Trophy size={20} className="text-yellow-100" />
+              <Trophy size={20} className="text-primary-100" />
             </div>
-            <h3 className="text-[10px] font-bold text-yellow-100 tracking-widest uppercase mb-1">Leaderboard</h3>
+            <h3 className="text-[10px] font-bold text-primary-100 tracking-widest uppercase mb-1">Leaderboard</h3>
             <p className="text-2xl font-black leading-tight">
               {analytics?.rank && analytics.rank !== 'N/A' ? `Your Rank: #${analytics.rank}` : 'View Your Ranking'}
             </p>
             {analytics?.rank && analytics.rank !== 'N/A' && (
-              <p className="text-xs font-semibold text-amber-50/90 mt-2 leading-relaxed drop-shadow-sm transition-all duration-300">
+              <p className="text-xs font-semibold text-primary-50/90 mt-2 leading-relaxed drop-shadow-sm transition-all duration-300">
                 {analytics.rank === 1 && "You're leading the pack! Outstanding job! 👑"}
                 {analytics.rank > 1 && analytics.rank <= 3 && "So close to the top! Keep pushing! 🚀"}
                 {analytics.rank > 3 && analytics.rank <= 10 && "Amazing! You are in the top 10! 🌟"}
@@ -330,7 +333,7 @@ const StudentDashboard = () => {
             )}
           </div>
           <div className="mt-4 flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-            <span className="text-xs font-bold text-yellow-50">Compare with peers</span>
+            <span className="text-xs font-bold text-primary-50">Compare with peers</span>
             <ChevronRight size={16} />
           </div>
         </Link>
@@ -340,7 +343,7 @@ const StudentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch mb-6">
         
         {/* Performance Insights */}
-        <Link to="/student/grades" className="lg:col-span-8 bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-indigo-500/40 flex flex-col justify-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
+        <Link to="/student/grades" className="lg:col-span-8 bg-gradient-to-br from-primary-500 to-theme-accent p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col justify-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col h-full">
@@ -349,9 +352,9 @@ const StudentDashboard = () => {
               <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex-1 w-full">
                 <div className="flex justify-between items-end mb-3">
                   <div>
-                    <span className="text-indigo-100 font-bold text-xs uppercase tracking-wide">Average Score</span>
+                    <span className="text-primary-100 font-bold text-xs uppercase tracking-wide">Average Score</span>
                     <div className="text-3xl font-black text-white leading-none mt-1 drop-shadow-md">
-                      {analytics?.averageScore || 0}<span className="text-lg text-indigo-200">%</span>
+                      {analytics?.averageScore || 0}<span className="text-lg text-primary-100">%</span>
                     </div>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white mb-1 shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]">
@@ -367,10 +370,10 @@ const StudentDashboard = () => {
               
               <div className="grid grid-cols-2 gap-4 flex-1 w-full">
                 <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${analytics?.performanceTrend === 'Improving' ? 'bg-white/20 text-white' : 'bg-white/20 text-white'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-white/20 text-white`}>
                     {analytics?.performanceTrend === 'Improving' ? <TrendingUp size={20} strokeWidth={3} /> : <TrendingDown size={20} strokeWidth={3} />}
                   </div>
-                  <span className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Trend</span>
+                  <span className="text-xs font-bold text-primary-100 uppercase tracking-wider mb-0.5">Trend</span>
                   <span className={`text-base font-black text-white drop-shadow-sm`}>
                     {analytics?.performanceTrend || 'N/A'}
                   </span>
@@ -380,7 +383,7 @@ const StudentDashboard = () => {
                   <div className="w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-white/20 text-white">
                     <Award size={20} strokeWidth={3} />
                   </div>
-                  <span className="text-xs font-bold text-indigo-100 uppercase tracking-wider mb-0.5">Grades</span>
+                  <span className="text-xs font-bold text-primary-100 uppercase tracking-wider mb-0.5">Grades</span>
                   <span className="text-base font-black text-white drop-shadow-sm">{analytics?.totalGradesReceived || 0} Total</span>
                 </div>
               </div>
@@ -389,7 +392,7 @@ const StudentDashboard = () => {
         </Link>
 
         {/* Attendance Widget */}
-        <Link to="/attendance-tracker" className="lg:col-span-4 bg-gradient-to-br from-violet-500 to-purple-700 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-purple-500/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
+        <Link to="/attendance-tracker" className="lg:col-span-4 bg-gradient-to-br from-primary-600 to-theme-accent p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-xl -ml-8 -mb-8 pointer-events-none"></div>
 
@@ -397,11 +400,11 @@ const StudentDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform shadow-inner">
-                  <ClipboardCheck size={20} className="text-purple-100" />
+                  <ClipboardCheck size={20} className="text-primary-100" />
                 </div>
                 <h3 className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-sm">Attendance</h3>
               </div>
-              <span className="text-[10px] font-bold text-purple-200 bg-white/10 px-2 py-1 rounded-full border border-white/20">{attendanceStats.total} Days</span>
+              <span className="text-[10px] font-bold text-primary-100 bg-white/10 px-2 py-1 rounded-full border border-white/20">{attendanceStats.total} Days</span>
             </div>
 
             {/* Circular % */}
@@ -413,7 +416,7 @@ const StudentDashboard = () => {
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-2xl font-black text-white leading-none drop-shadow-md">{attendanceStats.percentage}%</span>
-                  <span className="text-[9px] font-bold text-purple-200 uppercase tracking-widest mt-0.5">Overall</span>
+                  <span className="text-[9px] font-bold text-primary-100 uppercase tracking-widest mt-0.5">Overall</span>
                 </div>
               </div>
 
@@ -435,7 +438,7 @@ const StudentDashboard = () => {
             </div>
 
             <div className="mt-3 flex items-center justify-between bg-black/10 rounded-xl p-2.5 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-[10px] font-bold text-purple-100">View Full Attendance</span>
+              <span className="text-[10px] font-bold text-primary-100">View Full Attendance</span>
               <ChevronRight size={14} />
             </div>
           </div>
@@ -446,7 +449,7 @@ const StudentDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch mb-6">
         
         {/* Batches Overview Bento */}
-        <Link to="/student/my-batches" className="md:col-span-6 lg:col-span-4 bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-blue-500/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block min-h-[250px] relative overflow-hidden group text-white">
+        <Link to="/student/my-batches" className="md:col-span-6 lg:col-span-4 bg-gradient-to-br from-primary-400 to-primary-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block min-h-[250px] relative overflow-hidden group text-white">
           <div className="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
           <div className="flex justify-between items-center mb-5 shrink-0 relative z-10">
             <div className="flex items-center gap-3">
@@ -455,7 +458,7 @@ const StudentDashboard = () => {
               </div>
               <h3 className="text-sm font-extrabold text-white leading-none drop-shadow-sm">Batches</h3>
             </div>
-            <span className="text-[10px] font-bold text-blue-700 bg-white/90 px-2 py-1 rounded-full shadow-sm">{analytics?.myBatchesCount || 0} Joined</span>
+            <span className="text-[10px] font-bold text-theme-primary bg-white/90 px-2 py-1 rounded-full shadow-sm">{analytics?.myBatchesCount || 0} Joined</span>
           </div>
           
           <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col justify-center relative z-10">
@@ -480,7 +483,7 @@ const StudentDashboard = () => {
         </Link>
 
         {/* Batch Chat Bento */}
-        <Link to="/student/chat" className="md:col-span-6 lg:col-span-4 bg-gradient-to-br from-pink-400 to-pink-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-pink-500/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden min-h-[250px] group text-white">
+        <Link to="/student/chat" className="md:col-span-6 lg:col-span-4 bg-gradient-to-br from-theme-accent to-primary-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-accent/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden min-h-[250px] group text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
           <div className="flex items-center justify-between mb-5 relative z-10">
             <div className="flex items-center gap-3">
@@ -496,9 +499,9 @@ const StudentDashboard = () => {
             {analytics?.recentMessagesList && analytics.recentMessagesList.length > 0 ? (
               analytics.recentMessagesList.map(msg => (
                 <div key={msg._id} className="bg-white/10 p-3 rounded-xl border border-white/20 shadow-inner flex items-start gap-3 hover:bg-white/20 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-white/90 text-pink-600 flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">{msg.senderId?.name?.charAt(0) || '?'}</div>
+                  <div className="w-8 h-8 rounded-full bg-white/90 text-theme-primary flex items-center justify-center text-xs font-bold shrink-0 shadow-sm">{msg.senderId?.name?.charAt(0) || '?'}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-pink-100 font-bold mb-0.5">{msg.senderId?.name || 'User'}</p>
+                    <p className="text-[10px] text-primary-100 font-bold mb-0.5">{msg.senderId?.name || 'User'}</p>
                     <p className="text-xs font-medium text-white truncate drop-shadow-sm">{msg.text}</p>
                   </div>
                 </div>
@@ -510,7 +513,7 @@ const StudentDashboard = () => {
         </Link>
 
         {/* Leave Application Bento */}
-        <Link to="/student/leaves" className="md:col-span-12 lg:col-span-4 bg-gradient-to-br from-teal-400 to-teal-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-teal-500/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden min-h-[250px] group text-white">
+        <Link to="/student/leaves" className="md:col-span-12 lg:col-span-4 bg-gradient-to-br from-primary-400 to-theme-accent/90 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden min-h-[250px] group text-white">
           <div className="absolute bottom-0 right-0 w-40 h-40 bg-white/20 rounded-full blur-3xl -mr-10 -mb-10 pointer-events-none"></div>
           <div className="flex items-center justify-between mb-5 relative z-10">
             <div className="flex items-center gap-3">
@@ -519,17 +522,17 @@ const StudentDashboard = () => {
               </div>
               <h3 className="text-sm font-extrabold text-white leading-none drop-shadow-sm">Leave Requests</h3>
             </div>
-            {analytics?.pendingLeavesCount > 0 && <span className="bg-white/90 text-teal-700 text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">{analytics.pendingLeavesCount} Pending</span>}
+            {analytics?.pendingLeavesCount > 0 && <span className="bg-white/90 text-theme-primary text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">{analytics.pendingLeavesCount} Pending</span>}
           </div>
 
           <div className="flex-1 flex flex-col justify-center relative z-10">
             {analytics?.latestLeave ? (
               <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner text-center group-hover:scale-[1.02] transition-transform">
-                <p className="text-[10px] font-bold text-teal-100 uppercase tracking-widest mb-1.5 drop-shadow-sm">Latest Request</p>
+                <p className="text-[10px] font-bold text-primary-100 uppercase tracking-widest mb-1.5 drop-shadow-sm">Latest Request</p>
                 <p className="text-lg font-black text-white mb-1 drop-shadow-sm">{analytics.latestLeave.date}</p>
                 <p className="text-xs font-medium text-white/90 truncate px-4 mb-4">"{analytics.latestLeave.reason}"</p>
                 <div className="flex justify-center">
-                  <span className={`text-[10px] font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm ${analytics.latestLeave.status === 'approved' ? 'bg-white text-teal-600' : analytics.latestLeave.status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-white/30 text-white border border-white/40'}`}>
+                  <span className={`text-[10px] font-extrabold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm ${analytics.latestLeave.status === 'approved' ? 'bg-white text-theme-primary' : analytics.latestLeave.status === 'rejected' ? 'bg-rose-500 text-white' : 'bg-white/30 text-white border border-white/40'}`}>
                     {analytics.latestLeave.status}
                   </span>
                 </div>
@@ -612,11 +615,11 @@ const StudentDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* Bottom Left: Smooth Area Chart for Grades */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-cyan-400 to-blue-500 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-blue-500/40 flex flex-col min-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
+        <div className="lg:col-span-5 bg-gradient-to-br from-primary-400 to-theme-accent p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col min-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-48 h-48 bg-white/20 rounded-full blur-3xl pointer-events-none -ml-10 -mt-10"></div>
           <div className="flex justify-between items-center mb-6 relative z-10">
             <h3 className="text-sm font-extrabold text-white drop-shadow-sm">Score History</h3>
-            <button className="text-xs font-bold text-blue-600 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors shadow-sm">
+            <button className="text-xs font-bold text-theme-primary bg-white hover:bg-primary-50 px-3 py-1.5 rounded-full transition-colors shadow-sm">
               View All
             </button>
           </div>
@@ -631,13 +634,13 @@ const StudentDashboard = () => {
                       <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#e0f2fe' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#e0f2fe' }} domain={[0, 100]} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.7)' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.7)' }} domain={[0, 100]} />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', padding: '12px', color: '#0f172a' }}
                     itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
                   />
-                  <Area type="monotone" dataKey="score" stroke="#ffffff" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6, fill: '#ffffff', stroke: 'rgba(14,165,233,1)', strokeWidth: 2 }} />
+                  <Area type="monotone" dataKey="score" stroke="#ffffff" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6, fill: '#ffffff', stroke: activeTheme?.primary || '#10b981', strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

@@ -51,13 +51,13 @@ const StudentSetup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       {/* Background decorations */}
-      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob"></div>
-      <div className="fixed top-[20%] right-[-10%] w-[40%] h-[40%] bg-teal-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob animation-delay-2000"></div>
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob"></div>
+      <div className="fixed top-[20%] right-[-10%] w-[40%] h-[40%] bg-theme-accent/30 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob animation-delay-2000"></div>
       <div className="fixed bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-blue-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob animation-delay-4000"></div>
 
       <div className="glass-panel w-full max-w-2xl p-8 md:p-10 relative z-10">
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-teal-500/30 text-white">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary-400 to-theme-accent rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-theme-accent/30 text-white">
             <UserIcon size={32} />
           </div>
           <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white">Welcome, {user?.name.split(' ')[0]}!</h1>
@@ -77,7 +77,7 @@ const StudentSetup = () => {
                   name="rollNumber"
                   value={formData.rollNumber}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
                   placeholder="e.g. 21CS01"
                   required
                 />
@@ -95,7 +95,7 @@ const StudentSetup = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
                   placeholder="e.g. +1 234 567 8900"
                 />
               </div>
@@ -107,7 +107,7 @@ const StudentSetup = () => {
             
             <div className="space-y-4">
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-theme-primary transition-colors">
                   <Users size={18} />
                 </div>
                 <input
@@ -115,13 +115,13 @@ const StudentSetup = () => {
                   name="linkedin"
                   value={formData.linkedin}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
                   placeholder="LinkedIn Profile URL"
                 />
               </div>
 
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-theme-primary transition-colors">
                   <Globe size={18} />
                 </div>
                 <input
@@ -129,7 +129,7 @@ const StudentSetup = () => {
                   name="github"
                   value={formData.github}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
                   placeholder="GitHub Profile URL"
                 />
               </div>
@@ -143,7 +143,7 @@ const StudentSetup = () => {
                   name="portfolio"
                   value={formData.portfolio}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 bg-white/50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
                   placeholder="Personal Portfolio URL"
                 />
               </div>
@@ -154,7 +154,7 @@ const StudentSetup = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 disabled:opacity-70"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary-500 to-theme-accent hover:from-primary-600 hover:to-theme-accent text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 disabled:opacity-70"
             >
               {loading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

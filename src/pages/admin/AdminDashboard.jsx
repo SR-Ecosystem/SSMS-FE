@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
@@ -8,6 +8,7 @@ import SkeletonLoader from '../../components/SkeletonLoader';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const { themeColor, activeTheme } = useOutletContext();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isChartLoading, setIsChartLoading] = useState(false);
@@ -45,7 +46,7 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-emerald-500/30">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-theme-accent text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-theme-primary/30">
             {user?.name.charAt(0)}
           </div>
           <div>
@@ -67,11 +68,11 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
         
         {/* Review Completion Donut */}
-        <Link to="/reviews" className="md:col-span-4 lg:col-span-3 bg-gradient-to-br from-emerald-400 to-emerald-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-emerald-500/40 flex flex-col items-center justify-center text-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 hover:shadow-[0_12px_20px_-6px_rgba(16,185,129,0.5)] transition-all cursor-pointer block relative overflow-hidden group text-white">
+        <Link to="/reviews" className="md:col-span-4 lg:col-span-3 bg-gradient-to-br from-primary-400 to-primary-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col items-center justify-center text-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 hover:shadow-[0_12px_20px_-6px_var(--color-theme-primary)] transition-all cursor-pointer block relative overflow-hidden group text-white">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
           <div className="mb-2 relative z-10">
             <h3 className="text-sm font-bold text-white mb-1 drop-shadow-sm">Review Status</h3>
-            <p className="text-xs text-emerald-50 font-medium drop-shadow-sm">Grading overview</p>
+            <p className="text-xs text-primary-50 font-medium drop-shadow-sm">Grading overview</p>
           </div>
           
           <div className="flex flex-col items-center w-full gap-5 mt-2 relative z-10">
@@ -121,13 +122,13 @@ const AdminDashboard = () => {
         </Link>
 
         {/* Command Center Card */}
-        <div className="md:col-span-8 lg:col-span-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-500 to-emerald-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-teal-500/40 flex flex-col group">
+        <div className="md:col-span-8 lg:col-span-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-theme-accent to-primary-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-accent/40 flex flex-col group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl"></div>
           
           <div className="relative z-10 flex justify-between items-start mb-4">
             <div>
-              <p className="text-teal-50 text-xs font-medium uppercase tracking-wider mb-1">Admin Command Center</p>
+              <p className="text-primary-50 text-xs font-medium uppercase tracking-wider mb-1">Admin Command Center</p>
               <h3 className="font-bold text-lg leading-none flex items-center gap-2">SSMS Dashboard</h3>
             </div>
             <Link to="/profile" className="hover:opacity-80 transition-opacity" title="Admin Profile">
@@ -137,30 +138,30 @@ const AdminDashboard = () => {
 
           <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-4 my-4">
             <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Students</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Students</p>
               <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalStudents || 0}</p>
             </div>
             <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Batches</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Batches</p>
               <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalBatches || 0}</p>
             </div>
             <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Tasks</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Tasks</p>
               <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalTasks || 0}</p>
             </div>
             <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-teal-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Reviews</p>
+              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Reviews</p>
               <p className="font-black text-2xl text-white leading-none drop-shadow-md">{totalReviews}</p>
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mt-auto pt-4 border-t border-teal-400/30">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mt-auto pt-4 border-t border-primary-400/30">
             <div>
-              <p className="text-xs text-teal-100 mb-1">Admin</p>
+              <p className="text-xs text-primary-100 mb-1">Admin</p>
               <p className="font-bold text-lg truncate max-w-[150px]">{user?.name || 'Admin'}</p>
             </div>
             <div className="flex items-center gap-2">
-              <Link to="/students" className="bg-white text-teal-600 hover:bg-teal-50 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap">
+              <Link to="/students" className="bg-white text-theme-primary hover:bg-primary-50 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap">
                 <Users size={16} /> View Students
               </Link>
             </div>
@@ -168,22 +169,22 @@ const AdminDashboard = () => {
         </div>
 
         {/* Attention Needed */}
-        <Link to="/enrollments" className="md:col-span-12 lg:col-span-3 relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-orange-500/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
+        <Link to="/enrollments" className="md:col-span-12 lg:col-span-3 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-theme-accent p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4 group-hover:scale-110 transition-transform shadow-inner">
-              <Activity size={20} className="text-yellow-100" />
+              <Activity size={20} className="text-primary-100" />
             </div>
-            <h3 className="text-[10px] font-bold text-yellow-100 tracking-widest uppercase mb-1">Attention Needed</h3>
+            <h3 className="text-[10px] font-bold text-primary-100 tracking-widest uppercase mb-1">Attention Needed</h3>
             <p className="text-2xl font-black leading-tight">Pending<br/>Requests</p>
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-xs font-bold text-yellow-50 flex items-center gap-2"><UserPlus size={14} /> Join Requests</span>
+              <span className="text-xs font-bold text-primary-50 flex items-center gap-2"><UserPlus size={14} /> Join Requests</span>
               <span className="text-sm font-black">{stats?.joinRequestsCount || 0}</span>
             </div>
             <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-xs font-bold text-yellow-50 flex items-center gap-2"><Calendar size={14} /> Pending Leaves</span>
+              <span className="text-xs font-bold text-primary-50 flex items-center gap-2"><Calendar size={14} /> Pending Leaves</span>
               <span className="text-sm font-black">{stats?.pendingLeavesCount || 0}</span>
             </div>
           </div>
@@ -223,12 +224,12 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* Submission Volume Chart */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-cyan-400 to-blue-500 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-blue-500/40 flex flex-col min-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
+        <div className="lg:col-span-5 bg-gradient-to-br from-primary-400 to-theme-accent p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col min-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
           <div className="absolute top-0 left-0 w-48 h-48 bg-white/20 rounded-full blur-3xl pointer-events-none -ml-10 -mt-10"></div>
           <div className="flex flex-wrap justify-between items-center gap-3 mb-6 relative z-10">
             <h3 className="text-sm font-extrabold text-white drop-shadow-sm">Submission Volume</h3>
             <select 
-              className="text-xs font-bold text-blue-600 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-full transition-colors shadow-sm cursor-pointer focus:outline-none"
+              className="text-xs font-bold text-theme-primary bg-white hover:bg-primary-50 px-3 py-1.5 rounded-full transition-colors shadow-sm cursor-pointer focus:outline-none"
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
             >
@@ -254,13 +255,13 @@ const AdminDashboard = () => {
                       <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#e0f2fe' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#e0f2fe' }} allowDecimals={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.7)' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.7)' }} allowDecimals={false} />
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', padding: '12px', color: '#0f172a' }}
                     itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
                   />
-                  <Area type="monotone" dataKey="submissions" stroke="#ffffff" strokeWidth={3} fillOpacity={1} fill="url(#colorAdminSubmissions)" activeDot={{ r: 6, fill: '#ffffff', stroke: 'rgba(14,165,233,1)', strokeWidth: 2 }} />
+                  <Area type="monotone" dataKey="submissions" stroke="#ffffff" strokeWidth={3} fillOpacity={1} fill="url(#colorAdminSubmissions)" activeDot={{ r: 6, fill: '#ffffff', stroke: activeTheme?.primary || '#10b981', strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
