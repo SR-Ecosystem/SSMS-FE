@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 
@@ -11,14 +11,150 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+let rrIndex = 0; // Round-robin index counter
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState(null);
+  
+  // Helper to parse servers from VITE_BACKEND_SERVERS env variable
+  const getEnvServers = () => {
+    const envServersStr = import.meta.env.VITE_BACKEND_SERVERS;
+    if (envServersStr) {
+      return envServersStr.split(',').map((url, index) => ({
+        id: `env-${index}`,
+        name: `Node ${index + 1}`,
+        url: url.trim(),
+        isActive: true,
+        status: 'unknown',
+        responseTime: 0,
+        isPrimary: index === 0
+      }));
+    }
+    // Fallback to VITE_API_URL if VITE_BACKEND_SERVERS is empty
+    const defaultApi = import.meta.env.VITE_API_URL || 'http://localhost:5020';
+    return [{
+      id: 'env-0',
+      name: 'Primary Node',
+      url: defaultApi,
+      isActive: true,
+      status: 'unknown',
+      responseTime: 0,
+      isPrimary: true
+    }];
+  };
 
+  // State for traffic manager
+  const [trafficConfig, setTrafficConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('trafficConfig');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.servers && parsed.servers.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+    
+    // Seed with env servers initially
+    return { policy: 'failover', servers: getEnvServers() };
+  });
+
+  const trafficConfigRef = useRef(trafficConfig);
+  useEffect(() => {
+    trafficConfigRef.current = trafficConfig;
+  }, [trafficConfig]);
+
+  // Direct browser probe to find which nodes are active and record browser-measured response times
+  const probeServers = async (serversList) => {
+    return Promise.all(serversList.map(async (server) => {
+      const start = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2-second timeout
+        
+        // Fetch public configuration config endpoint to probe availability
+        const response = await fetch(`${server.url}/api/traffic/public-config`, {
+          method: 'GET',
+          signal: controller.signal,
+          mode: 'cors',
+          cache: 'no-store'
+        });
+        clearTimeout(timeoutId);
+        
+        if (response.ok || response.status < 500) {
+          const latency = Date.now() - start;
+          return { ...server, status: 'online', responseTime: latency };
+        }
+      } catch (err) {
+        // node offline
+      }
+      return { ...server, status: 'offline', responseTime: 0 };
+    }));
+  };
+
+  // Fetch public config (active servers list + policy)
+  const refreshTrafficConfig = async (currentServers = trafficConfig.servers) => {
+    const activeOnline = currentServers.filter(s => s.status === 'online');
+    const selectBase = activeOnline.length > 0 ? activeOnline[0].url : (import.meta.env.VITE_API_URL || '');
+    
+    try {
+      const { data } = await axios.get(`${selectBase}/api/traffic/public-config`);
+      // Update config with fetched policy and database-registered servers
+      setTrafficConfig(data);
+      localStorage.setItem('trafficConfig', JSON.stringify(data));
+    } catch (err) {
+      console.error('Failed to fetch public traffic config, keeping cached state:', err);
+    }
+  };
+
+  // Perform probe health check and load balancing configuration sync on mount
+  useEffect(() => {
+    const initTraffic = async () => {
+      const initialServers = trafficConfig.servers.length > 0 ? trafficConfig.servers : getEnvServers();
+      
+      // Immediately run parallel browser health checks
+      const probed = await probeServers(initialServers);
+      setTrafficConfig(prev => {
+        const updated = { ...prev, servers: probed };
+        localStorage.setItem('trafficConfig', JSON.stringify(updated));
+        return updated;
+      });
+
+      // Synchronize with database policies via first online node
+      await refreshTrafficConfig(probed);
+    };
+
+    initTraffic();
+  }, []);
+
+  // Set up socket connection based on current active backend server
   useEffect(() => {
     if (user && user._id) {
-      const newSocket = io(import.meta.env.VITE_API_URL, {
+      const { servers, policy, manualSelectedServerId } = trafficConfig;
+      const activeServers = servers && servers.length > 0 
+        ? servers.filter(s => s.status !== 'offline') 
+        : [];
+      
+      let socketUrl = import.meta.env.VITE_API_URL;
+      
+      if (activeServers.length > 0) {
+        let chosenServer = activeServers[0];
+        if (policy === 'manual') {
+          const selected = servers.find(s => s.id === manualSelectedServerId || s._id === manualSelectedServerId);
+          if (selected && selected.status !== 'offline') {
+            chosenServer = selected;
+          }
+        } else if (policy === 'latency') {
+          const sorted = [...activeServers].sort((a, b) => a.responseTime - b.responseTime);
+          chosenServer = sorted[0];
+        }
+        socketUrl = chosenServer.url;
+      }
+
+      console.log(`Connecting socket to: ${socketUrl}`);
+      const newSocket = io(socketUrl, {
         withCredentials: true,
         query: { userId: user._id, role: user.role }
       });
@@ -30,11 +166,13 @@ export const AuthProvider = ({ children }) => {
     } else {
       setSocket(null);
     }
-  }, [user]);
+  }, [user, trafficConfig]);
 
-  // Set up axios interceptor for the custom header
+  // Set up axios interceptors for header and dynamic load-balancing
   useEffect(() => {
-    const interceptor = axios.interceptors.request.use((config) => {
+    // 1. Request Interceptor
+    const requestInterceptor = axios.interceptors.request.use((config) => {
+      // Add custom header
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
@@ -42,10 +180,100 @@ export const AuthProvider = ({ children }) => {
           config.headers['x-user-id'] = parsed._id;
         }
       }
+
+      // Skip load balancing if URL is already absolute (e.g. pointing to external links, uploads, or a direct ping)
+      if (config.url && (config.url.startsWith('http://') || config.url.startsWith('https://'))) {
+        return config;
+      }
+
+      // Calculate the base URL based on traffic policy
+      const currentConfig = trafficConfigRef.current;
+      const { policy, servers, manualSelectedServerId } = currentConfig;
+      const activeServers = servers && servers.length > 0 
+        ? servers.filter(s => s.status !== 'offline') 
+        : [];
+
+      if (activeServers.length > 0) {
+        let selectedUrl = `${import.meta.env.VITE_API_URL}/api`;
+
+        switch (policy) {
+          case 'manual': {
+            const selected = servers.find(s => s.id === manualSelectedServerId || s._id === manualSelectedServerId);
+            if (selected && selected.status !== 'offline') {
+              selectedUrl = `${selected.url}/api`;
+            } else {
+              selectedUrl = `${activeServers[0].url}/api`;
+            }
+            break;
+          }
+          case 'latency': {
+            const sorted = [...activeServers].sort((a, b) => a.responseTime - b.responseTime);
+            selectedUrl = `${sorted[0].url}/api`;
+            break;
+          }
+          case 'round-robin': {
+            const selected = activeServers[rrIndex % activeServers.length];
+            rrIndex = (rrIndex + 1) % activeServers.length;
+            selectedUrl = `${selected.url}/api`;
+            break;
+          }
+          case 'failover':
+          default: {
+            const primaryOnline = activeServers.find(s => s.isPrimary && s.status !== 'offline');
+            if (primaryOnline) {
+              selectedUrl = `${primaryOnline.url}/api`;
+            } else {
+              selectedUrl = `${activeServers[0].url}/api`;
+            }
+            break;
+          }
+        }
+        config.baseURL = selectedUrl;
+      }
+
       return config;
     });
-    return () => axios.interceptors.request.eject(interceptor);
-  }, []);
+
+    // 2. Response Interceptor for Automatic Failover & Retry
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        
+        // If request failed due to server crash/network loss and hasn't been retried yet
+        if (originalRequest && !originalRequest._retryCount) {
+          originalRequest._retryCount = 1;
+          
+          const isNetworkOr5xxError = !error.response || (error.response.status >= 502 && error.response.status <= 504);
+          
+          if (isNetworkOr5xxError) {
+            const currentConfig = trafficConfigRef.current;
+            const currentBaseURL = originalRequest.baseURL;
+            
+            // Filter other healthy backup servers
+            const backupServers = currentConfig.servers.filter(s => 
+              s.status !== 'offline' && `${s.url}/api` !== currentBaseURL
+            );
+            
+            if (backupServers.length > 0) {
+              const fallbackServer = backupServers[0];
+              originalRequest.baseURL = `${fallbackServer.url}/api`;
+              console.warn(`Request failed on ${currentBaseURL}. Retrying on fallback: ${fallbackServer.name} (${fallbackServer.url})`);
+              
+              // Re-execute axios request with the new baseURL
+              return axios(originalRequest);
+            }
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, [trafficConfig]);
 
   // Check if user is logged in on mount
   useEffect(() => {
@@ -101,8 +329,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, socket }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      register, 
+      logout, 
+      updateUser, 
+      socket, 
+      trafficConfig, 
+      refreshTrafficConfig 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
+
