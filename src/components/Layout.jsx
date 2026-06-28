@@ -233,7 +233,7 @@ const Layout = () => {
   ];
 
   const [themeColor, setThemeColor] = useState(() => {
-    return localStorage.getItem('theme-color') || 'Emerald';
+    return localStorage.getItem('theme-color') || 'Ocean';
   });
   const [customColor, setCustomColor] = useState(() => {
     return localStorage.getItem('custom-theme-color') || '#6366f1';
@@ -317,8 +317,12 @@ const Layout = () => {
 
   // Dark mode state
   const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem('theme');
-    return savedTheme !== 'light'; // Default to dark
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      return savedTheme === 'dark';
+    } catch {
+      return false;
+    }
   });
 
   const [sessionActive, setSessionActive] = useState(() => {
@@ -415,16 +419,20 @@ const Layout = () => {
     return () => document.removeEventListener('click', handleGlobalClick);
   }, []);
 
-  // Initialize Dark Mode & Close Notifications on Outside Click
+  // Initialize Dark/Light Mode & Close Notifications on Outside Click
   useEffect(() => {
-    // Apply saved theme or default to dark
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        setDarkMode(true);
+      } else {
+        document.documentElement.classList.remove('dark');
+        setDarkMode(false);
+      }
+    } catch (e) {
       document.documentElement.classList.remove('dark');
       setDarkMode(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      setDarkMode(true);
     }
 
     const handleClickOutside = (event) => {
@@ -440,11 +448,15 @@ const Layout = () => {
     if (darkMode) {
       document.documentElement.classList.remove('dark');
       setDarkMode(false);
-      localStorage.setItem('theme', 'light');
+      try {
+        localStorage.setItem('theme', 'light');
+      } catch (e) {}
     } else {
       document.documentElement.classList.add('dark');
       setDarkMode(true);
-      localStorage.setItem('theme', 'dark');
+      try {
+        localStorage.setItem('theme', 'dark');
+      } catch (e) {}
     }
   };
 
@@ -607,8 +619,33 @@ const Layout = () => {
     };
     if (user) {
       fetchCounts();
-      const intervalId = setInterval(fetchCounts, 10000); // Poll every 10 seconds
-      return () => clearInterval(intervalId);
+      
+      let intervalId;
+      const startInterval = (ms) => {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = setInterval(fetchCounts, ms);
+      };
+
+      // Default active polling: 30 seconds
+      startInterval(30000);
+
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          // Throttle background polling to 3 minutes to optimize free backend nodes
+          startInterval(180000);
+        } else {
+          // Resume normal 30s polling on tab focus
+          fetchCounts();
+          startInterval(30000);
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     }
   }, [user, location.pathname]); // Re-fetch or clear if path changes
 
@@ -723,10 +760,8 @@ const Layout = () => {
     {
       label: 'Management',
       links: [
-        { name: 'Manage Batches', path: '/batches', icon: <BookOpen size={20} /> },
         { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
         { name: 'Task Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
-        { name: 'Join Requests', path: '/enrollments', icon: <UserIcon size={20} />, badge: getBadge('joins', joinsCount) },
       ]
     },
     {
@@ -848,26 +883,107 @@ const Layout = () => {
         <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-theme-primary/4 dark:bg-theme-primary/3 rounded-full blur-[60px] animate-float-fast"></div>
 
         {/* Floating Tech Logos */}
-        {/* React */}
-        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-1 top-[12%] left-[8%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><circle cx="12" cy="12" r="2.5"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1" transform="rotate(120 12 12)"/></svg>
-        {/* JavaScript */}
-        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-2 top-[40%] left-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><rect x="2" y="2" width="20" height="20" rx="2"/><text x="7" y="17" fontSize="10" fontWeight="bold" fill="white" fontFamily="sans-serif">JS</text></svg>
-        {/* HTML5 */}
-        <svg className="absolute w-12 h-12 opacity-[0.04] dark:opacity-[0.06] animate-bubble-3 top-[72%] left-[22%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><path d="M4 2l1.5 17L12 22l6.5-3L20 2H4zm13.1 5H8.7l.3 3h7.8l-.9 9.5L12 21l-3.9-1.5-.3-3h2.8l.2 1.7 1.2.4 1.2-.4.1-2.7H8l-.6-7h9.3l.4-1.5z"/></svg>
-        {/* CSS3 */}
-        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-4 top-[20%] right-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)"><path d="M4 2l1.5 17L12 22l6.5-3L20 2H4zm12.7 5H9.1l.2 2h7.1l-.7 8-3.7 1.3-3.7-1.3-.2-2.8h2.4l.1 1.4 1.4.5 1.4-.5.2-2H8.5l-.6-7h8.5l-.2 1.4z"/></svg>
-        {/* Node.js */}
-        <svg className="absolute w-11 h-11 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[60%] right-[18%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><path d="M12 1.5l9 5.25v10.5l-9 5.25-9-5.25V6.75l9-5.25zM12 8v8m-3.5-6l3.5 2 3.5-2" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round"/><text x="8.5" y="16" fontSize="5" fontWeight="bold" fill="var(--color-theme-primary)" fontFamily="sans-serif">N</text></svg>
         {/* Python */}
-        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)"><path d="M12 2c-1.7 0-3 .4-3.9 1.1-.9.7-1.1 1.7-1.1 2.9v2h5v1H6.5c-1.6 0-3 1-3.4 2.8-.5 2.1-.5 3.4 0 5.5.4 1.6 1.3 2.7 2.9 2.7h2V15c0-1.8 1.5-3.3 3.3-3.3h5.2c1.5 0 2.7-1.3 2.7-2.8V6c0-1.4-1.2-2.5-2.7-2.9-.9-.3-1.9-.1-2.8-.1h-.7zm-2.8 1.8c.6 0 1 .5 1 1s-.4 1-1 1-1-.5-1-1 .4-1 1-1z"/></svg>
-        {/* MongoDB */}
-        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)"><path d="M13.7 3.5c-.7-1.3-1.3-1.8-1.5-2.5 0 0-.2.8-.9 1.8-1.4 2-5.3 5.3-5.3 9.7 0 3.3 2.7 6 6 6s6-2.7 6-6c0-4.2-3.2-7.1-4.3-9zm-1.2 14.4c-.1 0-.2-.1-.2-.2v-1.5c-1.7-.3-2.6-1.3-2.6-1.3l.4-.7s1 1 2.4 1c.9 0 1.5-.5 1.5-1.1 0-1.5-4-1.5-4-4.1 0-1.3 1-2.3 2.3-2.5V6.1c0-.1.1-.2.2-.2h.3c.1 0 .2.1.2.2v1.3c1 .2 1.8.8 1.8.8l-.4.7s-.8-.7-1.9-.7c-1.1 0-1.5.6-1.5 1.1 0 1.5 4 1.3 4 4.1 0 1.3-1 2.4-2.3 2.7v1.6c0 .1-.1.2-.2.2h-.3z"/></svg>
-        {/* Git */}
-        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-8 top-[50%] left-[42%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)"><path d="M23.5 11.3L12.7.5c-.7-.7-1.7-.7-2.4 0L8 2.8l3 3c.7-.2 1.5 0 2 .6.6.6.8 1.4.5 2.1l2.9 2.9c.7-.3 1.5-.1 2.1.5.8.8.8 2 0 2.8s-2 .8-2.8 0c-.6-.6-.8-1.6-.4-2.3l-2.7-2.7v7.1c.2.1.4.2.5.4.8.8.8 2 0 2.8s-2 .8-2.8 0-.8-2 0-2.8c.2-.2.5-.4.7-.5V9.2c-.2-.1-.5-.3-.7-.5-.6-.6-.8-1.5-.5-2.3L6.6 3.5.5 9.6c-.7.7-.7 1.7 0 2.4l10.8 10.8c.7.7 1.7.7 2.4 0l10.8-10.8c-.3-.3.3-1.4-.4-2.1-.3-.3-.3-.7-.6-.6z"/></svg>
-        {/* Terminal */}
-        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-1 top-[88%] left-[55%]" style={{animationDelay: '3s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        {/* Database */}
-        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-3 top-[5%] left-[55%]" style={{animationDelay: '5s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-1 top-[12%] left-[8%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+          <path d="M12.012 2c-1.38 0-2.613.11-3.413.298-.8.187-1.488.528-1.927.994-.439.466-.63 1.045-.63 1.932v1.547h6.087v.867H6.042c-1.38 0-2.613.11-3.413.298-.8.187-1.488.528-1.927.994-.439.466-.63 1.045-.63 1.932v3.743c0 .887.19 1.466.63 1.932.44.466 1.127.807 1.927.994.8.188 2.033.298 3.413.298h.813v-1.127c0-1.173.498-2.26 1.378-3.003.88-.743 2.062-1.123 3.325-1.123h3.565c.887 0 1.466-.191 1.932-.63.466-.44.807-1.127.994-1.927.188-.8.298-2.033.298-3.413V6.042c0-1.38-.11-2.613-.298-3.413-.187-.8-.528-1.488-.994-1.927-.466-.439-1.045-.63-1.932-.63h-4.329zm-3.127 1.585a.738.738 0 1 1 0 1.476.738.738 0 0 1 0-1.476zm6.245 4.773v1.127c0 1.173-.498 2.26-1.378 3.003-.88.743-2.062 1.123-3.325 1.123H6.862c-.887 0-1.466.191-1.932.63-.466.44-.807 1.127-.994 1.927-.188.8-.298 2.033-.298 3.413v4.329c0 1.38.11 2.613.298 3.413.187.8.528 1.488.994 1.927.466.439 1.045.63 1.932.63h4.329c1.38 0 2.613-.11 3.413-.298.8-.187 1.488-.528 1.927-.994.439-.466.63-1.045.63-1.932v-1.547h-6.087v-.867h6.087c1.38 0 2.613-.11 3.413-.298.8-.187 1.488-.528 1.927-.994.439-.466.63-1.045.63-1.932v-3.743c0-.887-.19-1.466-.63-1.932-.44-.466-1.127-.807-1.927-.994-.8-.188-2.033-.298-3.413-.298h-.813zm3.127 10.772a.738.738 0 1 1 0 1.476.738.738 0 0 1 0-1.476z"/>
+        </svg>
+        {/* React / MERN */}
+        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-2 top-[40%] left-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+          <circle cx="12" cy="12" r="2"/>
+          <ellipse cx="12" cy="12" rx="10" ry="3.5" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.2"/>
+          <ellipse cx="12" cy="12" rx="10" ry="3.5" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.2" transform="rotate(60 12 12)"/>
+          <ellipse cx="12" cy="12" rx="10" ry="3.5" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.2" transform="rotate(120 12 12)"/>
+        </svg>
+        {/* Java */}
+        <svg className="absolute w-11 h-11 opacity-[0.04] dark:opacity-[0.06] animate-bubble-3 top-[72%] left-[22%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+          <line x1="6" y1="2" x2="6" y2="4"/>
+          <line x1="10" y1="2" x2="10" y2="4"/>
+          <line x1="14" y1="2" x2="14" y2="4"/>
+        </svg>
+        {/* Docker */}
+        <svg className="absolute w-11 h-11 opacity-[0.05] dark:opacity-[0.07] animate-bubble-4 top-[20%] right-[12%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5" strokeLinejoin="round">
+          <path d="M2 13.5c0-1.8 1-3.5 3-4.5 3-1.5 6-1 9 1 1.5 1 3 .5 4.5-.5.5-.3 1-.5 1.5-.5s.8.3.8.8c0 1.2-.5 2.5-1.5 3.5S16 16.5 13.5 16.5H5.5C3.5 16.5 2 15.3 2 13.5z"/>
+          <path d="M12.5 8h2v2h-2zM9.5 8h2v2h-2zM6.5 8h2v2h-2zM9.5 5h2v2h-2z"/>
+        </svg>
+        {/* Node.js */}
+        <svg className="absolute w-11 h-11 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[60%] right-[18%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round">
+          <path d="M12 2L3.5 7v10L12 22l8.5-5V7L12 2z"/>
+          <path d="M12 22V12"/>
+        </svg>
+        {/* C */}
+        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="2" stroke-linecap="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M14.5 9.5a3 3 0 1 0 0 5" stroke="var(--color-theme-accent)" strokeWidth="2.5"/>
+        </svg>
+        {/* C++ */}
+        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="2" stroke-linecap="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M11 9.5a2 2 0 1 0 0 5" stroke="var(--color-theme-primary)" strokeWidth="2"/>
+          <path d="M14 12h3M15.5 10.5v3"/>
+        </svg>
+        {/* GitHub */}
+        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-8 top-[50%] left-[42%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
+          <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+        </svg>
+        {/* Redis */}
+        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-1 top-[88%] left-[55%]" style={{animationDelay: '3s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 12l10 5 10-5"/>
+          <path d="M2 17l10 5 10-5"/>
+        </svg>
+        {/* Nginx */}
+        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-3 top-[5%] left-[55%]" style={{animationDelay: '5s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5" strokeLinecap="round">
+          <rect x="3" y="3" width="18" height="18" rx="3" strokeWidth="1.5"/>
+          <path d="M8 7v10l8-10v10" strokeWidth="2"/>
+        </svg>
+        {/* MySQL */}
+        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[40%] right-[80%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round">
+          <path d="M3 12c4-6 10-8 15-4 1.5 1.2 2 3.2 2.5 5 .5 1.8-1 2.5-2.5 2s-3.5-2-6.5-1-6 3.5-8.5 3c-1.5-.3-2.5-2-2.5-5z"/>
+        </svg>
+        {/* Ubuntu */}
+        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-7 top-[75%] right-[85%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="8"/>
+          <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
+          <circle cx="5.07" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="18.93" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+        {/* Slack */}
+        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-2 top-[20%] left-[85%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+          <rect x="4" y="9" width="6" height="2" rx="1"/>
+          <rect x="8" y="5" width="2" height="10" rx="1"/>
+          <rect x="14" y="13" width="6" height="2" rx="1"/>
+          <rect x="14" y="9" width="2" height="10" rx="1"/>
+        </svg>
+        {/* DB (Database stack) */}
+        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-3 top-[5%] left-[30%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5">
+          <ellipse cx="12" cy="5" rx="8" ry="3"/>
+          <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/>
+          <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>
+        </svg>
+        {/* HTML5 */}
+        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[52%] left-[2%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+          <path d="M5 2l1.5 15L12 20l5.5-3L19 2H5zm10 6H8.5l.2 2H15l-.6 6.5-2.4 1-2.4-1-.1-1.5h1.8l.1.5.6.2.6-.2V12H8.1l-.5-5H15l-.1 1z"/>
+        </svg>
+        {/* CSS3 */}
+        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-2 top-[62%] right-[5%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
+          <path d="M5 2h14l-1.5 15L12 20l-5.5-3L5 2zm10 5H8.5l-.2-2h6.9v-2H6.3l.6 6h6.1l-.3 3.5-1.7.5-1.7-.5-.1-1.5H7.2l.2 3.5 4.6 1.3 4.6-1.3.4-6.5z"/>
+        </svg>
+        {/* JavaScript (JS) */}
+        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-6 top-[22%] left-[50%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <text x="7" y="16" fontSize="10" fontWeight="bold" fill="white" fontFamily="sans-serif">JS</text>
+        </svg>
+        {/* TypeScript (TS) */}
+        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-8 top-[78%] left-[70%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <text x="7" y="16" fontSize="10" fontWeight="bold" fill="white" fontFamily="sans-serif">TS</text>
+        </svg>
+        {/* Postman */}
+        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-4 top-[85%] right-[22%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round">
+          <path d="M12 2s4 4 4 9v6c0 1-1 2-2 2h-4c-1 0-2-1-2-2v-6c0-5 4-9 4-9zm-2 19h4v2h-4z"/>
+        </svg>
       </div>
       {isSyncing && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center">
@@ -886,9 +1002,16 @@ const Layout = () => {
       {/* Sidebar */}
       <aside
         style={{ fontFamily: "'ALEXANDER', 'Alexandria', sans-serif" }}
-        className={`fixed inset-y-4 left-4 z-50 w-64 glass-panel overflow-hidden transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-[120%]'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col`}
+        className={`fixed z-50 flex flex-col overflow-hidden transition-transform duration-300 ease-in-out ${
+          user?.role === 'admin'
+            ? `${sidebarOpen ? 'translate-y-0' : 'translate-y-full'} bottom-0 left-0 right-0 w-full h-[75vh] rounded-t-[2rem] border-t border-slate-200/10 bg-slate-900/95 dark:bg-slate-950/95 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] backdrop-blur-xl lg:inset-y-4 lg:left-4 lg:w-64 lg:h-auto lg:rounded-2xl lg:border-none lg:translate-y-0 lg:glass-panel lg:shadow-none lg:bg-transparent`
+            : `inset-y-4 left-4 w-64 glass-panel ${sidebarOpen ? 'translate-x-0' : '-translate-x-[120%]'} lg:translate-x-0`
+        }`}
       >
-        <div className="h-24 flex items-center px-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-black/10">
+        {user?.role === 'admin' && (
+          <div className="lg:hidden w-12 h-1.5 bg-slate-400/20 rounded-full mx-auto mt-3 mb-1 animate-pulse" />
+        )}
+        <div className="h-20 lg:h-24 flex items-center px-6 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-black/10">
           <div className="flex items-center gap-4 group cursor-pointer">
             <div className="relative">
               <div className="absolute inset-0 bg-theme-primary/20 blur-xl rounded-full scale-150 group-hover:bg-theme-primary/30 transition-all duration-500"></div>
@@ -911,73 +1034,47 @@ const Layout = () => {
 
         <div className="flex-1 overflow-y-auto py-3 px-3 custom-scrollbar pr-2">
           {sections.map((section, sIdx) => {
-            const isExpanded = expandedSections[section.label];
             return (
-              <div
-                key={section.label}
-                className="mb-2"
-                onMouseLeave={() => closeSection(section.label)}
-              >
+              <div key={section.label} className="mb-2">
                 {sIdx > 0 && (
                   <div className="mx-3 my-2 border-t border-slate-100 dark:border-white/5"></div>
                 )}
                 
-                {/* Collapsible Section Header */}
-                <button
-                  onClick={() => toggleSection(section.label)}
-                  onMouseEnter={() => openSection(section.label)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-200 select-none cursor-pointer group focus:outline-none border-l-[3px] ${
-                    pinnedSections[section.label]
-                      ? 'bg-slate-800 dark:bg-slate-950 text-white dark:text-slate-100 border-theme-primary shadow-md'
-                      : 'text-slate-400 dark:text-slate-500 hover:bg-slate-50/50 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300 border-transparent'
-                  }`}
-                >
+                {/* Freezed Section Header */}
+                <div className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 border-l-[3px] border-transparent">
                   <span>{section.label}</span>
-                  <div className={`transition-colors ${
-                    pinnedSections[section.label]
-                      ? 'text-white dark:text-theme-primary'
-                      : 'text-slate-400 dark:text-slate-600 group-hover:text-slate-600 dark:group-hover:text-slate-400'
-                  }`}>
-                    {isExpanded ? (
-                      <ChevronDown size={12} className="transform rotate-0 transition-transform duration-250" />
-                    ) : (
-                      <ChevronRight size={12} className="transform rotate-0 transition-transform duration-250" />
-                    )}
-                  </div>
-                </button>
+                </div>
 
                 {/* Section Links */}
-                {isExpanded && (
-                  <div className="space-y-1 mt-1 transition-all duration-300 animate-in fade-in slide-in-from-top-1 duration-200">
-                    {section.links.map((link) => {
-                      const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
-                      return (
-                        <Link
-                          key={link.name}
-                          to={link.path}
-                          className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-[13px] border-l-4 ${
-                            isActive
-                              ? 'bg-gradient-to-r from-theme-primary/10 to-theme-accent/5 text-theme-primary font-bold border-theme-primary shadow-[0_2px_10px_-3px_var(--color-theme-primary)]'
-                              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/40 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium border-transparent hover:border-slate-300 dark:hover:border-slate-700'
-                          }`}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className={`transition-transform duration-250 ${isActive ? 'text-theme-primary scale-105' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'}`}>
-                              {link.icon}
-                            </span>
-                            <span>{link.name}</span>
-                          </div>
-                          {link.badge > 0 && !isActive && (
-                            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                              {link.badge}
-                            </span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="space-y-1 mt-1">
+                  {section.links.map((link) => {
+                    const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
+                    return (
+                      <Link
+                        key={link.name}
+                        to={link.path}
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-[13px] border-l-4 ${
+                          isActive
+                            ? 'bg-gradient-to-r from-theme-primary/10 to-theme-accent/5 text-theme-primary font-bold border-theme-primary shadow-[0_2px_10px_-3px_var(--color-theme-primary)]'
+                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/40 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium border-transparent hover:border-slate-300 dark:hover:border-slate-700'
+                        }`}
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`transition-transform duration-250 ${isActive ? 'text-theme-primary scale-105' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'}`}>
+                            {link.icon}
+                          </span>
+                          <span>{link.name}</span>
+                        </div>
+                        {link.badge > 0 && !isActive && (
+                          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                            {link.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
@@ -998,12 +1095,21 @@ const Layout = () => {
       <main className="flex-1 flex flex-col min-w-0 lg:ml-[280px] z-10 relative">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-4 lg:px-8 mt-4 mx-4 lg:mx-8 z-30 transition-colors duration-300">
-          <button
-            className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 p-2 glass-panel"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu size={20} />
-          </button>
+          {user?.role === 'admin' ? (
+            <div className="lg:hidden flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-white/10 p-0.5 shadow-md flex items-center justify-center overflow-hidden">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              </div>
+              <span className="font-extrabold text-base tracking-tight dark:text-white">SSMS Admin</span>
+            </div>
+          ) : (
+            <button
+              className="lg:hidden text-slate-500 hover:text-slate-700 dark:text-slate-400 p-2 glass-panel"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu size={20} />
+            </button>
+          )}
 
           <div className="ml-auto flex items-center gap-4 glass-panel px-2 py-1.5 h-14">
 
@@ -1177,13 +1283,65 @@ const Layout = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-4 lg:p-8 pt-4 z-10 relative">
+        <div className={`flex-1 overflow-auto p-4 lg:p-8 pt-4 z-10 relative ${user?.role === 'admin' ? 'pb-24 lg:pb-8' : ''}`}>
           <Outlet context={{ 
             sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus,
             themeColor, activeTheme: themes.find(t => t.name === themeColor) || themes[0]
           }} />
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation (Admin only) */}
+      {user?.role === 'admin' && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-xl border-t border-slate-200/10 px-4 py-2 flex items-center justify-around shadow-[0_-8px_30px_rgba(0,0,0,0.15)] pb-safe">
+          {[
+            { name: 'Home', path: '/', icon: <LayoutDashboard size={20} /> },
+            { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} /> },
+            { name: 'Tasks', path: '/tasks', icon: <FileText size={20} /> },
+            { name: 'Chat', path: '/chat', icon: <MessageCircle size={20} /> },
+            { name: 'More', isAction: true, action: () => setSidebarOpen(true), icon: <Menu size={20} /> }
+          ].map((item, index) => {
+            const isLinkActive = item.path && (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)));
+            
+            return item.isAction ? (
+              <button
+                key={index}
+                onClick={item.action}
+                className="flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-200 active:scale-95 transition-all w-16 py-1 cursor-pointer bg-transparent border-none"
+              >
+                <div className="p-1.5 rounded-xl bg-slate-800/30 border border-slate-200/5 transition-colors">
+                  {item.icon}
+                </div>
+                <span className="text-[10px] font-bold tracking-wider leading-none mt-0.5">{item.name}</span>
+              </button>
+            ) : (
+              <Link
+                key={index}
+                to={item.path}
+                className={`flex flex-col items-center justify-center gap-1 w-16 py-1 active:scale-95 transition-all ${
+                  isLinkActive 
+                    ? 'text-theme-primary font-extrabold' 
+                    : 'text-slate-400 font-medium hover:text-slate-200'
+                }`}
+              >
+                <div className={`p-1.5 rounded-xl transition-all relative ${
+                  isLinkActive 
+                    ? 'bg-theme-primary/10 border border-theme-primary/30 text-theme-primary scale-110 shadow-[0_0_15px_rgba(var(--color-theme-primary-rgb),0.15)]' 
+                    : 'bg-transparent border border-transparent'
+                }`}>
+                  {item.icon}
+                  {item.name === 'Chat' && chatCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-md">
+                      {chatCount}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] tracking-wider leading-none mt-0.5">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

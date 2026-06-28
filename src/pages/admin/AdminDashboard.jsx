@@ -136,14 +136,10 @@ const AdminDashboard = () => {
             </Link>
           </div>
 
-          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-4 my-4">
+          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 gap-4 my-4">
             <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
               <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Students</p>
               <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalStudents || 0}</p>
-            </div>
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Batches</p>
-              <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalBatches || 0}</p>
             </div>
             <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
               <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Tasks</p>
@@ -195,14 +191,12 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {[
           { name: 'Students', path: '/students', icon: <Users size={20} />, gradient: 'from-blue-400 to-blue-600', shadow: 'shadow-blue-500/40', hover: 'hover:shadow-blue-500/60' },
-          { name: 'Batches', path: '/batches', icon: <BookOpen size={20} />, gradient: 'from-purple-400 to-purple-600', shadow: 'shadow-purple-500/40', hover: 'hover:shadow-purple-500/60' },
           { name: 'Tasks', path: '/tasks', icon: <FileText size={20} />, gradient: 'from-rose-400 to-rose-600', shadow: 'shadow-rose-500/40', hover: 'hover:shadow-rose-500/60' },
           { name: 'Reviews', path: '/reviews', icon: <CheckCircle size={20} />, gradient: 'from-emerald-400 to-emerald-600', shadow: 'shadow-emerald-500/40', hover: 'hover:shadow-emerald-500/60' },
           { name: 'LeetCode', path: '/leetcode', icon: <Code size={20} />, gradient: 'from-amber-400 to-amber-600', shadow: 'shadow-amber-500/40', hover: 'hover:shadow-amber-500/60' },
           { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} />, gradient: 'from-cyan-400 to-cyan-600', shadow: 'shadow-cyan-500/40', hover: 'hover:shadow-cyan-500/60' },
           { name: 'Leaves', path: '/leaves', icon: <Calendar size={20} />, gradient: 'from-teal-400 to-teal-600', shadow: 'shadow-teal-500/40', hover: 'hover:shadow-teal-500/60' },
           { name: 'Chat', path: '/chat', icon: <MessageCircle size={20} />, gradient: 'from-pink-400 to-pink-600', shadow: 'shadow-pink-500/40', hover: 'hover:shadow-pink-500/60' },
-          { name: 'Join Requests', path: '/enrollments', icon: <UserPlus size={20} />, gradient: 'from-indigo-400 to-indigo-600', shadow: 'shadow-indigo-500/40', hover: 'hover:shadow-indigo-500/60' },
         ].map((link) => (
           <Link 
             key={link.name} 

@@ -35,11 +35,23 @@ const statusColor = (status) => {
   return `bg-${c}-500/20 text-${c}-400 border-${c}-500/30`;
 };
 
+// ─── Logged time helper ───────────────────────────────────
+const calculateLoggedTime = (log) => {
+  if (!log.lastCheckInTime) return '0h 0m';
+  const now = Date.now();
+  const lastCheckIn = new Date(log.lastCheckInTime).getTime();
+  const additional = now > lastCheckIn ? Math.floor((now - lastCheckIn) / 1000) : 0;
+  const totalSeconds = (log.sessionDurationSeconds || 0) + additional;
+  
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  return `${h}h ${m}m`;
+};
+
 // ─── Sidebar Items ────────────────────────────────────────
 const SIDEBAR_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: Layout },
   { id: 'students', label: 'Students', icon: Users },
-  { id: 'batches', label: 'Batches', icon: Cpu },
   { id: 'live', label: 'Live Activity', icon: Activity },
   { id: 'attendance', label: 'Attendance', icon: UserCheck },
   { id: 'tasks', label: 'Tasks', icon: ClipboardList },
@@ -47,7 +59,6 @@ const SIDEBAR_ITEMS = [
   { id: 'submissions', label: 'Submissions', icon: FileText },
   { id: 'grades', label: 'Grades', icon: Award },
   { id: 'mockDrives', label: 'Mock Tests', icon: Briefcase },
-  { id: 'enrollments', label: 'Join Requests', icon: UserCheck },
   { id: 'leaves', label: 'Leave Requests', icon: Calendar },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'logs', label: 'Activity Logs', icon: Clock },
@@ -220,7 +231,100 @@ const Verification = () => {
   // ─── LOGIN SCREEN ────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans verify-panel">
+        <style>{`
+          .verify-panel {
+            background-color: #f8fafc !important;
+            color: #334155 !important;
+          }
+          .verify-panel .bg-slate-900 {
+            background-color: #f0f9ff !important;
+            border-color: #bae6fd !important;
+          }
+          .verify-panel .bg-slate-800 {
+            background-color: #ffffff !important;
+            border-color: #e2e8f0 !important;
+          }
+          .verify-panel .border-slate-700 {
+            border-color: #e2e8f0 !important;
+          }
+          .verify-panel .text-white {
+            color: #0f172a !important;
+          }
+          .verify-panel .text-slate-200 {
+            color: #334155 !important;
+          }
+          .verify-panel .text-slate-300 {
+            color: #475569 !important;
+          }
+          .verify-panel .text-slate-400 {
+            color: #64748b !important;
+          }
+          .verify-panel .text-indigo-400 {
+            color: #0284c7 !important;
+          }
+          .verify-panel .bg-indigo-600 {
+            background-color: #0284c7 !important;
+          }
+          .verify-panel .hover:bg-indigo-700:hover {
+            background-color: #0369a1 !important;
+          }
+          .verify-panel .bg-indigo-500/20 {
+            background-color: #e0f2fe !important;
+            color: #0369a1 !important;
+          }
+          .verify-panel .text-indigo-400 {
+            color: #0369a1 !important;
+          }
+          .verify-panel .border-indigo-500/30 {
+            border-color: #bae6fd !important;
+          }
+          .verify-panel .bg-slate-900/60 {
+            background-color: #f0f9ff !important;
+            border-color: #e0f2fe !important;
+          }
+          .verify-panel .bg-slate-700 {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #475569 !important;
+          }
+          .verify-panel .text-slate-500 {
+            color: #64748b !important;
+          }
+          .verify-panel .text-emerald-400 {
+            color: #059669 !important;
+          }
+          .verify-panel .bg-emerald-500/20 {
+            background-color: #dcfce7 !important;
+            color: #059669 !important;
+            border-color: #a7f3d0 !important;
+          }
+          .verify-panel .bg-rose-500/20 {
+            background-color: #ffe4e6 !important;
+            color: #e11d48 !important;
+            border-color: #fecdd3 !important;
+          }
+          .verify-panel input {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+          }
+          .verify-panel select {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+          }
+          .verify-panel table {
+            background-color: #ffffff !important;
+          }
+          .verify-panel th {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+          }
+          .verify-panel tr:hover {
+            background-color: #f8fafc !important;
+          }
+        `}</style>
         <div className="max-w-md w-full bg-slate-800 rounded-3xl p-8 border border-slate-700 shadow-2xl">
           <div className="w-16 h-16 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-6"><ShieldCheck size={32} /></div>
           <h1 className="text-2xl font-bold text-white text-center mb-1">Monitoring Center</h1>
@@ -241,7 +345,7 @@ const Verification = () => {
   // ─── LOADING ─────────────────────────────────────────────
   if (loading || !data) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-8 relative">
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-8 relative verify-panel">
         <div className="absolute top-8 z-10 flex items-center gap-2 bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-full border border-indigo-500/30 animate-pulse">
           <Loader2 size={16} className="animate-spin" /><span className="text-sm font-bold">Connecting to Live Systems & Syncing Data...</span>
         </div>
@@ -700,7 +804,6 @@ const Verification = () => {
               { label: 'Total Students', value: stats.totalStudents, color: 'indigo' },
               { label: 'Active Now', value: stats.activeStudents, color: 'emerald', pulse: true },
               { label: 'Offline', value: stats.offlineStudents, color: 'slate' },
-              { label: 'Total Batches', value: stats.totalBatches, color: 'purple' },
               { label: 'Total Tasks', value: stats.totalTasks, color: 'blue' },
               { label: 'Pending Reviews', value: stats.pendingReviews, color: 'amber' },
               { label: 'Completed Reviews', value: stats.completedReviews, color: 'emerald' },
@@ -736,6 +839,7 @@ const Verification = () => {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-xs font-bold text-emerald-400">{log.checkInTime ? new Date(log.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-0.5">Logged: {calculateLoggedTime(log)}</p>
                       </div>
                     </div>
                   ))
@@ -1396,7 +1500,7 @@ const Verification = () => {
 
   // ─── MAIN LAYOUT ──────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 font-sans flex">
+    <div className="min-h-screen bg-slate-900 text-slate-200 font-sans flex verify-panel">
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-800 border-r border-slate-700 flex flex-col transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static`}>
         <div className="p-5 border-b border-slate-700">
