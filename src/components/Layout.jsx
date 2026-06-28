@@ -881,21 +881,20 @@ const Layout = () => {
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-theme-primary/5 dark:bg-theme-primary/3 rounded-full blur-[100px] animate-float-slow"></div>
         <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-theme-accent/5 dark:bg-theme-accent/3 rounded-full blur-[80px] animate-float-medium"></div>
         <div className="absolute top-1/2 right-1/3 w-[300px] h-[300px] bg-theme-primary/4 dark:bg-theme-primary/3 rounded-full blur-[60px] animate-float-fast"></div>
-
         {/* Floating Tech Logos */}
         {/* Python */}
-        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-1 top-[12%] left-[8%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+        <svg className="absolute w-10 h-10 opacity-20 dark:opacity-35 animate-bubble-1 top-[12%] left-[8%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
           <path d="M12.012 2c-1.38 0-2.613.11-3.413.298-.8.187-1.488.528-1.927.994-.439.466-.63 1.045-.63 1.932v1.547h6.087v.867H6.042c-1.38 0-2.613.11-3.413.298-.8.187-1.488.528-1.927.994-.439.466-.63 1.045-.63 1.932v3.743c0 .887.19 1.466.63 1.932.44.466 1.127.807 1.927.994.8.188 2.033.298 3.413.298h.813v-1.127c0-1.173.498-2.26 1.378-3.003.88-.743 2.062-1.123 3.325-1.123h3.565c.887 0 1.466-.191 1.932-.63.466-.44.807-1.127.994-1.927.188-.8.298-2.033.298-3.413V6.042c0-1.38-.11-2.613-.298-3.413-.187-.8-.528-1.488-.994-1.927-.466-.439-1.045-.63-1.932-.63h-4.329zm-3.127 1.585a.738.738 0 1 1 0 1.476.738.738 0 0 1 0-1.476zm6.245 4.773v1.127c0 1.173-.498 2.26-1.378 3.003-.88.743-2.062 1.123-3.325 1.123H6.862c-.887 0-1.466.191-1.932.63-.466.44-.807 1.127-.994 1.927-.188.8-.298 2.033-.298 3.413v4.329c0 1.38.11 2.613.298 3.413.187.8.528 1.488.994 1.927.466.439 1.045.63 1.932.63h4.329c1.38 0 2.613-.11 3.413-.298.8-.187 1.488-.528 1.927-.994.439-.466.63-1.045.63-1.932v-1.547h-6.087v-.867h6.087c1.38 0 2.613-.11 3.413-.298.8-.187 1.488-.528 1.927-.994.439-.466.63-1.045.63-1.932v-3.743c0-.887-.19-1.466-.63-1.932-.44-.466-1.127-.807-1.927-.994-.8-.188-2.033-.298-3.413-.298h-.813zm3.127 10.772a.738.738 0 1 1 0 1.476.738.738 0 0 1 0-1.476z"/>
         </svg>
         {/* React / MERN */}
-        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-2 top-[40%] left-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+        <svg className="absolute w-10 h-10 opacity-20 dark:opacity-35 animate-bubble-2 top-[40%] left-[12%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
           <circle cx="12" cy="12" r="2"/>
           <ellipse cx="12" cy="12" rx="10" ry="3.5" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.2"/>
           <ellipse cx="12" cy="12" rx="10" ry="3.5" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.2" transform="rotate(60 12 12)"/>
           <ellipse cx="12" cy="12" rx="10" ry="3.5" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.2" transform="rotate(120 12 12)"/>
         </svg>
         {/* Java */}
-        <svg className="absolute w-11 h-11 opacity-[0.04] dark:opacity-[0.06] animate-bubble-3 top-[72%] left-[22%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="absolute w-11 h-11 opacity-15 dark:opacity-30 animate-bubble-3 top-[72%] left-[22%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
           <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
           <line x1="6" y1="2" x2="6" y2="4"/>
@@ -903,85 +902,85 @@ const Layout = () => {
           <line x1="14" y1="2" x2="14" y2="4"/>
         </svg>
         {/* Docker */}
-        <svg className="absolute w-11 h-11 opacity-[0.05] dark:opacity-[0.07] animate-bubble-4 top-[20%] right-[12%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5" strokeLinejoin="round">
+        <svg className="absolute w-11 h-11 opacity-20 dark:opacity-35 animate-bubble-4 top-[20%] right-[12%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5" strokeLinejoin="round">
           <path d="M2 13.5c0-1.8 1-3.5 3-4.5 3-1.5 6-1 9 1 1.5 1 3 .5 4.5-.5.5-.3 1-.5 1.5-.5s.8.3.8.8c0 1.2-.5 2.5-1.5 3.5S16 16.5 13.5 16.5H5.5C3.5 16.5 2 15.3 2 13.5z"/>
           <path d="M12.5 8h2v2h-2zM9.5 8h2v2h-2zM6.5 8h2v2h-2zM9.5 5h2v2h-2z"/>
         </svg>
         {/* Node.js */}
-        <svg className="absolute w-11 h-11 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[60%] right-[18%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round">
+        <svg className="absolute w-11 h-11 opacity-15 dark:opacity-30 animate-bubble-5 top-[60%] right-[18%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round">
           <path d="M12 2L3.5 7v10L12 22l8.5-5V7L12 2z"/>
           <path d="M12 22V12"/>
         </svg>
         {/* C */}
-        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="2" stroke-linecap="round">
+        <svg className="absolute w-9 h-9 opacity-20 dark:opacity-35 animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="2" stroke-linecap="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M14.5 9.5a3 3 0 1 0 0 5" stroke="var(--color-theme-accent)" strokeWidth="2.5"/>
         </svg>
         {/* C++ */}
-        <svg className="absolute w-10 h-10 opacity-[0.05] dark:opacity-[0.07] animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="2" stroke-linecap="round">
+        <svg className="absolute w-10 h-10 opacity-20 dark:opacity-35 animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="2" stroke-linecap="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M11 9.5a2 2 0 1 0 0 5" stroke="var(--color-theme-primary)" strokeWidth="2"/>
           <path d="M14 12h3M15.5 10.5v3"/>
         </svg>
         {/* GitHub */}
-        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-8 top-[50%] left-[42%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
+        <svg className="absolute w-9 h-9 opacity-15 dark:opacity-30 animate-bubble-8 top-[50%] left-[42%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
           <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
         </svg>
         {/* Redis */}
-        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-1 top-[88%] left-[55%]" style={{animationDelay: '3s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round">
+        <svg className="absolute w-9 h-9 opacity-15 dark:opacity-30 animate-bubble-1 top-[88%] left-[55%]" style={{animationDelay: '3s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5z"/>
           <path d="M2 12l10 5 10-5"/>
           <path d="M2 17l10 5 10-5"/>
         </svg>
         {/* Nginx */}
-        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-3 top-[5%] left-[55%]" style={{animationDelay: '5s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5" strokeLinecap="round">
+        <svg className="absolute w-8 h-8 opacity-20 dark:opacity-35 animate-bubble-3 top-[5%] left-[55%]" style={{animationDelay: '5s'}} viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5" strokeLinecap="round">
           <rect x="3" y="3" width="18" height="18" rx="3" strokeWidth="1.5"/>
           <path d="M8 7v10l8-10v10" strokeWidth="2"/>
         </svg>
         {/* MySQL */}
-        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[40%] right-[80%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round">
+        <svg className="absolute w-10 h-10 opacity-15 dark:opacity-30 animate-bubble-5 top-[40%] right-[80%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round">
           <path d="M3 12c4-6 10-8 15-4 1.5 1.2 2 3.2 2.5 5 .5 1.8-1 2.5-2.5 2s-3.5-2-6.5-1-6 3.5-8.5 3c-1.5-.3-2.5-2-2.5-5z"/>
         </svg>
         {/* Ubuntu */}
-        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-7 top-[75%] right-[85%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5">
+        <svg className="absolute w-9 h-9 opacity-20 dark:opacity-35 animate-bubble-7 top-[75%] right-[85%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5">
           <circle cx="12" cy="12" r="8"/>
           <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
           <circle cx="5.07" cy="16" r="1.5" fill="currentColor"/>
           <circle cx="18.93" cy="16" r="1.5" fill="currentColor"/>
         </svg>
         {/* Slack */}
-        <svg className="absolute w-9 h-9 opacity-[0.04] dark:opacity-[0.06] animate-bubble-2 top-[20%] left-[85%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+        <svg className="absolute w-9 h-9 opacity-15 dark:opacity-30 animate-bubble-2 top-[20%] left-[85%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
           <rect x="4" y="9" width="6" height="2" rx="1"/>
           <rect x="8" y="5" width="2" height="10" rx="1"/>
           <rect x="14" y="13" width="6" height="2" rx="1"/>
           <rect x="14" y="9" width="2" height="10" rx="1"/>
         </svg>
         {/* DB (Database stack) */}
-        <svg className="absolute w-8 h-8 opacity-[0.05] dark:opacity-[0.07] animate-bubble-3 top-[5%] left-[30%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5">
+        <svg className="absolute w-8 h-8 opacity-20 dark:opacity-35 animate-bubble-3 top-[5%] left-[30%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="1.5">
           <ellipse cx="12" cy="5" rx="8" ry="3"/>
           <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/>
           <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>
         </svg>
         {/* HTML5 */}
-        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-5 top-[52%] left-[2%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+        <svg className="absolute w-10 h-10 opacity-15 dark:opacity-30 animate-bubble-5 top-[52%] left-[2%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
           <path d="M5 2l1.5 15L12 20l5.5-3L19 2H5zm10 6H8.5l.2 2H15l-.6 6.5-2.4 1-2.4-1-.1-1.5h1.8l.1.5.6.2.6-.2V12H8.1l-.5-5H15l-.1 1z"/>
         </svg>
         {/* CSS3 */}
-        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-2 top-[62%] right-[5%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
+        <svg className="absolute w-10 h-10 opacity-15 dark:opacity-30 animate-bubble-2 top-[62%] right-[5%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
           <path d="M5 2h14l-1.5 15L12 20l-5.5-3L5 2zm10 5H8.5l-.2-2h6.9v-2H6.3l.6 6h6.1l-.3 3.5-1.7.5-1.7-.5-.1-1.5H7.2l.2 3.5 4.6 1.3 4.6-1.3.4-6.5z"/>
         </svg>
         {/* JavaScript (JS) */}
-        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-6 top-[22%] left-[50%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
+        <svg className="absolute w-20 h-20 opacity-20 dark:opacity-35 animate-bubble-6 top-[22%] left-[50%]" viewBox="0 0 24 24" fill="var(--color-theme-primary)">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <text x="7" y="16" fontSize="10" fontWeight="bold" fill="white" fontFamily="sans-serif">JS</text>
         </svg>
         {/* TypeScript (TS) */}
-        <svg className="absolute w-9 h-9 opacity-[0.05] dark:opacity-[0.07] animate-bubble-8 top-[78%] left-[70%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
+        <svg className="absolute w-20 h-20 opacity-20 dark:opacity-35 animate-bubble-8 top-[78%] left-[70%]" viewBox="0 0 24 24" fill="var(--color-theme-accent)">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <text x="7" y="16" fontSize="10" fontWeight="bold" fill="white" fontFamily="sans-serif">TS</text>
         </svg>
         {/* Postman */}
-        <svg className="absolute w-10 h-10 opacity-[0.04] dark:opacity-[0.06] animate-bubble-4 top-[85%] right-[22%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round">
+        <svg className="absolute w-10 h-10 opacity-15 dark:opacity-30 animate-bubble-4 top-[85%] right-[22%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="1.5" strokeLinecap="round">
           <path d="M12 2s4 4 4 9v6c0 1-1 2-2 2h-4c-1 0-2-1-2-2v-6c0-5 4-9 4-9zm-2 19h4v2h-4z"/>
         </svg>
       </div>

@@ -113,40 +113,35 @@
 }
 
 @keyframes bubble-drift-1 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(80vw, 80vh) rotate(180deg); }
-  100% { transform: translate(0, 0) rotate(360deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(100px, 80px) rotate(180deg); }
 }
 @keyframes bubble-drift-2 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(-80vw, -60vh) rotate(-180deg); }
-  100% { transform: translate(0, 0) rotate(-360deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-80px, -100px) rotate(-180deg); }
 }
 @keyframes bubble-drift-3 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(60vw, -80vh) rotate(270deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(120px, -60px) rotate(90deg); }
 }
 @keyframes bubble-drift-4 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(-70vw, 70vh) rotate(-270deg); }
-  100% { transform: translate(0, 0) rotate(-360deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-100px, 120px) rotate(-90deg); }
 }
 @keyframes bubble-drift-5 {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  50% { transform: translate(50vw, 50vh) rotate(180deg); }
-  100% { transform: translate(0, 0) rotate(360deg); }
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(60px, 60px) rotate(180deg); }
 }
 
 .animate-float-slow { animation: float-slow 22s ease-in-out infinite alternate; }
 .animate-float-medium { animation: float-medium 18s ease-in-out infinite alternate; }
 .animate-float-fast { animation: float-fast 14s ease-in-out infinite alternate; }
 
-.animate-bubble-1 { animation: bubble-drift-1 50s linear infinite; }
-.animate-bubble-2 { animation: bubble-drift-2 55s linear infinite; }
-.animate-bubble-3 { animation: bubble-drift-3 52s linear infinite; }
-.animate-bubble-4 { animation: bubble-drift-4 60s linear infinite; }
-.animate-bubble-5 { animation: bubble-drift-5 45s linear infinite; }
-.animate-bubble-6 { animation: bubble-drift-1 65s linear infinite alternate; }
-.animate-bubble-7 { animation: bubble-drift-3 58s linear infinite alternate; }
-.animate-bubble-8 { animation: bubble-drift-2 70s linear infinite alternate; }
+.animate-bubble-1 { animation: bubble-drift-1 25s ease-in-out infinite; }
+.animate-bubble-2 { animation: bubble-drift-2 28s ease-in-out infinite; }
+.animate-bubble-3 { animation: bubble-drift-3 26s ease-in-out infinite; }
+.animate-bubble-4 { animation: bubble-drift-4 30s ease-in-out infinite; }
+.animate-bubble-5 { animation: bubble-drift-5 22s ease-in-out infinite; }
+.animate-bubble-6 { animation: bubble-drift-1 32s ease-in-out infinite alternate; }
+.animate-bubble-7 { animation: bubble-drift-3 29s ease-in-out infinite alternate; }
+.animate-bubble-8 { animation: bubble-drift-2 35s ease-in-out infinite alternate; }
