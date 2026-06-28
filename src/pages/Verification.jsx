@@ -6,6 +6,158 @@ import SkeletonLoader from '../components/SkeletonLoader';
 
 const PASSCODES = ['SA123', 'ETH123'];
 
+const VERIFY_LIGHT_CSS = `
+  .verify-panel {
+    background-color: #f0f9ff !important;
+    background-image: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 40%, #ffffff 100%) !important;
+    color: #334155 !important;
+  }
+  .verify-panel .bg-slate-900 {
+    background-color: #f0f9ff !important;
+    border-color: #bae6fd !important;
+  }
+  .verify-panel .bg-slate-800 {
+    background-color: #ffffff !important;
+    border-color: #bae6fd !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+  }
+  .verify-panel .border-slate-700 {
+    border-color: #e0f2fe !important;
+  }
+  .verify-panel .text-white {
+    color: #0c4a6e !important;
+  }
+  .verify-panel .text-slate-200 {
+    color: #334155 !important;
+  }
+  .verify-panel .text-slate-300 {
+    color: #334155 !important;
+  }
+  .verify-panel .text-slate-400 {
+    color: #475569 !important;
+  }
+  .verify-panel .text-slate-500 {
+    color: #64748b !important;
+  }
+  .verify-panel .text-indigo-400 {
+    color: #0284c7 !important;
+  }
+  .verify-panel .bg-indigo-600 {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+  }
+  .verify-panel .hover\\:bg-indigo-700\\:hover {
+    background-color: #0369a1 !important;
+  }
+  .verify-panel .bg-indigo-500\\/20 {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border-color: #bae6fd !important;
+  }
+  .verify-panel .bg-indigo-600\\/20 {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border-color: #bae6fd !important;
+  }
+  .verify-panel .bg-slate-900\\/60 {
+    background-color: #f0f9ff !important;
+    border-color: #bae6fd !important;
+  }
+  .verify-panel .bg-slate-900\\/40 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+  }
+  .verify-panel .bg-slate-800\\/50 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+  }
+  .verify-panel .border-slate-700\\/30 {
+    border-color: #bae6fd !important;
+  }
+  .verify-panel .border-slate-700\\/50 {
+    border-color: #bae6fd !important;
+  }
+  .verify-panel .bg-slate-700 {
+    background-color: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+  }
+  .verify-panel .text-emerald-400 {
+    color: #059669 !important;
+  }
+  .verify-panel .bg-emerald-500\\/20 {
+    background-color: #dcfce7 !important;
+    color: #059669 !important;
+    border-color: #a7f3d0 !important;
+  }
+  .verify-panel .bg-rose-500\\/20 {
+    background-color: #ffe4e6 !important;
+    color: #e11d48 !important;
+    border-color: #fecdd3 !important;
+  }
+  .verify-panel .bg-emerald-500\\/10 {
+    background-color: #dcfce7 !important;
+    color: #059669 !important;
+    border-color: #a7f3d0 !important;
+  }
+  .verify-panel .bg-rose-500\\/10 {
+    background-color: #ffe4e6 !important;
+    color: #e11d48 !important;
+    border-color: #fecdd3 !important;
+  }
+  .verify-panel .bg-amber-500\\/10 {
+    background-color: #fef3c7 !important;
+    color: #d97706 !important;
+    border-color: #fde68a !important;
+  }
+  .verify-panel .bg-indigo-500\\/10 {
+    background-color: #e0f2fe !important;
+    color: #0284c7 !important;
+    border-color: #bae6fd !important;
+  }
+  .verify-panel input {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+  .verify-panel select {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+  .verify-panel table {
+    background-color: #ffffff !important;
+  }
+  .verify-panel th {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+  }
+  .verify-panel tr:hover {
+    background-color: #f8fafc !important;
+  }
+  .verify-panel aside {
+    background-color: #ffffff !important;
+    border-color: #e0f2fe !important;
+  }
+  .verify-panel aside button:not(.bg-indigo-600) {
+    color: #475569 !important;
+  }
+  .verify-panel aside button:not(.bg-indigo-600):hover {
+    background-color: #f0f9ff !important;
+    color: #0284c7 !important;
+  }
+  .verify-panel header {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    border-color: #e0f2fe !important;
+    color: #0c4a6e !important;
+  }
+  .verify-panel header button {
+    background-color: #f0f9ff !important;
+    border-color: #bae6fd !important;
+    color: #0284c7 !important;
+  }
+`;
+
 // ─── Helpers ──────────────────────────────────────────────
 const formatTime = (totalSeconds) => {
   if (!totalSeconds) return '0min';
@@ -234,99 +386,7 @@ const Verification = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans verify-panel">
-        <style>{`
-          .verify-panel {
-            background-color: #f8fafc !important;
-            color: #334155 !important;
-          }
-          .verify-panel .bg-slate-900 {
-            background-color: #f0f9ff !important;
-            border-color: #bae6fd !important;
-          }
-          .verify-panel .bg-slate-800 {
-            background-color: #ffffff !important;
-            border-color: #e2e8f0 !important;
-          }
-          .verify-panel .border-slate-700 {
-            border-color: #e2e8f0 !important;
-          }
-          .verify-panel .text-white {
-            color: #0f172a !important;
-          }
-          .verify-panel .text-slate-200 {
-            color: #334155 !important;
-          }
-          .verify-panel .text-slate-300 {
-            color: #475569 !important;
-          }
-          .verify-panel .text-slate-400 {
-            color: #64748b !important;
-          }
-          .verify-panel .text-indigo-400 {
-            color: #0284c7 !important;
-          }
-          .verify-panel .bg-indigo-600 {
-            background-color: #0284c7 !important;
-          }
-          .verify-panel .hover:bg-indigo-700:hover {
-            background-color: #0369a1 !important;
-          }
-          .verify-panel .bg-indigo-500/20 {
-            background-color: #e0f2fe !important;
-            color: #0369a1 !important;
-          }
-          .verify-panel .text-indigo-400 {
-            color: #0369a1 !important;
-          }
-          .verify-panel .border-indigo-500/30 {
-            border-color: #bae6fd !important;
-          }
-          .verify-panel .bg-slate-900/60 {
-            background-color: #f0f9ff !important;
-            border-color: #e0f2fe !important;
-          }
-          .verify-panel .bg-slate-700 {
-            background-color: #f1f5f9 !important;
-            border-color: #cbd5e1 !important;
-            color: #475569 !important;
-          }
-          .verify-panel .text-slate-500 {
-            color: #64748b !important;
-          }
-          .verify-panel .text-emerald-400 {
-            color: #059669 !important;
-          }
-          .verify-panel .bg-emerald-500/20 {
-            background-color: #dcfce7 !important;
-            color: #059669 !important;
-            border-color: #a7f3d0 !important;
-          }
-          .verify-panel .bg-rose-500/20 {
-            background-color: #ffe4e6 !important;
-            color: #e11d48 !important;
-            border-color: #fecdd3 !important;
-          }
-          .verify-panel input {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            border-color: #cbd5e1 !important;
-          }
-          .verify-panel select {
-            background-color: #ffffff !important;
-            color: #0f172a !important;
-            border-color: #cbd5e1 !important;
-          }
-          .verify-panel table {
-            background-color: #ffffff !important;
-          }
-          .verify-panel th {
-            background-color: #f1f5f9 !important;
-            color: #475569 !important;
-          }
-          .verify-panel tr:hover {
-            background-color: #f8fafc !important;
-          }
-        `}</style>
+        <style>{VERIFY_LIGHT_CSS}</style>
         <div className="max-w-md w-full bg-slate-800 rounded-3xl p-8 border border-slate-700 shadow-2xl">
           <div className="w-16 h-16 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-6"><ShieldCheck size={32} /></div>
           <h1 className="text-2xl font-bold text-white text-center mb-1">Monitoring Center</h1>
@@ -347,31 +407,7 @@ const Verification = () => {
   if (loading || !data) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-8 relative verify-panel">
-        <style>{`
-          .verify-panel {
-            background-color: #f0f9ff !important;
-            background-image: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 40%, #ffffff 100%) !important;
-            color: #334155 !important;
-          }
-          .verify-panel .bg-slate-900 {
-            background-color: #f0f9ff !important;
-            border-color: #bae6fd !important;
-          }
-          .verify-panel .text-white {
-            color: #0c4a6e !important;
-          }
-          .verify-panel .text-slate-200 {
-            color: #334155 !important;
-          }
-          .verify-panel .text-indigo-400 {
-            color: #0284c7 !important;
-          }
-          .verify-panel .bg-indigo-600/20 {
-            background-color: #e0f2fe !important;
-            color: #0369a1 !important;
-            border-color: #bae6fd !important;
-          }
-        `}</style>
+        <style>{VERIFY_LIGHT_CSS}</style>
         <div className="absolute top-8 z-10 flex items-center gap-2 bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-full border border-indigo-500/30 animate-pulse">
           <Loader2 size={16} className="animate-spin" /><span className="text-sm font-bold">Connecting to Live Systems & Syncing Data...</span>
         </div>
@@ -1527,123 +1563,7 @@ const Verification = () => {
   // ─── MAIN LAYOUT ──────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 font-sans flex verify-panel">
-      <style>{`
-        .verify-panel {
-          background-color: #f0f9ff !important;
-          background-image: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 40%, #ffffff 100%) !important;
-          color: #334155 !important;
-        }
-        .verify-panel .bg-slate-900 {
-          background-color: #f0f9ff !important;
-          border-color: #bae6fd !important;
-        }
-        .verify-panel .bg-slate-800 {
-          background-color: #ffffff !important;
-          border-color: #bae6fd !important;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
-        }
-        .verify-panel .border-slate-700 {
-          border-color: #e0f2fe !important;
-        }
-        .verify-panel .text-white {
-          color: #0c4a6e !important;
-        }
-        .verify-panel .text-slate-200 {
-          color: #334155 !important;
-        }
-        .verify-panel .text-slate-300 {
-          color: #475569 !important;
-        }
-        .verify-panel .text-slate-400 {
-          color: #64748b !important;
-        }
-        .verify-panel .text-indigo-400 {
-          color: #0284c7 !important;
-        }
-        .verify-panel .bg-indigo-600 {
-          background-color: #0284c7 !important;
-          color: #ffffff !important;
-        }
-        .verify-panel .hover:bg-indigo-700:hover {
-          background-color: #0369a1 !important;
-        }
-        .verify-panel .bg-indigo-500/20 {
-          background-color: #e0f2fe !important;
-          color: #0369a1 !important;
-        }
-        .verify-panel .text-indigo-400 {
-          color: #0369a1 !important;
-        }
-        .verify-panel .border-indigo-500/30 {
-          border-color: #bae6fd !important;
-        }
-        .verify-panel .bg-slate-900/60 {
-          background-color: #f0f9ff !important;
-          border-color: #e0f2fe !important;
-        }
-        .verify-panel .bg-slate-700 {
-          background-color: #f1f5f9 !important;
-          border-color: #cbd5e1 !important;
-          color: #475569 !important;
-        }
-        .verify-panel .text-slate-500 {
-          color: #64748b !important;
-        }
-        .verify-panel .text-emerald-400 {
-          color: #059669 !important;
-        }
-        .verify-panel .bg-emerald-500/20 {
-          background-color: #dcfce7 !important;
-          color: #059669 !important;
-          border-color: #a7f3d0 !important;
-        }
-        .verify-panel .bg-rose-500/20 {
-          background-color: #ffe4e6 !important;
-          color: #e11d48 !important;
-          border-color: #fecdd3 !important;
-        }
-        .verify-panel input {
-          background-color: #ffffff !important;
-          color: #0f172a !important;
-          border-color: #cbd5e1 !important;
-        }
-        .verify-panel select {
-          background-color: #ffffff !important;
-          color: #0f172a !important;
-          border-color: #cbd5e1 !important;
-        }
-        .verify-panel table {
-          background-color: #ffffff !important;
-        }
-        .verify-panel th {
-          background-color: #f1f5f9 !important;
-          color: #475569 !important;
-        }
-        .verify-panel tr:hover {
-          background-color: #f8fafc !important;
-        }
-        .verify-panel aside {
-          background-color: #ffffff !important;
-          border-color: #e0f2fe !important;
-        }
-        .verify-panel aside button:not(.bg-indigo-600) {
-          color: #475569 !important;
-        }
-        .verify-panel aside button:not(.bg-indigo-600):hover {
-          background-color: #f0f9ff !important;
-          color: #0284c7 !important;
-        }
-        .verify-panel header {
-          background-color: rgba(255, 255, 255, 0.8) !important;
-          border-color: #e0f2fe !important;
-          color: #0c4a6e !important;
-        }
-        .verify-panel header button {
-          background-color: #f0f9ff !important;
-          border-color: #bae6fd !important;
-          color: #0284c7 !important;
-        }
-      `}</style>
+      <style>{VERIFY_LIGHT_CSS}</style>
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-slate-800 border-r border-slate-700 flex flex-col transform transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static`}>
         <div className="p-5 border-b border-slate-700">
