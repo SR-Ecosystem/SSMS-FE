@@ -18,47 +18,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [socket, setSocket] = useState(null);
   
-  // Helper to parse servers from VITE_BACKEND_SERVERS env variable
-  const getEnvServers = () => {
-    const envServersStr = import.meta.env.VITE_BACKEND_SERVERS;
-    if (envServersStr) {
-      return envServersStr.split(',').map((url, index) => ({
-        id: `env-${index}`,
-        name: `Node ${index + 1}`,
-        url: url.trim(),
-        isActive: true,
-        status: 'unknown',
-        responseTime: 0,
-        isPrimary: index === 0
-      }));
-    }
-    // Fallback to VITE_API_URL if VITE_BACKEND_SERVERS is empty
-    const defaultApi = import.meta.env.VITE_API_URL || 'http://localhost:5020';
-    return [{
-      id: 'env-0',
-      name: 'Primary Node',
-      url: defaultApi,
-      isActive: true,
-      status: 'unknown',
-      responseTime: 0,
-      isPrimary: true
-    }];
-  };
-
   // State for traffic manager
   const [trafficConfig, setTrafficConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('trafficConfig');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.servers && parsed.servers.length > 0) {
-          return parsed;
-        }
-      }
-    } catch (e) {}
-    
-    // Seed with env servers initially
-    return { policy: 'failover', servers: getEnvServers() };
+      return saved ? JSON.parse(saved) : { policy: 'failover', servers: [] };
+    } catch (e) {
+      return { policy: 'failover', servers: [] };
+    }
   });
 
   const trafficConfigRef = useRef(trafficConfig);
@@ -66,67 +33,20 @@ export const AuthProvider = ({ children }) => {
     trafficConfigRef.current = trafficConfig;
   }, [trafficConfig]);
 
-  // Direct browser probe to find which nodes are active and record browser-measured response times
-  const probeServers = async (serversList) => {
-    return Promise.all(serversList.map(async (server) => {
-      const start = Date.now();
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2-second timeout
-        
-        // Fetch public configuration config endpoint to probe availability
-        const response = await fetch(`${server.url}/api/traffic/public-config`, {
-          method: 'GET',
-          signal: controller.signal,
-          mode: 'cors',
-          cache: 'no-store'
-        });
-        clearTimeout(timeoutId);
-        
-        if (response.ok || response.status < 500) {
-          const latency = Date.now() - start;
-          return { ...server, status: 'online', responseTime: latency };
-        }
-      } catch (err) {
-        // node offline
-      }
-      return { ...server, status: 'offline', responseTime: 0 };
-    }));
-  };
-
   // Fetch public config (active servers list + policy)
-  const refreshTrafficConfig = async (currentServers = trafficConfig.servers) => {
-    const activeOnline = currentServers.filter(s => s.status === 'online');
-    const selectBase = activeOnline.length > 0 ? activeOnline[0].url : (import.meta.env.VITE_API_URL || '');
-    
+  const refreshTrafficConfig = async () => {
     try {
-      const { data } = await axios.get(`${selectBase}/api/traffic/public-config`);
-      // Update config with fetched policy and database-registered servers
+      const defaultBase = import.meta.env.VITE_API_URL || '';
+      const { data } = await axios.get(`${defaultBase}/api/traffic/public-config`);
       setTrafficConfig(data);
       localStorage.setItem('trafficConfig', JSON.stringify(data));
     } catch (err) {
-      console.error('Failed to fetch public traffic config, keeping cached state:', err);
+      console.error('Failed to fetch public traffic config, using local cache:', err);
     }
   };
 
-  // Perform probe health check and load balancing configuration sync on mount
   useEffect(() => {
-    const initTraffic = async () => {
-      const initialServers = trafficConfig.servers.length > 0 ? trafficConfig.servers : getEnvServers();
-      
-      // Immediately run parallel browser health checks
-      const probed = await probeServers(initialServers);
-      setTrafficConfig(prev => {
-        const updated = { ...prev, servers: probed };
-        localStorage.setItem('trafficConfig', JSON.stringify(updated));
-        return updated;
-      });
-
-      // Synchronize with database policies via first online node
-      await refreshTrafficConfig(probed);
-    };
-
-    initTraffic();
+    refreshTrafficConfig();
   }, []);
 
   // Set up socket connection based on current active backend server
