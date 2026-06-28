@@ -22,7 +22,16 @@ export const AuthProvider = ({ children }) => {
   const [trafficConfig, setTrafficConfig] = useState(() => {
     try {
       const saved = localStorage.getItem('trafficConfig');
-      return saved ? JSON.parse(saved) : { policy: 'failover', servers: [] };
+      const parsed = saved ? JSON.parse(saved) : { policy: 'failover', servers: [] };
+      if (parsed && parsed.servers) {
+        parsed.servers = parsed.servers.map(s => {
+          if (s.isPrimary) {
+            return { ...s, url: import.meta.env.VITE_API_URL };
+          }
+          return s;
+        });
+      }
+      return parsed;
     } catch (e) {
       return { policy: 'failover', servers: [] };
     }
@@ -38,6 +47,17 @@ export const AuthProvider = ({ children }) => {
     try {
       const defaultBase = import.meta.env.VITE_API_URL || '';
       const { data } = await axios.get(`${defaultBase}/api/traffic/public-config`);
+      
+      // Force the primary server URL to match the environment variable VITE_API_URL
+      if (data && data.servers) {
+        data.servers = data.servers.map(s => {
+          if (s.isPrimary) {
+            return { ...s, url: import.meta.env.VITE_API_URL };
+          }
+          return s;
+        });
+      }
+      
       setTrafficConfig(data);
       localStorage.setItem('trafficConfig', JSON.stringify(data));
     } catch (err) {
