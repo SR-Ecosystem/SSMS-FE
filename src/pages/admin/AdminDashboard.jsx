@@ -67,73 +67,7 @@ const AdminDashboard = () => {
       {/* Grid Layout Container */}
       <div className="space-y-6 animate-in fade-in duration-300">
 
-        {/* Row 1: Operations Metrics (Grid: 3 Columns) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1: Student & Batch Directory */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Directory</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.totalStudents || 0}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Registered Students</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-500 flex items-center justify-center border border-blue-100 dark:border-blue-950/50">
-                <Users size={20} />
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
-              <span className="text-xs text-slate-400 font-bold">{stats?.totalBatches || 0} Active Batches</span>
-              <Link to="/students" className="text-xs font-black text-blue-500 hover:text-blue-600 flex items-center gap-0.5">
-                Manage Directory <ChevronRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Card 2: Leave Operations */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Leaves Desk</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.pendingLeavesCount || 0}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Leave Requests</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/30 text-teal-500 flex items-center justify-center border border-teal-100 dark:border-teal-950/50">
-                <Calendar size={20} />
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
-              <span className="text-xs text-slate-400 font-bold">Needs Faculty Approval</span>
-              <Link to="/leaves" className="text-xs font-black text-teal-500 hover:text-teal-600 flex items-center gap-0.5">
-                Review Leaves <ChevronRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Card 3: Batch Enrollments */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Join Requests</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.joinRequestsCount || 0}</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Enrollment Requests</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center border border-amber-100 dark:border-amber-950/50">
-                <UserPlus size={20} />
-              </div>
-            </div>
-            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
-              <span className="text-xs text-slate-400 font-bold">New Batch Candidates</span>
-              <Link to="/enrollments" className="text-xs font-black text-amber-500 hover:text-amber-600 flex items-center gap-0.5">
-                Review Joins <ChevronRight size={14} />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Row 2: Academic Center (Asymmetric 8:4 Grid) */}
+        {/* Row 1: Academic Center (Asymmetric 8:4 Grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left Block (8 cols): Academic Submissions & Tasks */}
           <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
@@ -226,7 +160,7 @@ const AdminDashboard = () => {
 
             <div className="space-y-3 my-4">
               {/* LeetCode Row */}
-              <Link to="/leetcode" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+              <Link to="/leetcode" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-all group">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center">
                     <Code size={16} />
@@ -240,7 +174,7 @@ const AdminDashboard = () => {
               </Link>
 
               {/* Mock Drives Row */}
-              <Link to="/mock-drives" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+              <Link to="/mock-drives" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-all group">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-950/30 text-orange-500 flex items-center justify-center">
                     <Briefcase size={16} />
@@ -254,7 +188,7 @@ const AdminDashboard = () => {
               </Link>
 
               {/* Leaderboard Row */}
-              <Link to="/student/leaderboard" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+              <Link to="/student/leaderboard" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-all group">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-xl bg-yellow-50 dark:bg-yellow-950/30 text-yellow-500 flex items-center justify-center">
                     <Trophy size={16} />
@@ -277,6 +211,72 @@ const AdminDashboard = () => {
                 </div>
                 <ChevronRight size={12} className="text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
               </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Operations Metrics (Grid: 3 Columns) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1: Student & Batch Directory */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Directory</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.totalStudents || 0}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Registered Students</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-500 flex items-center justify-center border border-blue-100 dark:border-blue-950/50">
+                <Users size={20} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
+              <span className="text-xs text-slate-400 font-bold">{stats?.totalBatches || 0} Active Batches</span>
+              <Link to="/students" className="text-xs font-black text-blue-500 hover:text-blue-600 flex items-center gap-0.5">
+                Manage Directory <ChevronRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2: Leave Operations */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Leaves Desk</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.pendingLeavesCount || 0}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Leave Requests</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/30 text-teal-500 flex items-center justify-center border border-teal-100 dark:border-teal-950/50">
+                <Calendar size={20} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
+              <span className="text-xs text-slate-400 font-bold">Needs Faculty Approval</span>
+              <Link to="/leaves" className="text-xs font-black text-teal-500 hover:text-teal-600 flex items-center gap-0.5">
+                Review Leaves <ChevronRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3: Batch Enrollments */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Join Requests</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.joinRequestsCount || 0}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Enrollment Requests</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center border border-amber-100 dark:border-amber-950/50">
+                <UserPlus size={20} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
+              <span className="text-xs text-slate-400 font-bold">New Batch Candidates</span>
+              <Link to="/enrollments" className="text-xs font-black text-amber-500 hover:text-amber-600 flex items-center gap-0.5">
+                Review Joins <ChevronRight size={14} />
+              </Link>
             </div>
           </div>
         </div>
@@ -345,17 +345,17 @@ const AdminDashboard = () => {
             <div className="space-y-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Attendance Operations</span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <Link to="/attendance-logs" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-colors">
+                <Link to="/attendance-logs" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-colors">
                   <Clock size={16} className="text-cyan-500 mb-2" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Daily Logs</span>
                   <span className="text-[9px] text-slate-400 mt-0.5">Checked-in logs list</span>
                 </Link>
-                <Link to="/checkin-permissions" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-colors">
+                <Link to="/checkin-permissions" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-colors">
                   <ShieldCheck size={16} className="text-purple-500 mb-2" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Permissions</span>
                   <span className="text-[9px] text-slate-400 mt-0.5">Grant check-in access</span>
                 </Link>
-                <Link to="/attendance-tracker" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-colors">
+                <Link to="/attendance-tracker" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-colors">
                   <Calendar size={16} className="text-sky-500 mb-2" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Matrix Sheet</span>
                   <span className="text-[9px] text-slate-400 mt-0.5">Monthly summary sheets</span>
@@ -398,14 +398,14 @@ const AdminDashboard = () => {
 
             {/* Chat & Traffic Channels Dock */}
             <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <Link to="/chat" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+              <Link to="/chat" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-all group">
                 <div className="flex items-center gap-2">
                   <MessageCircle size={15} className="text-pink-500" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Batch Chat</span>
                 </div>
                 <ChevronRight size={12} className="text-slate-450 group-hover:translate-x-0.5 transition-transform" />
               </Link>
-              <Link to="/traffic" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+              <Link to="/traffic" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-100 dark:border-slate-800 transition-all group">
                 <div className="flex items-center gap-2">
                   <Network size={15} className="text-violet-500" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Traffic Log</span>
