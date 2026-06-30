@@ -1059,7 +1059,11 @@ const Layout = () => {
                 {expandedSections[section.label] && (
                   <div className="space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
                     {section.links.map((link) => {
-                      const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
+                      const [linkPathname, linkSearch] = link.path.split('?');
+                      const isActive = linkSearch 
+                        ? (location.pathname === linkPathname && location.search.includes(linkSearch))
+                        : (location.pathname === linkPathname && !location.search.includes('tab=')) || 
+                          (linkPathname !== '/' && linkPathname !== '/student' && !linkSearch && location.pathname.startsWith(linkPathname));
                       return (
                         <Link
                           key={link.name}
