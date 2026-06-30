@@ -3,7 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const AdminDashboard = () => {
@@ -195,6 +195,7 @@ const AdminDashboard = () => {
           { name: 'Reviews', path: '/reviews', icon: <CheckCircle size={20} />, gradient: 'from-emerald-400 to-emerald-600', shadow: 'shadow-emerald-500/40', hover: 'hover:shadow-emerald-500/60' },
           { name: 'LeetCode', path: '/leetcode', icon: <Code size={20} />, gradient: 'from-amber-400 to-amber-600', shadow: 'shadow-amber-500/40', hover: 'hover:shadow-amber-500/60' },
           { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} />, gradient: 'from-cyan-400 to-cyan-600', shadow: 'shadow-cyan-500/40', hover: 'hover:shadow-cyan-500/60' },
+          { name: 'Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={20} />, gradient: 'from-indigo-400 to-indigo-600', shadow: 'shadow-indigo-500/40', hover: 'hover:shadow-indigo-500/60' },
           { name: 'Leaves', path: '/leaves', icon: <Calendar size={20} />, gradient: 'from-teal-400 to-teal-600', shadow: 'shadow-teal-500/40', hover: 'hover:shadow-teal-500/60' },
           { name: 'Chat', path: '/chat', icon: <MessageCircle size={20} />, gradient: 'from-pink-400 to-pink-600', shadow: 'shadow-pink-500/40', hover: 'hover:shadow-pink-500/60' },
         ].map((link) => (

@@ -28,6 +28,7 @@ const BatchChat = lazy(() => import('./pages/BatchChat'));
 const LeaveRequests = lazy(() => import('./pages/admin/LeaveRequests'));
 const MockDriveManagement = lazy(() => import('./pages/admin/MockDriveManagement'));
 const TrafficManagement = lazy(() => import('./pages/admin/TrafficManagement'));
+const CheckInPermissions = lazy(() => import('./pages/admin/CheckInPermissions'));
 
 // Student Pages
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
@@ -106,6 +107,9 @@ function App() {
             } />
             <Route path="traffic" element={
               <ProtectedRoute allowedRoles={['admin']}><TrafficManagement /></ProtectedRoute>
+            } />
+            <Route path="checkin-permissions" element={
+              <ProtectedRoute allowedRoles={['admin']}><CheckInPermissions /></ProtectedRoute>
             } />
 
             {/* Student Routes */}
