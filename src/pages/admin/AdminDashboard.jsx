@@ -3,7 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const AdminDashboard = () => {
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
         </Link>
 
         {/* Command Center Card */}
-        <div className="md:col-span-8 lg:col-span-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-theme-accent to-primary-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-accent/40 flex flex-col group">
+        <div className="md:col-span-8 lg:col-span-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-theme-accent to-primary-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-accent/40 flex flex-col group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl"></div>
           
@@ -165,26 +165,61 @@ const AdminDashboard = () => {
         </div>
 
         {/* Attention Needed */}
-        <Link to="/enrollments" className="md:col-span-12 lg:col-span-3 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-theme-accent p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
+        <Link to="/enrollments" className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-theme-accent p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4 group-hover:scale-110 transition-transform shadow-inner">
               <Activity size={20} className="text-primary-100" />
             </div>
             <h3 className="text-[10px] font-bold text-primary-100 tracking-widest uppercase mb-1">Attention Needed</h3>
-            <p className="text-2xl font-black leading-tight">Pending<br/>Requests</p>
+            <p className="text-xl font-black leading-tight">Pending</p>
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-xs font-bold text-primary-50 flex items-center gap-2"><UserPlus size={14} /> Join Requests</span>
-              <span className="text-sm font-black">{stats?.joinRequestsCount || 0}</span>
+              <span className="text-[10px] font-bold text-primary-50 flex items-center gap-1.5"><UserPlus size={12} /> Joins</span>
+              <span className="text-xs font-black">{stats?.joinRequestsCount || 0}</span>
             </div>
             <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-xs font-bold text-primary-50 flex items-center gap-2"><Calendar size={14} /> Pending Leaves</span>
-              <span className="text-sm font-black">{stats?.pendingLeavesCount || 0}</span>
+              <span className="text-[10px] font-bold text-primary-50 flex items-center gap-1.5"><Calendar size={12} /> Leaves</span>
+              <span className="text-xs font-black">{stats?.pendingLeavesCount || 0}</span>
             </div>
           </div>
         </Link>
+
+        {/* External Public Panels Card */}
+        <div className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg flex flex-col justify-between group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+          <div>
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4">
+              <Globe size={20} className="text-primary-100" />
+            </div>
+            <h3 className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Public Panels</h3>
+            <p className="text-xl font-black leading-tight">External Links</p>
+          </div>
+          <div className="mt-4 space-y-2 relative z-10">
+            <a href="/verify" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-xl p-2.5 border border-white/10 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-white flex items-center gap-1"><Lock size={10} className="text-slate-300" /> Verify Portal</span>
+                <span className="text-[9px] text-slate-400">Passcode: SA123</span>
+              </div>
+              <ChevronRight size={14} className="text-slate-400" />
+            </a>
+            <a href="/public" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-xl p-2.5 border border-white/10 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-white flex items-center gap-1"><Globe size={10} className="text-slate-300" /> Public Info</span>
+                <span className="text-[9px] text-slate-400">Open resources list</span>
+              </div>
+              <ChevronRight size={14} className="text-slate-400" />
+            </a>
+            <a href="/student/attenence" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-xl p-2.5 border border-white/10 transition-colors">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-white flex items-center gap-1"><Activity size={10} className="text-slate-300" /> Attendance</span>
+                <span className="text-[9px] text-slate-400">Classroom dashboard</span>
+              </div>
+              <ChevronRight size={14} className="text-slate-400" />
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Row 2: Quick Actions Grid */}

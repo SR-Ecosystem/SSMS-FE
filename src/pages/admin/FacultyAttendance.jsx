@@ -8,6 +8,7 @@ const FacultyAttendance = () => {
   const [batches, setBatches] = useState([]);
   const [selectedBatch, setSelectedBatch] = useState('');
   const [attendance, setAttendance] = useState([]);
+  const [totalClassStrength, setTotalClassStrength] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,10 +36,12 @@ const FacultyAttendance = () => {
       // Fetch summary list
       const res = await axios.get(`/public/attendance/summary?batchId=${selectedBatch}`);
       
-      // Filter for students whose status is 'On-Site' on selected date
-      const presentOnSite = res.data.filter(log => log.date === selectedDate && log.status === 'On-Site');
+      const { totalStrength, logs } = res.data;
+      // Filter for students whose check-in access is 'on-site' on selected date
+      const presentOnSite = logs.filter(log => log.date === selectedDate && log.accessType === 'on-site');
       
       setAttendance(presentOnSite);
+      setTotalClassStrength(totalStrength || 0);
     } catch (err) {
       console.error('Error fetching attendance summary:', err);
     } finally {
@@ -106,7 +109,7 @@ const FacultyAttendance = () => {
   const avgSecondsWorked = totalPresent > 0 ? Math.floor(totalSecondsWorked / totalPresent) : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-6 text-slate-800 light-theme-override">
+    <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 space-y-6 text-slate-800 light-theme-override">
       <style>{`
         /* Keep page light theme-only as requested */
         .light-theme-override {
@@ -147,16 +150,16 @@ const FacultyAttendance = () => {
           <p className="text-muted text-sm font-medium mt-1">Faculty real-time dashboard of students physically present in the lab</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <input
             type="date"
-            className="px-4 py-2 text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            className="flex-1 sm:flex-initial min-w-[110px] px-3 py-2 text-xs sm:text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
           />
 
           <select
-            className="px-4 py-2 text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            className="flex-1 sm:flex-initial min-w-[130px] px-3 py-2 text-xs sm:text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
             value={selectedBatch}
             onChange={(e) => setSelectedBatch(e.target.value)}
           >
@@ -169,7 +172,7 @@ const FacultyAttendance = () => {
           <button
             onClick={fetchAttendance}
             disabled={refreshing || !selectedBatch}
-            className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center"
+            className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center shrink-0"
             title="Refresh Attendance List"
           >
             <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
@@ -184,8 +187,8 @@ const FacultyAttendance = () => {
             <Users size={24} />
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Total Present</p>
-            <h3 className="text-2xl font-black mt-0.5">{totalPresent} <span className="text-xs font-medium text-muted">students</span></h3>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Class Total Strength</p>
+            <h3 className="text-2xl font-black mt-0.5">{totalClassStrength} <span className="text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
 
@@ -195,18 +198,18 @@ const FacultyAttendance = () => {
             <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full relative"></div>
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Active in Class</p>
-            <h3 className="text-2xl font-black mt-0.5">{activeNow} <span className="text-xs font-medium text-muted">checked-in now</span></h3>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Present (Checked-in now)</p>
+            <h3 className="text-2xl font-black mt-0.5">{activeNow} <span className="text-xs font-medium text-muted">active</span></h3>
           </div>
         </div>
 
         <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
-            <Clock size={24} />
+          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
+            <Users size={24} className="text-rose-500" />
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Avg. Time Worked</p>
-            <h3 className="text-2xl font-black mt-0.5">{formatDuration(avgSecondsWorked)}</h3>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Absent</p>
+            <h3 className="text-2xl font-black mt-0.5">{Math.max(0, totalClassStrength - attendance.length)} <span className="text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
       </div>
