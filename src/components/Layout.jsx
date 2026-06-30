@@ -1103,7 +1103,7 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 lg:ml-[280px] z-10 relative">
+      <main className="flex-1 flex flex-col min-w-0 lg:ml-[280px] relative">
         {/* Header */}
         <header className="h-20 flex items-center justify-between px-4 lg:px-8 mt-4 mx-4 lg:mx-8 z-30 transition-colors duration-300">
           {user?.role === 'admin' ? (
@@ -1294,7 +1294,7 @@ const Layout = () => {
         </header>
 
         {/* Page Content */}
-        <div className={`flex-1 overflow-auto p-4 lg:p-8 pt-4 z-10 relative ${user?.role === 'admin' ? 'pb-24 lg:pb-8' : ''}`}>
+        <div className={`flex-1 overflow-auto p-4 lg:p-8 pt-4 relative ${user?.role === 'admin' ? 'pb-24 lg:pb-8' : ''}`}>
           <Outlet context={{ 
             sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus,
             themeColor, activeTheme: themes.find(t => t.name === themeColor) || themes[0]
