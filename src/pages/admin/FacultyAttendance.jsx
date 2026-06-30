@@ -83,7 +83,7 @@ const FacultyAttendance = () => {
       if (!matchesSearch) return false;
 
       if (presenceFilter === 'present') {
-        return log.isCheckedIn === true;
+        return log.isActive === true;
       }
       if (presenceFilter === 'absent') {
         return log.isCheckedIn === false;
@@ -158,13 +158,6 @@ const FacultyAttendance = () => {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <input
-            type="date"
-            className="flex-1 sm:flex-initial min-w-[110px] px-3 py-2 text-xs sm:text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-
           <select
             className="flex-1 sm:flex-initial min-w-[130px] px-3 py-2 text-xs sm:text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
             value={selectedBatch}
