@@ -112,9 +112,6 @@ function App() {
             <Route path="checkin-permissions" element={
               <ProtectedRoute allowedRoles={['admin']}><CheckInPermissions /></ProtectedRoute>
             } />
-            <Route path="student/attenence" element={
-              <ProtectedRoute allowedRoles={['admin']}><FacultyAttendance /></ProtectedRoute>
-            } />
 
             {/* Student Routes */}
             <Route path="student/setup" element={
@@ -156,6 +153,8 @@ function App() {
             } />
             <Route path="*" element={<div className="p-8"><h1 className="text-2xl">Page Under Construction</h1></div>} />
           </Route>
+          
+          <Route path="/student/attenence" element={<FacultyAttendance />} />
         </Routes>
         </Suspense>
       </AuthProvider>

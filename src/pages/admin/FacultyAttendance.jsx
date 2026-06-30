@@ -17,7 +17,7 @@ const FacultyAttendance = () => {
 
   const fetchBatches = async () => {
     try {
-      const res = await axios.get('/batches');
+      const res = await axios.get('/public/batches');
       setBatches(res.data);
       if (res.data.length > 0 && !selectedBatch) {
         setSelectedBatch(res.data[0]._id);
@@ -32,7 +32,7 @@ const FacultyAttendance = () => {
     try {
       setRefreshing(true);
       // Fetch today's summary list
-      const res = await axios.get(`/attendance/summary?batchId=${selectedBatch}`);
+      const res = await axios.get(`/public/attendance/summary?batchId=${selectedBatch}`);
       
       // Filter for students whose status is 'On-Site' today
       const today = new Date().toISOString().split('T')[0];
