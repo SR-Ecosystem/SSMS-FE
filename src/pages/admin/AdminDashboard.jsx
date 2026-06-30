@@ -318,18 +318,11 @@ const AdminDashboard = () => {
                 {stats?.todayAttendance && stats.todayAttendance.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {stats.todayAttendance.map((log) => (
-                      <div key={log._id} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
-                        <div className="w-7 h-7 rounded-full bg-theme-primary/10 text-theme-primary flex items-center justify-center font-bold text-xs shrink-0">
-                          {log.studentId?.profileImage ? (
-                            <img src={log.studentId.profileImage} alt={log.studentId.name} className="w-full h-full object-cover rounded-full" />
-                          ) : (
-                            log.studentId?.name?.charAt(0) || 'S'
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{log.studentId?.name || 'Student'}</p>
-                          <p className="text-[9px] text-emerald-500 font-semibold mt-0.5">Checked In</p>
-                        </div>
+                      <div key={log._id} className="flex flex-col justify-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{log.studentId?.name || 'Student'}</p>
+                        <p className="text-[10px] text-emerald-500 font-semibold mt-1">
+                          In: {log.lastCheckInTime ? new Date(log.lastCheckInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : 'Checked In'}
+                        </p>
                       </div>
                     ))}
                   </div>
