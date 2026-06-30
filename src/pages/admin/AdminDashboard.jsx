@@ -14,10 +14,11 @@ const AdminDashboard = () => {
   const [isChartLoading, setIsChartLoading] = useState(false);
   const [timeframe, setTimeframe] = useState('daily');
 
-  const fetchStats = async () => {
+  const fetchStats = async (isRefresh = false) => {
     if (!loading) setIsChartLoading(true);
     try {
-      const { data } = await axios.get(`/analytics/dashboard?timeframe=${timeframe}`);
+      const url = `/analytics/dashboard?timeframe=${timeframe}${isRefresh ? '&refresh=true' : ''}`;
+      const { data } = await axios.get(url);
       setStats(data);
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -59,7 +60,7 @@ const AdminDashboard = () => {
           </div>
         </div>
         <button
-          onClick={() => fetchStats()}
+          onClick={() => fetchStats(true)}
           disabled={isChartLoading || loading}
           className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm cursor-pointer"
           title="Refresh Dashboard"
