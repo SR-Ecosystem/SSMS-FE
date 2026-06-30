@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { RefreshCw, FileText, ArrowRight, ArrowLeft } from 'lucide-react';
+import { RefreshCw, FileText, ArrowRight, ArrowLeft, Calendar, UserPlus, Award, BookOpen } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const ActivityLogs = () => {
@@ -25,10 +25,20 @@ const ActivityLogs = () => {
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(() => {
+    
+    // Auto-polling interval: 10 seconds for real-time live updates
+    const pollInterval = setInterval(() => {
+      fetchLogs(false);
+    }, 10000);
+
+    const clockInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
-    return () => clearInterval(interval);
+
+    return () => {
+      clearInterval(pollInterval);
+      clearInterval(clockInterval);
+    };
   }, []);
 
   const formatLogTime = (timeStr) => {
@@ -74,31 +84,51 @@ const ActivityLogs = () => {
         <div className="space-y-4">
           {logs.length > 0 ? (
             logs.map((log) => {
-              const isSubmission = log.type === 'SUBMISSION';
-              const isCheckIn = log.type === 'CHECK IN';
-              
               // Define color style configurations based on action type
               let badgeColor = '';
               let circleBg = '';
-              let iconColor = '';
               let iconElement = null;
 
-              if (isSubmission) {
-                badgeColor = 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30';
-                circleBg = 'bg-blue-50 dark:bg-blue-950/40 text-blue-500';
-                iconColor = 'text-blue-500';
-                iconElement = <FileText size={15} />;
-              } else if (isCheckIn) {
-                badgeColor = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30';
-                circleBg = 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-505';
-                iconColor = 'text-emerald-500';
-                iconElement = <ArrowLeft size={15} />;
-              } else {
-                // CHECK OUT
-                badgeColor = 'bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30';
-                circleBg = 'bg-rose-50 dark:bg-rose-950/40 text-rose-500';
-                iconColor = 'text-rose-500';
-                iconElement = <ArrowRight size={15} />;
+              switch (log.type) {
+                case 'SUBMISSION':
+                  badgeColor = 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30';
+                  circleBg = 'bg-blue-50 dark:bg-blue-950/40 text-blue-500';
+                  iconElement = <FileText size={15} />;
+                  break;
+                case 'CHECK IN':
+                  badgeColor = 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30';
+                  circleBg = 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500';
+                  iconElement = <ArrowLeft size={15} />;
+                  break;
+                case 'CHECK OUT':
+                  badgeColor = 'bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30';
+                  circleBg = 'bg-rose-50 dark:bg-rose-950/40 text-rose-500';
+                  iconElement = <ArrowRight size={15} />;
+                  break;
+                case 'LEAVE REQUEST':
+                  badgeColor = 'bg-amber-50 text-amber-600 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-100 dark:border-amber-900/30';
+                  circleBg = 'bg-amber-50 dark:bg-amber-950/40 text-amber-500';
+                  iconElement = <Calendar size={15} />;
+                  break;
+                case 'JOIN REQUEST':
+                  badgeColor = 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/30';
+                  circleBg = 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500';
+                  iconElement = <UserPlus size={15} />;
+                  break;
+                case 'GRADING':
+                  badgeColor = 'bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-100 dark:border-purple-900/30';
+                  circleBg = 'bg-purple-50 dark:bg-purple-950/40 text-purple-500';
+                  iconElement = <Award size={15} />;
+                  break;
+                case 'TASK CREATED':
+                  badgeColor = 'bg-cyan-50 text-cyan-600 dark:bg-cyan-950/30 dark:text-cyan-400 border border-cyan-100 dark:border-cyan-900/30';
+                  circleBg = 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-500';
+                  iconElement = <BookOpen size={15} />;
+                  break;
+                default:
+                  badgeColor = 'bg-slate-50 text-slate-600 dark:bg-slate-950/30 dark:text-slate-450 border border-slate-100 dark:border-slate-900/30';
+                  circleBg = 'bg-slate-50 dark:bg-slate-950/40 text-slate-500';
+                  iconElement = <FileText size={15} />;
               }
 
               return (
@@ -119,11 +149,11 @@ const ActivityLogs = () => {
 
                     {/* Name & Details */}
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-850 dark:text-slate-200 leading-snug">
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
                         {log.message}
                       </p>
                       {log.rollNumber && (
-                        <p className="text-[10px] font-bold text-slate-450 dark:text-slate-505 mt-0.5 tracking-wider uppercase">
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-0.5 tracking-wider uppercase">
                           {log.rollNumber}
                         </p>
                       )}
@@ -140,7 +170,7 @@ const ActivityLogs = () => {
               );
             })
           ) : (
-            <div className="text-center py-12 text-slate-450 dark:text-slate-500">
+            <div className="text-center py-12 text-slate-400 dark:text-slate-500">
               <p className="text-sm font-semibold">No activity logs recorded today.</p>
             </div>
           )}
