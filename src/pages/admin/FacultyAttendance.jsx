@@ -83,7 +83,7 @@ const FacultyAttendance = () => {
       if (!matchesSearch) return false;
 
       if (presenceFilter === 'present') {
-        return log.isCheckedIn === true;
+        return log.isActive === true;
       }
       if (presenceFilter === 'absent') {
         return log.isCheckedIn === false;
@@ -199,7 +199,7 @@ const FacultyAttendance = () => {
           </div>
           <div>
             <p className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">Present</p>
-            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalCheckedIn} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
+            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{activeNow} <span className="hidden md:inline text-xs font-medium text-muted">active</span></h3>
           </div>
         </div>
 
