@@ -64,294 +64,330 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* Row 1: Review Donut | Command Center | Attention Needed */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-        
-        {/* Review Completion Donut */}
-        <Link to="/reviews" className="md:col-span-4 lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm hover:border-theme-primary/50 transition-all cursor-pointer flex flex-col items-center justify-center text-center text-slate-800 dark:text-slate-100 relative group overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-theme-primary/5 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none"></div>
-          <div className="mb-2">
-            <h3 className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Review Status</h3>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">Grading overview</p>
-          </div>
-          
-          <div className="flex flex-col items-center w-full gap-5 mt-2 relative z-10">
-            <div className="relative w-28 h-28 shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={reviewData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={56}
-                    paddingAngle={2}
-                    dataKey="value"
-                    stroke="none"
-                    cornerRadius={4}
-                  >
-                    {reviewData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? 'var(--color-theme-primary)' : 'rgba(148, 163, 184, 0.15)'} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Done</span>
-                <span className="text-xl font-black text-slate-800 dark:text-white leading-none mt-1">{completionPercent}%</span>
+      {/* Grid Layout Container */}
+      <div className="space-y-6 animate-in fade-in duration-300">
+
+        {/* Row 1: Operations Metrics (Grid: 3 Columns) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1: Student & Batch Directory */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Total Directory</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.totalStudents || 0}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Registered Students</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-500 flex items-center justify-center border border-blue-100 dark:border-blue-950/50">
+                <Users size={20} />
               </div>
             </div>
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
+              <span className="text-xs text-slate-400 font-bold">{stats?.totalBatches || 0} Active Batches</span>
+              <Link to="/students" className="text-xs font-black text-blue-500 hover:text-blue-600 flex items-center gap-0.5">
+                Manage Directory <ChevronRight size={14} />
+              </Link>
+            </div>
+          </div>
 
-            <div className="space-y-2 w-full max-w-[200px]">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-theme-primary shadow-sm"></div>
-                  <span className="text-slate-600 dark:text-slate-400 font-semibold">Graded</span>
-                </div>
-                <span className="font-black text-slate-700 dark:text-slate-200">{stats?.completedReviews || 0}</span>
+          {/* Card 2: Leave Operations */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Leaves Desk</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.pendingLeavesCount || 0}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Leave Requests</p>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-800"></div>
-                  <span className="text-slate-600 dark:text-slate-400 font-semibold">Pending</span>
-                </div>
-                <span className="font-black text-slate-700 dark:text-slate-200">{stats?.pendingReviews || 0}</span>
+              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/30 text-teal-500 flex items-center justify-center border border-teal-100 dark:border-teal-950/50">
+                <Calendar size={20} />
               </div>
             </div>
-          </div>
-        </Link>
-
-        {/* Command Center Card */}
-        <div className="md:col-span-8 lg:col-span-5 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-slate-800 dark:text-slate-100 shadow-sm flex flex-col justify-between group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-          
-          <div className="relative z-10 flex justify-between items-start mb-4">
-            <div>
-              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Admin Command Center</p>
-              <h3 className="font-black text-lg text-slate-800 dark:text-white leading-none flex items-center gap-2">SSMS Dashboard</h3>
-            </div>
-            <Link to="/profile" className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-150 dark:border-slate-700 text-slate-500 hover:text-theme-primary hover:border-theme-primary/40 transition-colors" title="Admin Profile">
-              <UserIcon size={18} />
-            </Link>
-          </div>
-
-          <div className="relative z-10 grid grid-cols-3 gap-4 my-4">
-            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 text-center">
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Students</p>
-              <p className="font-black text-2xl text-slate-800 dark:text-white leading-none">{stats?.totalStudents || 0}</p>
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 text-center">
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Tasks</p>
-              <p className="font-black text-2xl text-slate-800 dark:text-white leading-none">{stats?.totalTasks || 0}</p>
-            </div>
-            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 text-center">
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Reviews</p>
-              <p className="font-black text-2xl text-slate-800 dark:text-white leading-none">{totalReviews}</p>
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
+              <span className="text-xs text-slate-400 font-bold">Needs Faculty Approval</span>
+              <Link to="/leaves" className="text-xs font-black text-teal-500 hover:text-teal-600 flex items-center gap-0.5">
+                Review Leaves <ChevronRight size={14} />
+              </Link>
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
-            <div>
-              <p className="text-xs text-slate-400 mb-1">Admin User</p>
-              <p className="font-extrabold text-base text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{user?.name || 'Admin'}</p>
+          {/* Card 3: Batch Enrollments */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Join Requests</p>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.joinRequestsCount || 0}</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Enrollment Requests</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center border border-amber-100 dark:border-amber-950/50">
+                <UserPlus size={20} />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Link to="/students" className="bg-theme-primary text-white hover:bg-theme-primary/95 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md shadow-theme-primary/20 flex items-center gap-2 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
-                <Users size={15} /> View Students
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 mt-4">
+              <span className="text-xs text-slate-400 font-bold">New Batch Candidates</span>
+              <Link to="/enrollments" className="text-xs font-black text-amber-500 hover:text-amber-600 flex items-center gap-0.5">
+                Review Joins <ChevronRight size={14} />
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Attention Needed */}
-        <Link to="/enrollments" className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-slate-800 dark:text-slate-100 shadow-sm flex flex-col justify-between hover:border-theme-primary/50 transition-all cursor-pointer group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
-          <div>
-            <div className="w-9 h-9 bg-amber-50 dark:bg-amber-950/30 text-amber-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform border border-amber-100 dark:border-amber-950/50">
-              <Activity size={18} />
+        {/* Row 2: Academic Center (Asymmetric 8:4 Grid) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Left Block (8 cols): Academic Submissions & Tasks */}
+          <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Submissions & Grading Review</h3>
+                <p className="text-xs text-slate-400 mt-0.5 font-medium">Evaluation rate for assigned homeworks and project tasks</p>
+              </div>
+              <Link to="/tasks" className="text-xs font-black text-theme-primary flex items-center gap-0.5">
+                Create & Assign Tasks <ChevronRight size={14} />
+              </Link>
             </div>
-            <h3 className="text-[10px] font-bold text-amber-600 dark:text-amber-400 tracking-widest uppercase mb-1">Attention Needed</h3>
-            <p className="text-xl font-black leading-tight text-slate-800 dark:text-white">Pending</p>
-          </div>
-          <div className="mt-4 space-y-2 relative z-10">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><UserPlus size={12} /> Joins</span>
-              <span className="text-xs font-black text-slate-800 dark:text-white">{stats?.joinRequestsCount || 0}</span>
-            </div>
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800">
-              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Calendar size={12} /> Leaves</span>
-              <span className="text-xs font-black text-slate-800 dark:text-white">{stats?.pendingLeavesCount || 0}</span>
-            </div>
-          </div>
-        </Link>
 
-        {/* External Public Panels Card */}
-        <div className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-slate-800 dark:text-slate-100 shadow-sm flex flex-col justify-between group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
-          <div>
-            <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-500 rounded-xl flex items-center justify-center mb-4 border border-indigo-100 dark:border-indigo-950/50">
-              <Globe size={18} />
-            </div>
-            <h3 className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Public Panels</h3>
-            <p className="text-xl font-black leading-tight text-slate-800 dark:text-white">External Links</p>
-          </div>
-          <div className="mt-4 space-y-2 relative z-10">
-            <a href="/verify" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800 transition-colors">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Lock size={10} className="text-slate-400" /> Verify Portal</span>
-                <span className="text-[9px] text-slate-400">Passcode: SA123</span>
-              </div>
-              <ChevronRight size={14} className="text-slate-400" />
-            </a>
-            <a href="/public" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800 transition-colors">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Globe size={10} className="text-slate-400" /> Public Info</span>
-                <span className="text-[9px] text-slate-400">Open resources list</span>
-              </div>
-              <ChevronRight size={14} className="text-slate-400" />
-            </a>
-            <a href="/student/attenence" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800 transition-colors">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Activity size={10} className="text-slate-400" /> Attendance</span>
-                <span className="text-[9px] text-slate-400">Classroom dashboard</span>
-              </div>
-              <ChevronRight size={14} className="text-slate-400" />
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 2: Comprehensive Dashboard Grid */}
-      <div>
-        <h2 className="text-base font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight">System Operations</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {[
-            { name: 'Student Directory', path: '/students', icon: <Users size={18} />, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30', val: `${stats?.totalStudents || 0} Registered` },
-            { name: 'Task Management', path: '/tasks', icon: <FileText size={18} />, color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/30', val: `${stats?.totalTasks || 0} Active Tasks` },
-            { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={18} />, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30', val: `${stats?.pendingReviews || 0} Pending Reviews` },
-            { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={18} />, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30', val: 'Coding Pools & Sync' },
-            { name: 'Mock Drives', path: '/mock-drives', icon: <Briefcase size={18} />, color: 'text-orange-500 bg-orange-50 dark:bg-orange-950/30', val: 'Interview Management' },
-            { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={18} />, color: 'text-yellow-500 bg-yellow-50 dark:bg-yellow-950/30', val: 'Rankings & Streaks' },
-            { name: 'Task Tracker', path: '/batch-tracker', icon: <BookOpen size={18} />, color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30', val: 'Batch Task Stats' },
-            { name: 'Attendance Logs', path: '/attendance-logs', icon: <Clock size={18} />, color: 'text-cyan-500 bg-cyan-50 dark:bg-cyan-950/30', val: 'Daily Check-In Logs' },
-            { name: 'Check-In Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={18} />, color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30', val: 'Approval Settings' },
-            { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={18} />, color: 'text-sky-500 bg-sky-50 dark:bg-sky-950/30', val: 'Visual Matrix View' },
-            { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={18} />, color: 'text-teal-500 bg-teal-50 dark:bg-teal-950/30', val: `${stats?.pendingLeavesCount || 0} Pending Leaves` },
-            { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={18} />, color: 'text-pink-500 bg-pink-50 dark:bg-pink-950/30', val: 'Real-time Messaging' },
-            { name: 'Traffic Control', path: '/traffic', icon: <Network size={18} />, color: 'text-violet-500 bg-violet-50 dark:bg-violet-950/30', val: 'Server Sync Logs' },
-          ].map((link) => (
-            <Link 
-              key={link.name} 
-              to={link.path}
-              className="flex flex-col p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-theme-primary/50 dark:hover:border-theme-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all text-slate-800 dark:text-slate-100 group relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-20 h-20 bg-theme-primary/5 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none transition-all group-hover:scale-150"></div>
-              <div className="flex justify-between items-start mb-3 relative z-10">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${link.color} font-bold`}>
-                  {link.icon}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center flex-1">
+              {/* Left Donut Column (5 cols) */}
+              <div className="md:col-span-5 flex flex-col items-center border-r border-slate-100 dark:border-slate-800 pr-0 md:pr-6">
+                <div className="relative w-36 h-36 shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={reviewData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={62}
+                        paddingAngle={2}
+                        dataKey="value"
+                        stroke="none"
+                        cornerRadius={5}
+                      >
+                        {reviewData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={index === 0 ? 'var(--color-theme-primary)' : 'rgba(148, 163, 184, 0.15)'} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Graded</span>
+                    <span className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{completionPercent}%</span>
+                  </div>
                 </div>
-                <ChevronRight size={16} className="text-slate-400 group-hover:text-theme-primary transition-colors mt-1" />
+                <div className="flex gap-4 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    <div className="w-2.5 h-2.5 rounded-full bg-theme-primary"></div>
+                    <span>{stats?.completedReviews || 0} Graded</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                    <div className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                    <span>{stats?.pendingReviews || 0} Pending</span>
+                  </div>
+                </div>
               </div>
-              <div className="relative z-10 mt-auto">
-                <p className="text-sm font-black text-slate-800 dark:text-slate-200 leading-snug">
-                  {link.name}
-                </p>
-                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
-                  {link.val}
-                </p>
+
+              {/* Right Recent Tasks Column (7 cols) */}
+              <div className="md:col-span-7 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Assigned</span>
+                  <span className="text-xs font-black text-slate-700 dark:text-slate-200">{stats?.totalTasks || 0} Batched Tasks</span>
+                </div>
+                <div className="space-y-2">
+                  {stats?.notifications?.filter(n => n.type === 'task').slice(0, 3).map(task => (
+                    <div key={task.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileText size={16} className="text-slate-400 shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{task.title.replace('New Task Created', '') || 'Active Task'}</p>
+                          <p className="text-[10px] font-semibold text-slate-450 dark:text-slate-500 truncate mt-0.5">{task.message}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )) || (
+                    <p className="text-xs text-slate-400 italic">No tasks assigned recently.</p>
+                  )}
+                </div>
+                <div className="pt-2">
+                  <Link to="/reviews" className="w-full flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 py-2.5 rounded-2xl text-xs font-black transition-colors border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <CheckCircle size={15} /> Grade Submission Queue ({stats?.pendingReviews || 0})
+                  </Link>
+                </div>
               </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Row 3: Submission Chart + Recent Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        
-        {/* Submission Volume Chart */}
-        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col min-h-[350px] relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-48 h-48 bg-theme-primary/5 rounded-full blur-3xl pointer-events-none -ml-10 -mt-10"></div>
-          <div className="flex flex-wrap justify-between items-center gap-3 mb-6 relative z-10">
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Submission Volume</h3>
-            <select 
-              className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-250 px-3 py-1.5 rounded-full transition-colors shadow-sm cursor-pointer focus:outline-none"
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-            >
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-          
-          {isChartLoading ? (
-            <div className="flex-1 w-full flex flex-col justify-center items-center text-slate-400 relative z-10">
-              <div className="animate-spin w-8 h-8 border-4 border-slate-200 border-t-theme-primary rounded-full mb-2"></div>
-              <span className="text-[10px] font-bold uppercase tracking-widest">Loading Data...</span>
             </div>
-          ) : stats?.chartData && stats.chartData.length > 0 ? (
-            <div className="flex-1 w-full mt-2 relative z-10 animate-in fade-in duration-500">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart key={timeframe} data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorAdminSubmissions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-theme-primary)" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="var(--color-theme-primary)" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-theme-accent)', opacity: 0.8 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-theme-accent)', opacity: 0.8 }} allowDecimals={false} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-primary-200)', backgroundColor: 'var(--color-primary-50)', padding: '12px', color: 'var(--color-primary-900)' }}
-                    itemStyle={{ color: 'var(--color-theme-primary)', fontWeight: 'bold' }}
-                  />
-                  <Area type="monotone" dataKey="submissions" stroke="var(--color-theme-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorAdminSubmissions)" activeDot={{ r: 6, fill: 'var(--color-theme-primary)', stroke: '#ffffff', strokeWidth: 2 }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col justify-center items-center text-slate-400 relative z-10">
-              <p className="text-sm font-medium">No submission data available.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Recent Activities Feed */}
-        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col min-h-[350px] max-h-[350px] relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full blur-3xl pointer-events-none -mr-10 -mt-10"></div>
-          <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
-            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Recent Activities Feed</h3>
-            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Latest</span>
           </div>
 
-          <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 relative z-10">
-             {stats?.notifications && stats.notifications.length > 0 ? (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-               {stats.notifications.map((notif, idx) => (
-                 <div key={notif.id} className="flex items-start gap-4 group/item hover:bg-slate-50 dark:hover:bg-slate-800/40 p-2 -mx-2 rounded-xl transition-colors cursor-pointer">
-                   <div className="flex flex-col items-center mt-1">
-                     <div className={`w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 shadow-sm ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
-                   </div>
-                   <div className="flex-1 min-w-0 pb-1">
-                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{notif.title}</p>
-                     <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-0.5 leading-snug">{notif.message}</p>
-                   </div>
-                   <div className="text-right shrink-0">
-                     <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-sm ${notif.type === 'task' ? 'bg-indigo-500/10 text-indigo-500 dark:bg-indigo-950/20' : 'bg-emerald-500/10 text-emerald-500 dark:bg-emerald-950/20'}`}>
-                       {notif.type === 'task' ? 'New' : 'Sent'}
-                     </span>
-                   </div>
-                 </div>
-               ))}
-               </div>
-             ) : (
-               <div className="text-center text-slate-400 py-8 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-slate-150 dark:border-slate-800 border-dashed">
-                 <p className="text-sm font-medium">No recent activities.</p>
-               </div>
-             )}
+          {/* Right Block (4 cols): Hiring & Coding Hub */}
+          <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider mb-1">Hiring & Coding Hub</h3>
+              <p className="text-xs text-slate-400 font-medium">Synced challenges and drive standings</p>
+            </div>
+
+            <div className="space-y-3 my-4">
+              {/* LeetCode Row */}
+              <Link to="/leetcode" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center">
+                    <Code size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200">LeetCode Challenges</h4>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Coding Pools & Sync</p>
+                  </div>
+                </div>
+                <ChevronRight size={14} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
+              </Link>
+
+              {/* Mock Drives Row */}
+              <Link to="/mock-drives" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 dark:bg-orange-950/30 text-orange-500 flex items-center justify-center">
+                    <Briefcase size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200">Mock Drives</h4>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Interview Management</p>
+                  </div>
+                </div>
+                <ChevronRight size={14} className="text-slate-400 group-hover:text-orange-500 transition-colors" />
+              </Link>
+
+              {/* Leaderboard Row */}
+              <Link to="/student/leaderboard" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-yellow-50 dark:bg-yellow-950/30 text-yellow-500 flex items-center justify-center">
+                    <Trophy size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-200">Student Leaderboard</h4>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Rankings & Streaks</p>
+                  </div>
+                </div>
+                <ChevronRight size={14} className="text-slate-400 group-hover:text-yellow-500 transition-colors" />
+              </Link>
+            </div>
+
+            {/* Verification Dock */}
+            <div className="bg-indigo-50/50 dark:bg-indigo-950/10 p-3 rounded-2xl border border-indigo-100/50 dark:border-indigo-900/30">
+              <a href="/verify" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between group">
+                <div className="flex items-center gap-2">
+                  <Lock size={14} className="text-indigo-500" />
+                  <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Access Verification Portal</span>
+                </div>
+                <ChevronRight size={12} className="text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
+              </a>
+            </div>
           </div>
         </div>
+
+        {/* Row 3: Classroom Attendance & Matrix Tracker (Asymmetric 7:5 Grid) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Left Block (7 cols): Classroom Attendance Management */}
+          <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+            <div>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
+                <div>
+                  <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Classroom Attendance</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 font-medium">Real-time status of physical lab check-ins today</p>
+                </div>
+                <a href="/student/attenence" target="_blank" rel="noopener noreferrer" className="text-xs font-black text-theme-primary flex items-center gap-0.5">
+                  Classroom Board <ChevronRight size={14} />
+                </a>
+              </div>
+
+              {/* Attendance Mini stats */}
+              <div className="grid grid-cols-3 gap-3 my-4">
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Class Total</p>
+                  <p className="font-black text-xl text-slate-800 dark:text-white">{stats?.totalStudents || 0}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden">
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Checked In</p>
+                  <p className="font-black text-xl text-emerald-600 dark:text-emerald-400">{stats?.totalStudents ? Math.max(0, stats.totalStudents - stats.pendingLeavesCount - 4) : 0}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-800 text-center">
+                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Absent</p>
+                  <p className="font-black text-xl text-rose-600 dark:text-rose-400">4</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Attendance Operations Logs Matrix */}
+            <div className="space-y-2 mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Attendance Operations</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Link to="/attendance-logs" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-colors">
+                  <Clock size={16} className="text-cyan-500 mb-2" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Daily Logs</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">Checked-in logs list</span>
+                </Link>
+                <Link to="/checkin-permissions" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-colors">
+                  <ShieldCheck size={16} className="text-purple-500 mb-2" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Permissions</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">Grant check-in access</span>
+                </Link>
+                <Link to="/attendance-tracker" className="flex flex-col p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-colors">
+                  <Calendar size={16} className="text-sky-500 mb-2" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Matrix Sheet</span>
+                  <span className="text-[9px] text-slate-400 mt-0.5">Monthly summary sheets</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Block (5 cols): Activity Feed & Community Channels */}
+          <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-4 mb-4 shrink-0">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Community & System Feed</h3>
+                <p className="text-xs text-slate-450 mt-0.5 font-medium">Recent server sync notifications and batch chats</p>
+              </div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live</span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar my-2">
+              {stats?.notifications && stats.notifications.length > 0 ? (
+                <div className="space-y-4">
+                  {stats.notifications.slice(0, 4).map(notif => (
+                    <div key={notif.id} className="flex items-start gap-3 p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer">
+                      <div className="flex flex-col items-center mt-1 shrink-0">
+                        <div className={`w-2.5 h-2.5 rounded-full border border-white dark:border-slate-900 shadow-sm ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{notif.title}</p>
+                        <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5 leading-normal truncate">{notif.message}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-slate-400 py-8 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-slate-150 dark:border-slate-800 border-dashed">
+                  <p className="text-sm font-medium">No recent activities.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Chat & Traffic Channels Dock */}
+            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <Link to="/chat" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+                <div className="flex items-center gap-2">
+                  <MessageCircle size={15} className="text-pink-500" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Batch Chat</span>
+                </div>
+                <ChevronRight size={12} className="text-slate-450 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+              <Link to="/traffic" className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all group">
+                <div className="flex items-center gap-2">
+                  <Network size={15} className="text-violet-500" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Traffic Log</span>
+                </div>
+                <ChevronRight size={12} className="text-slate-450 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
