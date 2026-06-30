@@ -35,6 +35,21 @@ const TaskCreateEdit = () => {
     linkUrl: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
+  const [requiredLinks, setRequiredLinks] = useState([]);
+
+  const addRequiredLink = () => {
+    setRequiredLinks([...requiredLinks, { label: '', isMandatory: true }]);
+  };
+
+  const removeRequiredLink = (index) => {
+    setRequiredLinks(requiredLinks.filter((_, i) => i !== index));
+  };
+
+  const handleLinkChange = (index, field, value) => {
+    const updated = [...requiredLinks];
+    updated[index][field] = value;
+    setRequiredLinks(updated);
+  };
 
   const quillModules = {
     toolbar: [
@@ -76,6 +91,7 @@ const TaskCreateEdit = () => {
             scheduledAt: task.scheduledAt ? formatLocalISO(task.scheduledAt) : '',
             fileUrl: task.fileUrl || ''
           });
+          setRequiredLinks(task.requiredLinks || []);
         } else if (batchesRes.data.length > 0) {
           setFormData(f => ({ ...f, batchId: batchesRes.data[0]._id }));
         }
@@ -112,11 +128,14 @@ const TaskCreateEdit = () => {
       }
 
       // 2. Save/Update task
+      const payload = {
+        ...formData,
+        fileUrl,
+        requiredLinks
+      };
+
       if (isEditMode) {
-        await axios.put(`/tasks/${id}`, {
-          ...formData,
-          fileUrl
-        });
+        await axios.put(`/tasks/${id}`, payload);
         Swal.fire({
           title: 'Updated!',
           text: 'Task has been updated successfully.',
@@ -125,10 +144,7 @@ const TaskCreateEdit = () => {
           showConfirmButton: false
         });
       } else {
-        await axios.post('/tasks', {
-          ...formData,
-          fileUrl
-        });
+        await axios.post('/tasks', payload);
         Swal.fire({
           title: 'Assigned!',
           text: 'Task has been created and assigned successfully.',
@@ -328,6 +344,63 @@ const TaskCreateEdit = () => {
                 <option value="Project">Project</option>
               </select>
             </div>
+          </div>
+
+          {/* Required Submission Links */}
+          <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  Multiple Links Submissions
+                </label>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                  Request one or more links from students (e.g. GitHub repo, live URL, loom video)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={addRequiredLink}
+                className="bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/20 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer"
+              >
+                + Add Link Requirement
+              </button>
+            </div>
+
+            {requiredLinks.length > 0 && (
+              <div className="space-y-3 pt-2">
+                {requiredLinks.map((link, idx) => (
+                  <div key={idx} className="flex flex-col sm:flex-row gap-3 items-center bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <div className="flex-1 w-full">
+                      <input
+                        required
+                        type="text"
+                        placeholder="Link Label (e.g. GitHub Repository)"
+                        className="input-field py-2 px-3 text-sm rounded-lg"
+                        value={link.label}
+                        onChange={(e) => handleLinkChange(idx, 'label', e.target.value)}
+                      />
+                    </div>
+                    <div className="w-full sm:w-[150px] shrink-0">
+                      <select
+                        className="input-field py-2 px-3 text-sm rounded-lg font-bold"
+                        value={link.isMandatory ? 'true' : 'false'}
+                        onChange={(e) => handleLinkChange(idx, 'isMandatory', e.target.value === 'true')}
+                      >
+                        <option value="true">Mandatory</option>
+                        <option value="false">Optional</option>
+                      </select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeRequiredLink(idx)}
+                      className="p-2 hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-500 rounded-lg transition-all cursor-pointer border border-transparent"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Scheduled Release */}

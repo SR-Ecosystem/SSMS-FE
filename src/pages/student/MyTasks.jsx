@@ -29,6 +29,7 @@ const MyTasks = () => {
   const [isEnrolled, setIsEnrolled] = useState(true); // default to true until checked
   const [activeTask, setActiveTask] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [studentSubmittedLinks, setStudentSubmittedLinks] = useState([]);
   const { themeColor, activeTheme } = useOutletContext();
   
   const [subData, setSubData] = useState({ 
@@ -79,6 +80,24 @@ const MyTasks = () => {
 
   useEffect(() => { fetchTasks(); }, []);
 
+  const handleOpenSubmitModal = (task) => {
+    setActiveTask(task);
+    const existingSub = submissions.find(s => s.taskId?._id === task._id || s.taskId === task._id);
+    if (existingSub) {
+      setSubData({
+        submissionType: existingSub.submissionType || 'text',
+        textContent: existingSub.textContent || '',
+        linkUrl: existingSub.linkUrl || '',
+        remarks: existingSub.remarks || ''
+      });
+      setStudentSubmittedLinks(existingSub.submittedLinks || []);
+    } else {
+      setSubData({ submissionType: 'text', textContent: '', linkUrl: '', remarks: '' });
+      const initialLinks = (task.requiredLinks || []).map(rl => ({ label: rl.label, url: '' }));
+      setStudentSubmittedLinks(initialLinks);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -91,11 +110,13 @@ const MyTasks = () => {
         textContent: subData.textContent,
         linkUrl: subData.linkUrl,
         fileUrl,
-        remarks: subData.remarks
+        remarks: subData.remarks,
+        submittedLinks: studentSubmittedLinks
       });
 
       setActiveTask(null);
       setSubData({ submissionType: 'text', textContent: '', linkUrl: '', remarks: '' });
+      setStudentSubmittedLinks([]);
       fetchTasks();
       Swal.fire({ title: 'Success', text: 'Task submitted successfully!', icon: 'success' });
     } catch (error) {
@@ -410,7 +431,7 @@ const MyTasks = () => {
                     </span>
                   </div>
                 ) : (
-                  <button onClick={() => setActiveTask(task)} className="bg-gradient-to-r from-primary-500 to-theme-accent hover:from-primary-600 hover:to-theme-accent text-white font-bold py-2 px-5 text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-theme-primary/30 transition-all hover:-translate-y-0.5 whitespace-nowrap cursor-pointer">
+                  <button onClick={() => handleOpenSubmitModal(task)} className="bg-gradient-to-r from-primary-500 to-theme-accent hover:from-primary-600 hover:to-theme-accent text-white font-bold py-2 px-5 text-sm rounded-xl flex items-center gap-2 shadow-lg shadow-theme-primary/30 transition-all hover:-translate-y-0.5 whitespace-nowrap cursor-pointer">
                     <Upload size={18} /> {submission?.status === 'resubmit' ? 'Resubmit Task' : 'View & Submit'}
                   </button>
                 )}
@@ -437,49 +458,90 @@ const MyTasks = () => {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[85vh]">
               
-              {/* Submission Type Toggle */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">How would you like to submit?</label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                  <button 
-                    type="button"
-                    className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${subData.submissionType === 'text' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
-                    onClick={() => setSubData({...subData, submissionType: 'text'})}
-                  >
-                    <AlignLeft size={16} /> Text
-                  </button>
-                  <button 
-                    type="button"
-                    className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${subData.submissionType === 'link' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
-                    onClick={() => setSubData({...subData, submissionType: 'link'})}
-                  >
-                    <LinkIcon size={16} /> Link
-                  </button>
+              {activeTask.requiredLinks && activeTask.requiredLinks.length > 0 ? (
+                /* Multiple Custom Links Submission Form */
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-2 border-b border-slate-100 dark:border-slate-800 pb-1.5">
+                    Requested Submission Links
+                  </h3>
+                  {activeTask.requiredLinks.map((reqLink, idx) => {
+                    const currentVal = studentSubmittedLinks.find(sl => sl.label === reqLink.label)?.url || '';
+                    return (
+                      <div key={idx} className="space-y-1.5">
+                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                          <span>{reqLink.label}</span>
+                          <span className={reqLink.isMandatory ? 'text-rose-500 font-bold text-xs' : 'text-slate-400 text-xs'}>
+                            {reqLink.isMandatory ? 'Mandatory' : 'Optional'}
+                          </span>
+                        </label>
+                        <input
+                          required={reqLink.isMandatory}
+                          type="url"
+                          className="input-field"
+                          placeholder="https://..."
+                          value={currentVal}
+                          onChange={(e) => {
+                            const updated = [...studentSubmittedLinks];
+                            const existingIdx = updated.findIndex(sl => sl.label === reqLink.label);
+                            if (existingIdx > -1) {
+                              updated[existingIdx].url = e.target.value;
+                            } else {
+                              updated.push({ label: reqLink.label, url: e.target.value });
+                            }
+                            setStudentSubmittedLinks(updated);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-
-              {/* Dynamic Submission Input */}
-              {subData.submissionType === 'text' && (
-                <div className="flex flex-col">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Text / Code Submission</label>
-                  <div className="bg-white dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-                    <ReactQuill 
-                      theme="snow" 
-                      value={subData.textContent} 
-                      onChange={(val) => setSubData({...subData, textContent: val})} 
-                      modules={quillModules}
-                      className="h-64 mb-12 text-slate-900 dark:text-white"
-                    />
+              ) : (
+                /* Standard Single Field Submission Form */
+                <>
+                  {/* Submission Type Toggle */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">How would you like to submit?</label>
+                    <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                      <button 
+                        type="button"
+                        className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${subData.submissionType === 'text' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                        onClick={() => setSubData({...subData, submissionType: 'text'})}
+                      >
+                        <AlignLeft size={16} /> Text
+                      </button>
+                      <button 
+                        type="button"
+                        className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-md transition-colors ${subData.submissionType === 'link' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                        onClick={() => setSubData({...subData, submissionType: 'link'})}
+                      >
+                        <LinkIcon size={16} /> Link
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
 
+                  {/* Dynamic Submission Input */}
+                  {subData.submissionType === 'text' && (
+                    <div className="flex flex-col">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Text / Code Submission</label>
+                      <div className="bg-white dark:bg-slate-900 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <ReactQuill 
+                          theme="snow" 
+                          value={subData.textContent} 
+                          onChange={(val) => setSubData({...subData, textContent: val})} 
+                          modules={quillModules}
+                          className="h-64 mb-12 text-slate-900 dark:text-white"
+                        />
+                      </div>
+                    </div>
+                  )}
 
-              {subData.submissionType === 'link' && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Project Link / GitHub URL</label>
-                  <input required type="url" className="input-field" placeholder="https://..." value={subData.linkUrl} onChange={e => setSubData({...subData, linkUrl: e.target.value})} />
-                </div>
+                  {subData.submissionType === 'link' && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Project Link / GitHub URL</label>
+                      <input required type="url" className="input-field" placeholder="https://..." value={subData.linkUrl} onChange={e => setSubData({...subData, linkUrl: e.target.value})} />
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Remarks Box */}

@@ -517,6 +517,25 @@ const SubmissionReviews = () => {
                   </div>
                 )}
 
+                {/* Submitted Links (Multiple Links Feature) */}
+                {activeReview.submittedLinks && activeReview.submittedLinks.length > 0 && (
+                  <div className="flex flex-col gap-3 mt-4 border-t border-slate-200 dark:border-slate-700 pt-3">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Submitted Links</p>
+                    {activeReview.submittedLinks.map((sl, idx) => (
+                      <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 rounded-lg gap-2">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{sl.label}:</span>
+                        {sl.url ? (
+                          <a href={sl.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 hover:underline text-sm font-semibold truncate max-w-md">
+                            {sl.url} <ExternalLink size={12} />
+                          </a>
+                        ) : (
+                          <span className="text-xs font-medium text-slate-400 italic">Not Provided</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {/* Remarks */}
                 <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student Remarks</h4>

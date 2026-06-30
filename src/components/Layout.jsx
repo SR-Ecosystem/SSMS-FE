@@ -914,12 +914,12 @@ const Layout = () => {
           <path d="M12 22V12"/>
         </svg>
         {/* C */}
-        <svg className="absolute w-9 h-9 opacity-20 dark:opacity-35 animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="2" stroke-linecap="round">
+        <svg className="absolute w-9 h-9 opacity-20 dark:opacity-35 animate-bubble-6 top-[32%] right-[32%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-accent)" strokeWidth="2" strokeLinecap="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M14.5 9.5a3 3 0 1 0 0 5" stroke="var(--color-theme-accent)" strokeWidth="2.5"/>
         </svg>
         {/* C++ */}
-        <svg className="absolute w-10 h-10 opacity-20 dark:opacity-35 animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="2" stroke-linecap="round">
+        <svg className="absolute w-10 h-10 opacity-20 dark:opacity-35 animate-bubble-7 top-[82%] right-[38%]" viewBox="0 0 24 24" fill="none" stroke="var(--color-theme-primary)" strokeWidth="2" strokeLinecap="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           <path d="M11 9.5a2 2 0 1 0 0 5" stroke="var(--color-theme-primary)" strokeWidth="2"/>
           <path d="M14 12h3M15.5 10.5v3"/>
