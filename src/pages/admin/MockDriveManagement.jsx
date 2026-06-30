@@ -25,6 +25,7 @@ const MockDriveManagement = () => {
   const [parsing, setParsing] = useState(false);
   const [parsedRows, setParsedRows] = useState([]);
   const [unmatchedStudents, setUnmatchedStudents] = useState([]);
+  const [parsedMaxMarks, setParsedMaxMarks] = useState(749);
   
   // Details Modal State
   const [activeMockDrive, setActiveMockDrive] = useState(null);
@@ -114,6 +115,7 @@ const MockDriveManagement = () => {
       });
       setParsedRows(data.rows);
       setUnmatchedStudents(data.unmatchedStudents);
+      setParsedMaxMarks(data.maxMarks || 749);
       Swal.fire('Excel Parsed', 'Verify student mappings before saving.', 'success');
     } catch (error) {
       Swal.fire('Error', error.response?.data?.message || 'Failed to parse Excel file', 'error');
@@ -153,7 +155,7 @@ const MockDriveManagement = () => {
       await axios.post('/mock-drives', {
         title: uploadTitle,
         batchId: selectedUploadBatch,
-        maxMarks: 749, // standard
+        maxMarks: parsedMaxMarks,
         scores
       });
       
@@ -446,6 +448,9 @@ const MockDriveManagement = () => {
                     <Check size={20} />
                     <span className="font-bold text-sm">
                       Successfully parsed {parsedRows.length} rows. {unmatchedStudents.length} students in the database batch were not matched in the sheet (they will receive 0 marks).
+                      <strong className="block mt-1 text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-350">
+                        Detected Max Marks: {parsedMaxMarks}
+                      </strong>
                     </span>
                   </div>
 
