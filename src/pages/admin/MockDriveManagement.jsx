@@ -5,7 +5,8 @@ import { Plus, Trash2, Award, Upload, Download, Loader2, Search, Check, AlertCir
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const formatScore = (val) => {
-  if (val === undefined || val === null || isNaN(val)) return '0';
+  if (val === undefined || val === null) return 'N/A';
+  if (isNaN(val)) return '0';
   return String(Math.round((Number(val) + Number.EPSILON) * 100) / 100);
 };
 
@@ -34,6 +35,7 @@ const MockDriveManagement = () => {
 
   // Score Editing State
   const [editingStudentId, setEditingStudentId] = useState(null);
+  const [editAptitude, setEditAptitude] = useState(0);
   const [editMcq, setEditMcq] = useState(0);
   const [editCoding, setEditCoding] = useState(0);
   const [editTechHr, setEditTechHr] = useState(0);
@@ -233,6 +235,7 @@ const MockDriveManagement = () => {
 
   const handleStartEdit = (score) => {
     setEditingStudentId(score.studentId?._id || score.studentId);
+    setEditAptitude(score.aptitude);
     setEditMcq(score.mcq);
     setEditCoding(score.coding);
     setEditTechHr(score.techHr);
@@ -244,23 +247,26 @@ const MockDriveManagement = () => {
   const handleUpdateScore = async (studentId) => {
     if (!activeMockDrive) return;
     
-    const mcqNum = Number(editMcq) || 0;
+    const aptVal = editAptitude === null || editAptitude === '' || isNaN(editAptitude) ? null : Number(editAptitude);
+    const mcqVal = editMcq === null || editMcq === '' || isNaN(editMcq) ? null : Number(editMcq);
     const codingNum = Number(editCoding) || 0;
     const techHrNum = Number(editTechHr) || 0;
     const hrNum = Number(editHr) || 0;
-    const total = mcqNum + codingNum + techHrNum + hrNum;
+    const total = (aptVal || 0) + (mcqVal || 0) + codingNum + techHrNum + hrNum;
     const maxMarks = activeMockDrive.maxMarks || 749;
-    const pct = Math.round((total / maxMarks) * 100);
+    const pct = Math.round((total / maxMarks) * 105) / 105; // just rounding
+    const pctInt = Math.round((total / maxMarks) * 100);
 
     try {
       await axios.put(`/mock-drives/${activeMockDrive._id}/score`, {
         studentId,
-        mcq: mcqNum,
+        aptitude: aptVal,
+        mcq: mcqVal,
         coding: codingNum,
         techHr: techHrNum,
         hr: hrNum,
         totalMarks: total,
-        percentage: pct,
+        percentage: pctInt,
         grade: editGrade,
         attended: editAttended
       });
@@ -464,7 +470,7 @@ const MockDriveManagement = () => {
                             <tr>
                               <th className="px-6 py-4">Sheet Email</th>
                               <th className="px-6 py-4">Sheet Name</th>
-                              <th className="px-6 py-4 text-center">Marks (MCQ/Code/Tech/HR/Total)</th>
+                              <th className="px-6 py-4 text-center">Marks (Apt/Tech/Coding/TechHR/HR/Total)</th>
                               <th className="px-6 py-4">Match Status</th>
                             </tr>
                           </thead>
@@ -474,7 +480,7 @@ const MockDriveManagement = () => {
                                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-200">{row.rowData.studentEmail}</td>
                                 <td className="px-6 py-4 text-slate-600 dark:text-slate-300 font-medium">{row.rowData.studentName}</td>
                                 <td className="px-6 py-4 text-center font-bold text-emerald-500">
-                                  {formatScore(row.rowData.mcq)} / {formatScore(row.rowData.coding)} / {formatScore(row.rowData.techHr)} / {formatScore(row.rowData.hr)} = <span className="text-indigo-500 dark:text-indigo-400">{formatScore(row.rowData.totalMarks)}</span>
+                                  {formatScore(row.rowData.aptitude)} / {formatScore(row.rowData.mcq)} / {formatScore(row.rowData.coding)} / {formatScore(row.rowData.techHr)} / {formatScore(row.rowData.hr)} = <span className="text-indigo-500 dark:text-indigo-400">{formatScore(row.rowData.totalMarks)}</span>
                                 </td>
                                 <td className="px-6 py-4">
                                   {row.matchedStudent ? (
@@ -564,7 +570,8 @@ const MockDriveManagement = () => {
                           <tr>
                             <th className="px-4 py-4">Student</th>
                             <th className="px-4 py-4">Roll Number</th>
-                            <th className="px-4 py-4 text-center">MCQ</th>
+                            <th className="px-4 py-4 text-center">Aptitude</th>
+                            <th className="px-4 py-4 text-center">Tech MCQ</th>
                             <th className="px-4 py-4 text-center">Coding</th>
                             <th className="px-4 py-4 text-center">Tech HR</th>
                             <th className="px-4 py-4 text-center">HR</th>
@@ -578,7 +585,7 @@ const MockDriveManagement = () => {
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                           {scoresList.length === 0 ? (
                             <tr>
-                              <td colSpan="11" className="text-center py-8 text-slate-500 dark:text-slate-400">
+                              <td colSpan="12" className="text-center py-8 text-slate-500 dark:text-slate-400">
                                 No score records found.
                               </td>
                             </tr>
@@ -594,10 +601,20 @@ const MockDriveManagement = () => {
                                     <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{student.rollNumber || 'N/A'}</td>
                                     <td className="px-4 py-3 text-center">
                                       <input 
-                                        type="number" 
+                                        type="text" 
+                                        placeholder="N/A"
                                         className="w-16 px-2 py-1 bg-white dark:bg-slate-800 border rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500" 
-                                        value={editMcq} 
-                                        onChange={e => setEditMcq(e.target.value)} 
+                                        value={editAptitude === null ? '' : editAptitude} 
+                                        onChange={e => setEditAptitude(e.target.value === '' ? null : e.target.value)} 
+                                      />
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                      <input 
+                                        type="text" 
+                                        placeholder="N/A"
+                                        className="w-16 px-2 py-1 bg-white dark:bg-slate-800 border rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500" 
+                                        value={editMcq === null ? '' : editMcq} 
+                                        onChange={e => setEditMcq(e.target.value === '' ? null : e.target.value)} 
                                       />
                                     </td>
                                     <td className="px-4 py-3 text-center">
@@ -625,10 +642,22 @@ const MockDriveManagement = () => {
                                       />
                                     </td>
                                     <td className="px-4 py-3 font-black text-slate-800 dark:text-slate-200 text-center">
-                                      {formatScore(Number(editMcq) + Number(editCoding) + Number(editTechHr) + Number(editHr))}
+                                      {formatScore(
+                                        (editAptitude === null || editAptitude === '' ? 0 : Number(editAptitude)) + 
+                                        (editMcq === null || editMcq === '' ? 0 : Number(editMcq)) + 
+                                        Number(editCoding) + 
+                                        Number(editTechHr) + 
+                                        Number(editHr)
+                                      )}
                                     </td>
                                     <td className="px-4 py-3 font-black text-emerald-500 text-center">
-                                      {formatScore(((Number(editMcq) + Number(editCoding) + Number(editTechHr) + Number(editHr)) / (activeMockDrive.maxMarks || 749)) * 100)}%
+                                      {formatScore((
+                                        ((editAptitude === null || editAptitude === '' ? 0 : Number(editAptitude)) + 
+                                         (editMcq === null || editMcq === '' ? 0 : Number(editMcq)) + 
+                                         Number(editCoding) + 
+                                         Number(editTechHr) + 
+                                         Number(editHr)) / (activeMockDrive.maxMarks || 749)
+                                      ) * 100)}%
                                     </td>
                                     <td className="px-4 py-3 text-center">
                                       <select 
@@ -676,6 +705,7 @@ const MockDriveManagement = () => {
                                 <tr key={student._id || score._id} className="hover:bg-indigo-500/5 dark:hover:bg-indigo-500/10 transition-colors duration-200">
                                   <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">{student.name || 'Unknown'}</td>
                                   <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{student.rollNumber || 'N/A'}</td>
+                                  <td className="px-4 py-3 text-center">{formatScore(score.aptitude)}</td>
                                   <td className="px-4 py-3 text-center">{formatScore(score.mcq)}</td>
                                   <td className="px-4 py-3 text-center">{formatScore(score.coding)}</td>
                                   <td className="px-4 py-3 text-center">{formatScore(score.techHr)}</td>

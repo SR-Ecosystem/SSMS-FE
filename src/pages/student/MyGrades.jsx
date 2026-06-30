@@ -21,7 +21,8 @@ const formatDateTime = (dateString) => {
 };
 
 const formatScore = (val) => {
-  if (val === undefined || val === null || isNaN(val)) return '0';
+  if (val === undefined || val === null) return 'N/A';
+  if (isNaN(val)) return '0';
   return String(Math.round((Number(val) + Number.EPSILON) * 100) / 100);
 };
 
@@ -156,7 +157,9 @@ const MyGrades = () => {
                   <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 text-left border border-slate-100 dark:border-slate-700/50 flex-1 space-y-3">
                     <p className="text-xs font-black uppercase tracking-widest text-slate-500 border-b border-slate-200 dark:border-slate-700 pb-1">Marks Breakdown</p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="text-slate-500 dark:text-slate-400 font-medium">MCQ Marks:</div>
+                      <div className="text-slate-500 dark:text-slate-400 font-medium">MCQ - Aptitude:</div>
+                      <div className="font-bold text-right text-slate-800 dark:text-slate-200">{formatScore(score.aptitude)}</div>
+                      <div className="text-slate-500 dark:text-slate-400 font-medium">MCQ - Tech:</div>
                       <div className="font-bold text-right text-slate-800 dark:text-slate-200">{formatScore(score.mcq)}</div>
                       <div className="text-slate-500 dark:text-slate-400 font-medium">Coding Round:</div>
                       <div className="font-bold text-right text-slate-800 dark:text-slate-200">{formatScore(score.coding)}</div>
