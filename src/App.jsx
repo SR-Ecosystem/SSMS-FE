@@ -30,6 +30,7 @@ const MockDriveManagement = lazy(() => import('./pages/admin/MockDriveManagement
 const TrafficManagement = lazy(() => import('./pages/admin/TrafficManagement'));
 const CheckInPermissions = lazy(() => import('./pages/admin/CheckInPermissions'));
 const FacultyAttendance = lazy(() => import('./pages/admin/FacultyAttendance'));
+const ActivityLogs = lazy(() => import('./pages/admin/ActivityLogs'));
 
 // Student Pages
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
@@ -111,6 +112,9 @@ function App() {
             } />
             <Route path="checkin-permissions" element={
               <ProtectedRoute allowedRoles={['admin']}><CheckInPermissions /></ProtectedRoute>
+            } />
+            <Route path="activity-logs" element={
+              <ProtectedRoute allowedRoles={['admin']}><ActivityLogs /></ProtectedRoute>
             } />
 
             {/* Student Routes */}

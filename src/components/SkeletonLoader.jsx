@@ -306,6 +306,40 @@ const SkeletonLoader = ({ type = 'admin-dashboard' }) => {
     );
   }
 
+  // 5. Activity Logs List Skeleton
+  if (type === 'logs') {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6 pb-12 animate-in fade-in duration-300">
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <PulseItem className="w-48 h-6" />
+            <PulseItem className="w-64 h-3.5" />
+          </div>
+          <div className="flex items-center gap-3">
+            <PulseItem className="w-44 h-10 rounded-full" />
+            <PulseItem className="w-10 h-10 rounded-xl" />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl p-6 sm:p-8 space-y-4">
+          {[...Array(8)].map((_, idx) => (
+            <div key={idx} className="flex items-center justify-between gap-4 p-4 border border-slate-100 dark:border-slate-800 rounded-2xl">
+              <div className="flex items-center gap-4 flex-1">
+                <PulseItem className="w-14 h-3 shrink-0" />
+                <PulseItem className="w-8 h-8 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <PulseItem className="w-1/2 h-3.5" />
+                  <PulseItem className="w-24 h-2.5" />
+                </div>
+              </div>
+              <PulseItem className="w-20 h-5 rounded-lg shrink-0" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return null;
 };
 

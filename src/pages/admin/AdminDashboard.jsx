@@ -368,7 +368,9 @@ const AdminDashboard = () => {
                 <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Community & System Feed</h3>
                 <p className="text-xs text-slate-450 mt-0.5 font-medium">Recent server sync notifications and batch chats</p>
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live</span>
+              <Link to="/activity-logs" className="text-[10px] font-black text-theme-primary hover:text-theme-primary/80 transition-colors uppercase tracking-widest flex items-center gap-1 hover:underline">
+                View Logs <ChevronRight size={10} />
+              </Link>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar my-2">

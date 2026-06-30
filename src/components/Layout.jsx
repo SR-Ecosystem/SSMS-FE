@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, FileText, CheckCircle,
   LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor,
-  Briefcase, ChevronDown, ChevronRight, Palette, Network, ShieldCheck
+  Briefcase, ChevronDown, ChevronRight, Palette, Network, ShieldCheck, Activity
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
@@ -773,6 +773,7 @@ const Layout = () => {
         { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },
         { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={20} /> },
         { name: 'Traffic Control', path: '/traffic', icon: <Network size={20} /> },
+        { name: 'Activity Logs', path: '/activity-logs', icon: <Activity size={20} /> },
       ]
     },
     {
