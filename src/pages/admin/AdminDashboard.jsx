@@ -3,7 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe, Briefcase, Trophy, Network } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const AdminDashboard = () => {
@@ -221,32 +221,48 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Row 2: Quick Actions Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        {[
-          { name: 'Students', path: '/students', icon: <Users size={16} />, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
-          { name: 'Tasks', path: '/tasks', icon: <FileText size={16} />, color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/30' },
-          { name: 'Reviews', path: '/reviews', icon: <CheckCircle size={16} />, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
-          { name: 'LeetCode', path: '/leetcode', icon: <Code size={16} />, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
-          { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={16} />, color: 'text-cyan-500 bg-cyan-50 dark:bg-cyan-950/30' },
-          { name: 'Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={16} />, color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30' },
-          { name: 'Leaves', path: '/leaves', icon: <Calendar size={16} />, color: 'text-teal-500 bg-teal-50 dark:bg-teal-950/30' },
-          { name: 'Chat', path: '/chat', icon: <MessageCircle size={16} />, color: 'text-pink-500 bg-pink-50 dark:bg-pink-950/30' },
-        ].map((link) => (
-          <Link 
-            key={link.name} 
-            to={link.path}
-            className="flex flex-col p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-theme-primary/50 dark:hover:border-theme-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all text-slate-800 dark:text-slate-100 group relative overflow-hidden"
-          >
-            <div className="absolute top-0 right-0 w-20 h-20 bg-theme-primary/5 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none transition-all group-hover:scale-150"></div>
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${link.color} mb-3 relative z-10 font-bold`}>
-              {link.icon}
-            </div>
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1 relative z-10 mt-auto">
-              {link.name} <ChevronRight size={14} className="opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all text-theme-primary" />
-            </p>
-          </Link>
-        ))}
+      {/* Row 2: Comprehensive Dashboard Grid */}
+      <div>
+        <h2 className="text-base font-black text-slate-800 dark:text-slate-100 mb-4 tracking-tight">System Operations</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {[
+            { name: 'Student Directory', path: '/students', icon: <Users size={18} />, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30', val: `${stats?.totalStudents || 0} Registered` },
+            { name: 'Task Management', path: '/tasks', icon: <FileText size={18} />, color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/30', val: `${stats?.totalTasks || 0} Active Tasks` },
+            { name: 'Review Submissions', path: '/reviews', icon: <CheckCircle size={18} />, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30', val: `${stats?.pendingReviews || 0} Pending Reviews` },
+            { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={18} />, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30', val: 'Coding Pools & Sync' },
+            { name: 'Mock Drives', path: '/mock-drives', icon: <Briefcase size={18} />, color: 'text-orange-500 bg-orange-50 dark:bg-orange-950/30', val: 'Interview Management' },
+            { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={18} />, color: 'text-yellow-500 bg-yellow-50 dark:bg-yellow-950/30', val: 'Rankings & Streaks' },
+            { name: 'Task Tracker', path: '/batch-tracker', icon: <BookOpen size={18} />, color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30', val: 'Batch Task Stats' },
+            { name: 'Attendance Logs', path: '/attendance-logs', icon: <Clock size={18} />, color: 'text-cyan-500 bg-cyan-50 dark:bg-cyan-950/30', val: 'Daily Check-In Logs' },
+            { name: 'Check-In Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={18} />, color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30', val: 'Approval Settings' },
+            { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={18} />, color: 'text-sky-500 bg-sky-50 dark:bg-sky-950/30', val: 'Visual Matrix View' },
+            { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={18} />, color: 'text-teal-500 bg-teal-50 dark:bg-teal-950/30', val: `${stats?.pendingLeavesCount || 0} Pending Leaves` },
+            { name: 'Batch Chat', path: '/chat', icon: <MessageCircle size={18} />, color: 'text-pink-500 bg-pink-50 dark:bg-pink-950/30', val: 'Real-time Messaging' },
+            { name: 'Traffic Control', path: '/traffic', icon: <Network size={18} />, color: 'text-violet-500 bg-violet-50 dark:bg-violet-950/30', val: 'Server Sync Logs' },
+          ].map((link) => (
+            <Link 
+              key={link.name} 
+              to={link.path}
+              className="flex flex-col p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-theme-primary/50 dark:hover:border-theme-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all text-slate-800 dark:text-slate-100 group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-20 h-20 bg-theme-primary/5 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none transition-all group-hover:scale-150"></div>
+              <div className="flex justify-between items-start mb-3 relative z-10">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${link.color} font-bold`}>
+                  {link.icon}
+                </div>
+                <ChevronRight size={16} className="text-slate-400 group-hover:text-theme-primary transition-colors mt-1" />
+              </div>
+              <div className="relative z-10 mt-auto">
+                <p className="text-sm font-black text-slate-800 dark:text-slate-200 leading-snug">
+                  {link.name}
+                </p>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                  {link.val}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Row 3: Submission Chart + Recent Activities */}
