@@ -768,7 +768,7 @@ const Layout = () => {
       label: 'Operations',
       links: [
         { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} /> },
-        { name: 'Classroom Attendance', path: '/attendence', icon: <Monitor size={20} /> },
+        { name: 'Classroom Attendance', path: '/student/attenence', icon: <Monitor size={20} /> },
         { name: 'Check-In Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={20} /> },
         { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={20} /> },
         { name: 'Leave Requests', path: '/leaves', icon: <Calendar size={20} />, badge: getBadge('leaves', leavesCount) },

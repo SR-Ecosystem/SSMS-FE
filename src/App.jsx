@@ -112,7 +112,7 @@ function App() {
             <Route path="checkin-permissions" element={
               <ProtectedRoute allowedRoles={['admin']}><CheckInPermissions /></ProtectedRoute>
             } />
-            <Route path="attendence" element={
+            <Route path="student/attenence" element={
               <ProtectedRoute allowedRoles={['admin']}><FacultyAttendance /></ProtectedRoute>
             } />
 
