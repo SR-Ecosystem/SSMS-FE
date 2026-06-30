@@ -39,7 +39,11 @@ const AdminDashboard = () => {
   ];
 
   const totalReviews = (stats?.completedReviews || 0) + (stats?.pendingReviews || 0);
-  const completionPercent = totalReviews > 0 ? Math.round((stats.completedReviews / totalReviews) * 100) : 0;
+  const completionPercent = totalReviews > 0 
+    ? (stats.pendingReviews > 0 
+        ? Math.min(99, Math.floor((stats.completedReviews / totalReviews) * 100)) 
+        : 100)
+    : 0;
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
