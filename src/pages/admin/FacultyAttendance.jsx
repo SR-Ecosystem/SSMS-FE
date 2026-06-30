@@ -14,7 +14,8 @@ const FacultyAttendance = () => {
 
   // Filters and Sorting
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('name-asc'); // name-asc, name-desc, hours-desc, hours-asc, active-first
+  const [sortBy, setSortBy] = useState('name-asc'); // name-asc, name-desc, id-asc, id-desc
+  const [presenceFilter, setPresenceFilter] = useState('all'); // all, present, absent
   const [selectedDate, setSelectedDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
   const fetchBatches = async () => {
@@ -33,15 +34,15 @@ const FacultyAttendance = () => {
     if (!selectedBatch) return;
     try {
       setRefreshing(true);
-      // Fetch summary list
-      const res = await axios.get(`/public/attendance/summary?batchId=${selectedBatch}`);
+      // Fetch summary list with target date
+      const res = await axios.get(`/public/attendance/summary?batchId=${selectedBatch}&date=${selectedDate}`);
       
       const { totalStrength, logs } = res.data;
       // Filter for students whose check-in access is 'on-site' on selected date
       const presentOnSite = logs.filter(log => log.date === selectedDate && log.accessType === 'on-site');
       
       setAttendance(presentOnSite);
-      setTotalClassStrength(totalStrength || 0);
+      setTotalClassStrength(presentOnSite.length);
     } catch (err) {
       console.error('Error fetching attendance summary:', err);
     } finally {
@@ -76,10 +77,18 @@ const FacultyAttendance = () => {
   const filteredLogs = attendance
     .filter(log => {
       const searchLower = searchTerm.toLowerCase();
-      return (
-        log.name.toLowerCase().includes(searchLower) ||
-        (log.rollNumber && log.rollNumber.toLowerCase().includes(searchLower))
-      );
+      const matchesSearch = log.name.toLowerCase().includes(searchLower) ||
+        (log.rollNumber && log.rollNumber.toLowerCase().includes(searchLower));
+
+      if (!matchesSearch) return false;
+
+      if (presenceFilter === 'present') {
+        return log.isCheckedIn === true;
+      }
+      if (presenceFilter === 'absent') {
+        return log.isCheckedIn === false;
+      }
+      return true;
     })
     .sort((a, b) => {
       if (sortBy === 'name-asc') {
@@ -88,25 +97,23 @@ const FacultyAttendance = () => {
       if (sortBy === 'name-desc') {
         return b.name.localeCompare(a.name);
       }
-      if (sortBy === 'hours-desc') {
-        return b.totalSeconds - a.totalSeconds;
+      if (sortBy === 'id-asc') {
+        const rollA = a.rollNumber || '';
+        const rollB = b.rollNumber || '';
+        return rollA.localeCompare(rollB, undefined, { numeric: true, sensitivity: 'base' });
       }
-      if (sortBy === 'hours-asc') {
-        return a.totalSeconds - b.totalSeconds;
-      }
-      if (sortBy === 'active-first') {
-        if (a.isActive && !b.isActive) return -1;
-        if (!a.isActive && b.isActive) return 1;
-        return b.totalSeconds - a.totalSeconds;
+      if (sortBy === 'id-desc') {
+        const rollA = a.rollNumber || '';
+        const rollB = b.rollNumber || '';
+        return rollB.localeCompare(rollA, undefined, { numeric: true, sensitivity: 'base' });
       }
       return 0;
     });
 
   // Calculate statistics
-  const totalPresent = attendance.length;
   const activeNow = attendance.filter(log => log.isActive).length;
-  const totalSecondsWorked = attendance.reduce((acc, curr) => acc + curr.totalSeconds, 0);
-  const avgSecondsWorked = totalPresent > 0 ? Math.floor(totalSecondsWorked / totalPresent) : 0;
+  const totalCheckedIn = attendance.filter(log => log.isCheckedIn).length;
+  const totalAbsent = attendance.length - totalCheckedIn;
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 space-y-6 text-slate-800 light-theme-override">
@@ -181,42 +188,42 @@ const FacultyAttendance = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+      <div className="grid grid-cols-3 gap-2 sm:gap-5">
+        <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl items-center justify-center shrink-0">
             <Users size={24} />
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Class Total Strength</p>
-            <h3 className="text-2xl font-black mt-0.5">{totalClassStrength} <span className="text-xs font-medium text-muted">students</span></h3>
+            <p className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">Strength</p>
+            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalClassStrength} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 relative">
+        <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl items-center justify-center shrink-0 relative">
             <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full animate-ping absolute"></div>
             <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full relative"></div>
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Present (Checked-in now)</p>
-            <h3 className="text-2xl font-black mt-0.5">{activeNow} <span className="text-xs font-medium text-muted">active</span></h3>
+            <p className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">Present</p>
+            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{activeNow} <span className="hidden md:inline text-xs font-medium text-muted">active</span></h3>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
-          <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
+        <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex w-12 h-12 bg-rose-50 text-rose-600 rounded-xl items-center justify-center shrink-0">
             <Users size={24} className="text-rose-500" />
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Absent</p>
-            <h3 className="text-2xl font-black mt-0.5">{Math.max(0, totalClassStrength - attendance.length)} <span className="text-xs font-medium text-muted">students</span></h3>
+            <p className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">Absent</p>
+            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalAbsent} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
       </div>
 
       {/* Search & Sort Panel */}
-      <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="w-full md:flex-1 relative">
+      <div className="glass-card p-4 rounded-2xl space-y-4">
+        <div className="relative">
           <Search className="absolute left-3.5 top-2.5 text-slate-400" size={18} />
           <input
             type="text"
@@ -227,20 +234,44 @@ const FacultyAttendance = () => {
           />
         </div>
 
-        <div className="w-full md:w-auto flex items-center gap-2">
-          <ArrowUpDown size={16} className="text-slate-400 shrink-0" />
-          <span className="text-xs font-bold text-muted uppercase tracking-wider whitespace-nowrap">Sort By:</span>
-          <select
-            className="w-full md:w-[180px] px-3 py-2 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="name-asc">Name (A-Z)</option>
-            <option value="name-desc">Name (Z-A)</option>
-            <option value="hours-desc">Hours (Highest First)</option>
-            <option value="hours-asc">Hours (Lowest First)</option>
-            <option value="active-first">Active Now First</option>
-          </select>
+        {/* Filter & Sort Controls Row */}
+        <div className="flex flex-row items-center gap-2 w-full justify-between">
+          {/* Segmented Filter Buttons (Show All, Present, Absent) */}
+          <div className="flex flex-1 bg-slate-100 p-1 rounded-xl items-center max-w-[240px] sm:max-w-none">
+            <button
+              onClick={() => setPresenceFilter('all')}
+              className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setPresenceFilter('present')}
+              className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'present' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Present
+            </button>
+            <button
+              onClick={() => setPresenceFilter('absent')}
+              className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'absent' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Absent
+            </button>
+          </div>
+
+          {/* Sort Selector */}
+          <div className="flex items-center gap-1.5 flex-1 max-w-[160px] sm:max-w-none justify-end">
+            <ArrowUpDown size={14} className="text-slate-400 shrink-0 hidden xs:inline" />
+            <select
+              className="w-full sm:w-[150px] px-2 py-1.5 rounded-xl text-xs sm:text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm border border-slate-200 bg-white text-slate-800"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name-asc">Name A-Z</option>
+              <option value="name-desc">Name Z-A</option>
+              <option value="id-asc">ID A-Z</option>
+              <option value="id-desc">ID Z-A</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -261,15 +292,19 @@ const FacultyAttendance = () => {
                   <h3 className="font-bold text-base text-slate-900 leading-snug">{student.name}</h3>
                   <p className="text-xs font-semibold text-muted tracking-wide uppercase mt-0.5">{student.rollNumber || 'No ID'}</p>
                 </div>
-                <div className="flex items-center gap-1.5">
+                 <div className="flex items-center gap-1.5">
                   {student.isActive ? (
                     <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-black text-emerald-600 uppercase tracking-wider relative">
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping absolute"></span>
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full relative"></span>
                       Active
                     </span>
+                  ) : !student.isCheckedIn ? (
+                    <span className="bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-black text-rose-600 uppercase tracking-wider">
+                      Absent
+                    </span>
                   ) : (
-                    <span className="bg-slate-105 border border-slate-200 px-2.5 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                    <span className="bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">
                       Checked Out
                     </span>
                   )}
@@ -283,7 +318,7 @@ const FacultyAttendance = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Check-in Status</p>
-                  <p className="text-sm font-black text-indigo-600 mt-0.5">{student.status}</p>
+                  <p className={`text-sm font-black mt-0.5 ${student.isActive ? 'text-emerald-600' : student.status === 'Absent' ? 'text-rose-600' : 'text-indigo-600'}`}>{student.status}</p>
                 </div>
               </div>
 
