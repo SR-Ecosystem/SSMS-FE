@@ -14,6 +14,7 @@ const FacultyAttendance = () => {
   // Filters and Sorting
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name-asc'); // name-asc, name-desc, hours-desc, hours-asc, active-first
+  const [selectedDate, setSelectedDate] = useState(new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]);
 
   const fetchBatches = async () => {
     try {
@@ -31,12 +32,11 @@ const FacultyAttendance = () => {
     if (!selectedBatch) return;
     try {
       setRefreshing(true);
-      // Fetch today's summary list
+      // Fetch summary list
       const res = await axios.get(`/public/attendance/summary?batchId=${selectedBatch}`);
       
-      // Filter for students whose status is 'On-Site' today
-      const today = new Date().toISOString().split('T')[0];
-      const presentOnSite = res.data.filter(log => log.date === today && log.status === 'On-Site');
+      // Filter for students whose status is 'On-Site' on selected date
+      const presentOnSite = res.data.filter(log => log.date === selectedDate && log.status === 'On-Site');
       
       setAttendance(presentOnSite);
     } catch (err) {
@@ -55,7 +55,7 @@ const FacultyAttendance = () => {
     if (selectedBatch) {
       fetchAttendance();
     }
-  }, [selectedBatch]);
+  }, [selectedBatch, selectedDate]);
 
   const formatDuration = (seconds) => {
     if (!seconds) return '0h 0m';
@@ -144,10 +144,17 @@ const FacultyAttendance = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight">On-Site Classroom Attendance</h1>
-          <p className="text-muted text-sm font-medium mt-1">Faculty real-time dashboard of students physically present in the lab today</p>
+          <p className="text-muted text-sm font-medium mt-1">Faculty real-time dashboard of students physically present in the lab</p>
         </div>
 
         <div className="flex items-center gap-3">
+          <input
+            type="date"
+            className="px-4 py-2 text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+
           <select
             className="px-4 py-2 text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
             value={selectedBatch}
@@ -177,7 +184,7 @@ const FacultyAttendance = () => {
             <Users size={24} />
           </div>
           <div>
-            <p className="text-xs font-bold text-muted uppercase tracking-wider">Total Present Today</p>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Total Present</p>
             <h3 className="text-2xl font-black mt-0.5">{totalPresent} <span className="text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
