@@ -1062,8 +1062,10 @@ const Layout = () => {
                       const [linkPathname, linkSearch] = link.path.split('?');
                       const isActive = linkSearch 
                         ? (location.pathname === linkPathname && location.search.includes(linkSearch))
-                        : (location.pathname === linkPathname && !location.search.includes('tab=')) || 
-                          (linkPathname !== '/' && linkPathname !== '/student' && !linkSearch && location.pathname.startsWith(linkPathname));
+                        : (!location.search.includes('tab=') && (
+                            location.pathname === linkPathname || 
+                            (linkPathname !== '/' && linkPathname !== '/student' && location.pathname.startsWith(linkPathname))
+                          ));
                       return (
                         <Link
                           key={link.name}
