@@ -15,9 +15,10 @@ const CheckInPermissions = () => {
   const [loading, setLoading] = useState(true);
   const [grantingAccess, setGrantingAccess] = useState(false);
 
-  // Filters
+  // Filters and Sorting
   const [searchTerm, setSearchTerm] = useState('');
   const [accessFilter, setAccessFilter] = useState('all'); // all, on-site, wfh, none
+  const [sortBy, setSortBy] = useState('name-asc'); // name-asc, name-desc, roll-asc, roll-desc
 
   const fetchData = async () => {
     try {
@@ -200,6 +201,21 @@ const CheckInPermissions = () => {
     else if (accessFilter === 'none') matchesAccess = type === 'none';
 
     return matchesSearch && matchesAccess;
+  }).sort((a, b) => {
+    if (sortBy === 'name-asc') {
+      return a.name.localeCompare(b.name);
+    } else if (sortBy === 'name-desc') {
+      return b.name.localeCompare(a.name);
+    } else if (sortBy === 'roll-asc') {
+      const rA = a.rollNumber || '';
+      const rB = b.rollNumber || '';
+      return rA.localeCompare(rB);
+    } else if (sortBy === 'roll-desc') {
+      const rA = a.rollNumber || '';
+      const rB = b.rollNumber || '';
+      return rB.localeCompare(rA);
+    }
+    return 0;
   });
 
   if (loading && batches.length === 0) return <Loader />;
@@ -251,6 +267,17 @@ const CheckInPermissions = () => {
           </div>
 
           <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto shrink-0 pb-1 md:pb-0">
+            <select
+              className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-750/30 rounded-xl px-3.5 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shrink-0"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name-asc">Name (A-Z)</option>
+              <option value="name-desc">Name (Z-A)</option>
+              <option value="roll-asc">Roll Number (Asc)</option>
+              <option value="roll-desc">Roll Number (Desc)</option>
+            </select>
+
             {[
               { id: 'all', label: 'All Students' },
               { id: 'on-site', label: 'On-Site' },
