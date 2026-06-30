@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 
 const AttendanceLogs = () => {
   const [logs, setLogs] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Filter States
@@ -38,12 +39,14 @@ const AttendanceLogs = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [logsRes, batchesRes] = await Promise.all([
+      const [logsRes, batchesRes, studentsRes] = await Promise.all([
         axios.get(`/attendance/summary${selectedBatch ? `?batchId=${selectedBatch}` : ''}`),
-        axios.get('/batches')
+        axios.get('/batches'),
+        axios.get(`/auth/students${selectedBatch ? `?batchId=${selectedBatch}` : ''}`)
       ]);
       setLogs(logsRes.data);
       setBatches(batchesRes.data);
+      setAllStudents(studentsRes.data);
     } catch (error) {
       console.error('Error fetching attendance summary:', error);
     } finally {
