@@ -33,6 +33,15 @@ const MyGrades = () => {
   const { user } = useAuth();
   const { themeColor, activeTheme } = useOutletContext();
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'mockDrives') {
+      setActiveTab('mockDrives');
+    } else {
+      setActiveTab('assignments');
+    }
+  }, [window.location.search]);
+
   const fetchGradesData = async () => {
     try {
       const [gradesRes, mockRes] = await Promise.all([

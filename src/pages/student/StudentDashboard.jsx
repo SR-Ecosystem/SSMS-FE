@@ -3,7 +3,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
-import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck, Briefcase } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
@@ -18,6 +18,7 @@ const StudentDashboard = () => {
   const [checkInAccess, setCheckInAccess] = useState({ hasAccess: false, accessType: null });
 
   const [activeLeetcode, setActiveLeetcode] = useState([]);
+  const [mockScores, setMockScores] = useState([]);
   const [leetcodeLinks, setLeetcodeLinks] = useState({});
   const [submittingLeetcode, setSubmittingLeetcode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -25,15 +26,17 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const [analyticsRes, leetcodeRes, attendanceRes, accessRes] = await Promise.all([
+        const [analyticsRes, leetcodeRes, attendanceRes, accessRes, mockRes] = await Promise.all([
           axios.get(`/analytics/student/${user._id}`),
           axios.get('/leetcode/active'),
           axios.get('/attendance/my-summary'),
-          axios.get('/checkin-access/my-status').catch(() => ({ data: { hasAccess: false } }))
+          axios.get('/checkin-access/my-status').catch(() => ({ data: { hasAccess: false } })),
+          axios.get(`/mock-drives/student/${user._id}`).catch(() => ({ data: [] }))
         ]);
         setAnalytics(analyticsRes.data);
         setActiveLeetcode(leetcodeRes.data);
         setCheckInAccess(accessRes.data);
+        setMockScores(mockRes.data || []);
 
         // Calculate attendance stats from logs
         const logs = attendanceRes.data || [];
@@ -121,6 +124,7 @@ const StudentDashboard = () => {
     { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} />, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} />, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10' },
     { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} />, color: 'text-theme-primary', bg: 'bg-primary-50 dark:bg-primary-500/10' },
+    { name: 'Mock Drives', path: '/student/grades?tab=mockDrives', icon: <Briefcase size={20} />, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
     { name: 'Apply Leave', path: '/student/leaves', icon: <Calendar size={20} />, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-500/10' },
     { name: 'Login Activity', path: '/student/attendance', icon: <Clock size={20} />, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
     { name: 'My Profile', path: '/student/profile', icon: <UserIcon size={20} />, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-500/10' },
@@ -357,58 +361,106 @@ const StudentDashboard = () => {
         </Link>
       </div>
 
-      {/* Row 2: Performance Insights (8) + Attendance (4) */}
+      {/* Row 2: Performance Insights (4) + Mock Drives (4) + Attendance (4) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch mb-6">
         
         {/* Performance Insights */}
-        <Link to="/student/grades" className={`lg:col-span-8 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 flex flex-col justify-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white ${
+        <Link to="/student/grades" className={`lg:col-span-4 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white ${
           themeColor === 'Emerald'
             ? 'bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/40'
             : 'bg-gradient-to-br from-primary-500 to-theme-accent shadow-lg shadow-theme-primary/40'
         }`}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
           
-          <div className="relative z-10 flex flex-col h-full">
-            <h3 className="text-sm font-extrabold text-white mb-6 uppercase tracking-wider drop-shadow-sm">Performance Insights</h3>
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center">
-              <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex-1 w-full">
-                <div className="flex justify-between items-end mb-3">
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            <h3 className="text-sm font-extrabold text-white mb-4 uppercase tracking-wider drop-shadow-sm">Performance Insights</h3>
+            
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner">
+                <div className="flex justify-between items-center">
                   <div>
-                    <span className={`font-bold text-xs uppercase tracking-wide ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>Average Score</span>
-                    <div className="text-3xl font-black text-white leading-none mt-1 drop-shadow-md">
-                      {analytics?.averageScore || 0}<span className="text-lg text-white">%</span>
+                    <span className={`font-bold text-[10px] uppercase tracking-wide ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>Average Score</span>
+                    <div className="text-2xl font-black text-white leading-none mt-1 drop-shadow-md">
+                      {analytics?.averageScore || 0}%
                     </div>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white mb-1 shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]">
-                    <Target size={20} />
-                  </div>
-                </div>
-                <div className="w-full bg-black/20 rounded-full h-2 overflow-hidden shadow-inner">
-                  <div className="bg-white h-full rounded-full transition-all duration-1000 relative shadow-[0_0_8px_rgba(255,255,255,0.8)]" style={{ width: `${analytics?.averageScore || 0}%` }}>
-                    <div className="absolute inset-0 bg-white/50 w-full animate-[shimmer_2s_infinite]"></div>
+                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white shadow-[inset_0_2px_3px_rgba(255,255,255,0.4)]">
+                    <Target size={16} />
                   </div>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 flex-1 w-full">
-                <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-white/20 text-white`}>
-                    {analytics?.performanceTrend === 'Improving' ? <TrendingUp size={20} strokeWidth={3} /> : <TrendingDown size={20} strokeWidth={3} />}
+              <div className="grid grid-cols-2 gap-3 w-full">
+                <div className="bg-white/10 p-3 rounded-2xl border border-white/20 shadow-inner flex flex-col items-center justify-center text-center">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center mb-1 bg-white/20 text-white">
+                    {analytics?.performanceTrend === 'Improving' ? <TrendingUp size={16} strokeWidth={3} /> : <TrendingDown size={16} strokeWidth={3} />}
                   </div>
-                  <span className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>Trend</span>
-                  <span className={`text-base font-black text-white drop-shadow-sm`}>
-                    {analytics?.performanceTrend || 'N/A'}
-                  </span>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>Trend</span>
+                  <span className="text-xs font-black text-white drop-shadow-sm">{analytics?.performanceTrend || 'N/A'}</span>
                 </div>
                 
-                <div className="bg-white/10 p-5 rounded-2xl border border-white/20 shadow-inner flex flex-col justify-center items-center text-center group-hover:scale-[1.02] transition-transform">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center mb-2 bg-white/20 text-white">
-                    <Award size={20} strokeWidth={3} />
+                <div className="bg-white/10 p-3 rounded-2xl border border-white/20 shadow-inner flex flex-col items-center justify-center text-center">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center mb-1 bg-white/20 text-white">
+                    <Award size={16} strokeWidth={3} />
                   </div>
-                  <span className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>Grades</span>
-                  <span className="text-base font-black text-white drop-shadow-sm">{analytics?.totalGradesReceived || 0} Total</span>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider mb-0.5 ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>Grades</span>
+                  <span className="text-xs font-black text-white drop-shadow-sm">{analytics?.totalGradesReceived || 0} Total</span>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between bg-black/10 rounded-xl p-2.5 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
+              <span className={`text-[10px] font-bold ${themeColor === 'Emerald' ? 'text-indigo-100' : 'text-primary-100'}`}>View Academic Reports</span>
+              <ChevronRight size={14} />
+            </div>
+          </div>
+        </Link>
+
+        {/* Mock Drives Widget */}
+        <Link to="/student/grades?tab=mockDrives" className={`lg:col-span-4 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer block relative overflow-hidden group text-white ${
+          themeColor === 'Emerald'
+            ? 'bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-teal-500/40'
+            : 'bg-gradient-to-br from-primary-400 to-theme-accent/95 shadow-lg shadow-theme-primary/40'
+        }`}>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full blur-xl -ml-8 -mb-8 pointer-events-none"></div>
+
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform shadow-inner">
+                  <Briefcase size={20} className={themeColor === 'Emerald' ? 'text-teal-100' : 'text-primary-100'} />
+                </div>
+                <h3 className="text-sm font-extrabold text-white uppercase tracking-wider drop-shadow-sm">Mock Drives</h3>
+              </div>
+              <span className={`text-[10px] font-bold bg-white/10 px-2 py-1 rounded-full border border-white/20 ${themeColor === 'Emerald' ? 'text-teal-100' : 'text-primary-100'}`}>{mockScores.length} Drives</span>
+            </div>
+
+            {mockScores.length > 0 ? (
+              <div className="flex-1 flex flex-col justify-center items-center gap-2">
+                <div className="bg-white/15 px-4 py-2 rounded-2xl border border-white/20 shadow-inner text-center w-full max-w-[200px]">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-teal-100 block">Latest Performance</span>
+                  <span className="text-3xl font-black text-white leading-none mt-1 inline-block drop-shadow-md">
+                    {Math.round(mockScores[0]?.percentage || 0)}%
+                  </span>
+                </div>
+                <div className="w-full text-center mt-2">
+                  <p className="text-xs font-bold truncate px-2 max-w-[220px] mx-auto text-white">{mockScores[0]?.mockDriveId?.title}</p>
+                  <p className={`text-[10px] uppercase font-bold tracking-wider mt-1 ${themeColor === 'Emerald' ? 'text-teal-100' : 'text-primary-100'}`}>
+                    Grade: {mockScores[0]?.attended ? mockScores[0]?.grade : 'ABSENT'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center py-4">
+                <p className="text-sm font-bold text-white drop-shadow-sm">No Mock Drives yet</p>
+                <p className={`text-[10px] font-medium text-center mt-1 max-w-[180px] ${themeColor === 'Emerald' ? 'text-teal-100' : 'text-primary-100'}`}>Mock placement reports will show up here</p>
+              </div>
+            )}
+
+            <div className="mt-3 flex items-center justify-between bg-black/10 rounded-xl p-2.5 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
+              <span className={`text-[10px] font-bold ${themeColor === 'Emerald' ? 'text-teal-100' : 'text-primary-100'}`}>View Details</span>
+              <ChevronRight size={14} />
             </div>
           </div>
         </Link>

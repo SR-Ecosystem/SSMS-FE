@@ -800,6 +800,7 @@ const Layout = () => {
       label: 'Performance',
       links: [
         { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
+        { name: 'Mock Drives', path: '/student/grades?tab=mockDrives', icon: <Briefcase size={20} /> },
         { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
         { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={20} /> },
       ]
