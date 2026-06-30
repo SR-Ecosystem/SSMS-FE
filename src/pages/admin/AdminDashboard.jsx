@@ -68,11 +68,11 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
         
         {/* Review Completion Donut */}
-        <Link to="/reviews" className="md:col-span-4 lg:col-span-3 bg-gradient-to-br from-primary-400 to-primary-600 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col items-center justify-center text-center hover:-translate-y-1 active:translate-y-1 active:border-b-0 hover:shadow-[0_12px_20px_-6px_var(--color-theme-primary)] transition-all cursor-pointer block relative overflow-hidden group text-white">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
-          <div className="mb-2 relative z-10">
-            <h3 className="text-sm font-bold text-white mb-1 drop-shadow-sm">Review Status</h3>
-            <p className="text-xs text-primary-50 font-medium drop-shadow-sm">Grading overview</p>
+        <Link to="/reviews" className="md:col-span-4 lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm hover:border-theme-primary/50 transition-all cursor-pointer flex flex-col items-center justify-center text-center text-slate-800 dark:text-slate-100 relative group overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-theme-primary/5 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none"></div>
+          <div className="mb-2">
+            <h3 className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Review Status</h3>
+            <p className="text-xs text-slate-400 font-medium mt-0.5">Grading overview</p>
           </div>
           
           <div className="flex flex-col items-center w-full gap-5 mt-2 relative z-10">
@@ -91,129 +91,128 @@ const AdminDashboard = () => {
                     cornerRadius={4}
                   >
                     {reviewData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? '#ffffff' : 'rgba(255,255,255,0.25)'} />
+                      <Cell key={`cell-${index}`} fill={index === 0 ? 'var(--color-theme-primary)' : 'rgba(148, 163, 184, 0.15)'} />
                     ))}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[10px] text-white/80 font-semibold uppercase tracking-wider drop-shadow-sm">Done</span>
-                <span className="text-xl font-bold text-white leading-none mt-1 drop-shadow-md">{completionPercent}%</span>
+                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Done</span>
+                <span className="text-xl font-black text-slate-800 dark:text-white leading-none mt-1">{completionPercent}%</span>
               </div>
             </div>
 
-            <div className="space-y-3 w-full max-w-[200px]">
-              <div className="flex items-center justify-between text-sm">
+            <div className="space-y-2 w-full max-w-[200px]">
+              <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-white shadow-sm"></div>
-                  <span className="text-white font-semibold drop-shadow-sm">Graded</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-theme-primary shadow-sm"></div>
+                  <span className="text-slate-600 dark:text-slate-400 font-semibold">Graded</span>
                 </div>
-                <span className="font-bold text-white drop-shadow-sm">{stats?.completedReviews || 0}</span>
+                <span className="font-black text-slate-700 dark:text-slate-200">{stats?.completedReviews || 0}</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/30"></div>
-                  <span className="text-white font-semibold drop-shadow-sm">Pending</span>
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                  <span className="text-slate-600 dark:text-slate-400 font-semibold">Pending</span>
                 </div>
-                <span className="font-bold text-white drop-shadow-sm">{stats?.pendingReviews || 0}</span>
+                <span className="font-black text-slate-700 dark:text-slate-200">{stats?.pendingReviews || 0}</span>
               </div>
             </div>
           </div>
         </Link>
 
         {/* Command Center Card */}
-        <div className="md:col-span-8 lg:col-span-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-theme-accent to-primary-600 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-accent/40 flex flex-col group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full -ml-8 -mb-8 blur-xl"></div>
+        <div className="md:col-span-8 lg:col-span-5 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-slate-800 dark:text-slate-100 shadow-sm flex flex-col justify-between group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
           
           <div className="relative z-10 flex justify-between items-start mb-4">
             <div>
-              <p className="text-primary-50 text-xs font-medium uppercase tracking-wider mb-1">Admin Command Center</p>
-              <h3 className="font-bold text-lg leading-none flex items-center gap-2">SSMS Dashboard</h3>
+              <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Admin Command Center</p>
+              <h3 className="font-black text-lg text-slate-800 dark:text-white leading-none flex items-center gap-2">SSMS Dashboard</h3>
             </div>
-            <Link to="/profile" className="hover:opacity-80 transition-opacity" title="Admin Profile">
-              <UserIcon size={24} className="opacity-80" />
+            <Link to="/profile" className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-150 dark:border-slate-700 text-slate-500 hover:text-theme-primary hover:border-theme-primary/40 transition-colors" title="Admin Profile">
+              <UserIcon size={18} />
             </Link>
           </div>
 
-          <div className="relative z-10 grid grid-cols-2 sm:grid-cols-3 gap-4 my-4">
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Students</p>
-              <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalStudents || 0}</p>
+          <div className="relative z-10 grid grid-cols-3 gap-4 my-4">
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 text-center">
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Students</p>
+              <p className="font-black text-2xl text-slate-800 dark:text-white leading-none">{stats?.totalStudents || 0}</p>
             </div>
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Tasks</p>
-              <p className="font-black text-2xl text-white leading-none drop-shadow-md">{stats?.totalTasks || 0}</p>
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 text-center">
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Tasks</p>
+              <p className="font-black text-2xl text-slate-800 dark:text-white leading-none">{stats?.totalTasks || 0}</p>
             </div>
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/20 shadow-inner text-center">
-              <p className="text-primary-100/80 text-[10px] font-bold uppercase tracking-widest mb-1">Reviews</p>
-              <p className="font-black text-2xl text-white leading-none drop-shadow-md">{totalReviews}</p>
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-150 dark:border-slate-800/80 text-center">
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">Reviews</p>
+              <p className="font-black text-2xl text-slate-800 dark:text-white leading-none">{totalReviews}</p>
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mt-auto pt-4 border-t border-primary-400/30">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
             <div>
-              <p className="text-xs text-primary-100 mb-1">Admin</p>
-              <p className="font-bold text-lg truncate max-w-[150px]">{user?.name || 'Admin'}</p>
+              <p className="text-xs text-slate-400 mb-1">Admin User</p>
+              <p className="font-extrabold text-base text-slate-700 dark:text-slate-200 truncate max-w-[150px]">{user?.name || 'Admin'}</p>
             </div>
             <div className="flex items-center gap-2">
-              <Link to="/students" className="bg-white text-theme-primary hover:bg-primary-50 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all shadow-lg shadow-black/10 flex items-center gap-2 cursor-pointer hover:shadow-xl hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap">
-                <Users size={16} /> View Students
+              <Link to="/students" className="bg-theme-primary text-white hover:bg-theme-primary/95 px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md shadow-theme-primary/20 flex items-center gap-2 cursor-pointer hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
+                <Users size={15} /> View Students
               </Link>
             </div>
           </div>
         </div>
 
         {/* Attention Needed */}
-        <Link to="/enrollments" className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-500 to-theme-accent p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col justify-between hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all cursor-pointer group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
+        <Link to="/enrollments" className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-slate-800 dark:text-slate-100 shadow-sm flex flex-col justify-between hover:border-theme-primary/50 transition-all cursor-pointer group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4 group-hover:scale-110 transition-transform shadow-inner">
-              <Activity size={20} className="text-primary-100" />
+            <div className="w-9 h-9 bg-amber-50 dark:bg-amber-950/30 text-amber-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform border border-amber-100 dark:border-amber-950/50">
+              <Activity size={18} />
             </div>
-            <h3 className="text-[10px] font-bold text-primary-100 tracking-widest uppercase mb-1">Attention Needed</h3>
-            <p className="text-xl font-black leading-tight">Pending</p>
+            <h3 className="text-[10px] font-bold text-amber-600 dark:text-amber-400 tracking-widest uppercase mb-1">Attention Needed</h3>
+            <p className="text-xl font-black leading-tight text-slate-800 dark:text-white">Pending</p>
           </div>
-          <div className="mt-4 space-y-2">
-            <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-[10px] font-bold text-primary-50 flex items-center gap-1.5"><UserPlus size={12} /> Joins</span>
-              <span className="text-xs font-black">{stats?.joinRequestsCount || 0}</span>
+          <div className="mt-4 space-y-2 relative z-10">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><UserPlus size={12} /> Joins</span>
+              <span className="text-xs font-black text-slate-800 dark:text-white">{stats?.joinRequestsCount || 0}</span>
             </div>
-            <div className="flex items-center justify-between bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/10 group-hover:bg-black/20 transition-colors">
-              <span className="text-[10px] font-bold text-primary-50 flex items-center gap-1.5"><Calendar size={12} /> Leaves</span>
-              <span className="text-xs font-black">{stats?.pendingLeavesCount || 0}</span>
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800">
+              <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5"><Calendar size={12} /> Leaves</span>
+              <span className="text-xs font-black text-slate-800 dark:text-white">{stats?.pendingLeavesCount || 0}</span>
             </div>
           </div>
         </Link>
 
         {/* External Public Panels Card */}
-        <div className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white border-t border-white/40 border-b-[3px] border-black/20 shadow-lg flex flex-col justify-between group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
+        <div className="md:col-span-6 lg:col-span-2 relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 text-slate-800 dark:text-slate-100 shadow-sm flex flex-col justify-between group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full blur-2xl -mr-10 -mt-10"></div>
           <div>
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm mb-4">
-              <Globe size={20} className="text-primary-100" />
+            <div className="w-9 h-9 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-500 rounded-xl flex items-center justify-center mb-4 border border-indigo-100 dark:border-indigo-950/50">
+              <Globe size={18} />
             </div>
             <h3 className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-1">Public Panels</h3>
-            <p className="text-xl font-black leading-tight">External Links</p>
+            <p className="text-xl font-black leading-tight text-slate-800 dark:text-white">External Links</p>
           </div>
           <div className="mt-4 space-y-2 relative z-10">
-            <a href="/verify" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-xl p-2.5 border border-white/10 transition-colors">
+            <a href="/verify" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800 transition-colors">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-white flex items-center gap-1"><Lock size={10} className="text-slate-300" /> Verify Portal</span>
+                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Lock size={10} className="text-slate-400" /> Verify Portal</span>
                 <span className="text-[9px] text-slate-400">Passcode: SA123</span>
               </div>
               <ChevronRight size={14} className="text-slate-400" />
             </a>
-            <a href="/public" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-xl p-2.5 border border-white/10 transition-colors">
+            <a href="/public" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800 transition-colors">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-white flex items-center gap-1"><Globe size={10} className="text-slate-300" /> Public Info</span>
+                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Globe size={10} className="text-slate-400" /> Public Info</span>
                 <span className="text-[9px] text-slate-400">Open resources list</span>
               </div>
               <ChevronRight size={14} className="text-slate-400" />
             </a>
-            <a href="/student/attenence" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-white/5 hover:bg-white/10 rounded-xl p-2.5 border border-white/10 transition-colors">
+            <a href="/student/attenence" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl p-2.5 border border-slate-150 dark:border-slate-800 transition-colors">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-white flex items-center gap-1"><Activity size={10} className="text-slate-300" /> Attendance</span>
+                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1"><Activity size={10} className="text-slate-400" /> Attendance</span>
                 <span className="text-[9px] text-slate-400">Classroom dashboard</span>
               </div>
               <ChevronRight size={14} className="text-slate-400" />
@@ -223,28 +222,28 @@ const AdminDashboard = () => {
       </div>
 
       {/* Row 2: Quick Actions Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
         {[
-          { name: 'Students', path: '/students', icon: <Users size={20} />, gradient: 'from-blue-400 to-blue-600', shadow: 'shadow-blue-500/40', hover: 'hover:shadow-blue-500/60' },
-          { name: 'Tasks', path: '/tasks', icon: <FileText size={20} />, gradient: 'from-rose-400 to-rose-600', shadow: 'shadow-rose-500/40', hover: 'hover:shadow-rose-500/60' },
-          { name: 'Reviews', path: '/reviews', icon: <CheckCircle size={20} />, gradient: 'from-emerald-400 to-emerald-600', shadow: 'shadow-emerald-500/40', hover: 'hover:shadow-emerald-500/60' },
-          { name: 'LeetCode', path: '/leetcode', icon: <Code size={20} />, gradient: 'from-amber-400 to-amber-600', shadow: 'shadow-amber-500/40', hover: 'hover:shadow-amber-500/60' },
-          { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={20} />, gradient: 'from-cyan-400 to-cyan-600', shadow: 'shadow-cyan-500/40', hover: 'hover:shadow-cyan-500/60' },
-          { name: 'Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={20} />, gradient: 'from-indigo-400 to-indigo-600', shadow: 'shadow-indigo-500/40', hover: 'hover:shadow-indigo-500/60' },
-          { name: 'Leaves', path: '/leaves', icon: <Calendar size={20} />, gradient: 'from-teal-400 to-teal-600', shadow: 'shadow-teal-500/40', hover: 'hover:shadow-teal-500/60' },
-          { name: 'Chat', path: '/chat', icon: <MessageCircle size={20} />, gradient: 'from-pink-400 to-pink-600', shadow: 'shadow-pink-500/40', hover: 'hover:shadow-pink-500/60' },
+          { name: 'Students', path: '/students', icon: <Users size={16} />, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
+          { name: 'Tasks', path: '/tasks', icon: <FileText size={16} />, color: 'text-rose-500 bg-rose-50 dark:bg-rose-950/30' },
+          { name: 'Reviews', path: '/reviews', icon: <CheckCircle size={16} />, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
+          { name: 'LeetCode', path: '/leetcode', icon: <Code size={16} />, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
+          { name: 'Attendance', path: '/attendance-logs', icon: <Clock size={16} />, color: 'text-cyan-500 bg-cyan-50 dark:bg-cyan-950/30' },
+          { name: 'Permissions', path: '/checkin-permissions', icon: <ShieldCheck size={16} />, color: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30' },
+          { name: 'Leaves', path: '/leaves', icon: <Calendar size={16} />, color: 'text-teal-500 bg-teal-50 dark:bg-teal-950/30' },
+          { name: 'Chat', path: '/chat', icon: <MessageCircle size={16} />, color: 'text-pink-500 bg-pink-50 dark:bg-pink-950/30' },
         ].map((link) => (
           <Link 
             key={link.name} 
             to={link.path}
-            className={`flex flex-col p-4 rounded-2xl transition-all cursor-pointer group relative overflow-hidden bg-gradient-to-br ${link.gradient} border-t border-white/40 border-b-[3px] border-black/20 shadow-lg ${link.shadow} hover:-translate-y-1 ${link.hover} hover:brightness-110 active:translate-y-1 active:border-b-0 text-white`}
+            className="flex flex-col p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-theme-primary/50 dark:hover:border-theme-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all text-slate-800 dark:text-slate-100 group relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full blur-2xl -mr-8 -mt-8 pointer-events-none"></div>
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-white/25 text-white shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)] backdrop-blur-sm mb-3 relative z-10`}>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-theme-primary/5 rounded-full blur-xl -mr-6 -mt-6 pointer-events-none transition-all group-hover:scale-150"></div>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${link.color} mb-3 relative z-10 font-bold`}>
               {link.icon}
             </div>
-            <p className="text-sm font-bold text-white mt-auto flex items-center gap-1 relative z-10 drop-shadow-sm">
-              {link.name} <ChevronRight size={14} className="opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1 relative z-10 mt-auto">
+              {link.name} <ChevronRight size={14} className="opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all text-theme-primary" />
             </p>
           </Link>
         ))}
@@ -254,12 +253,12 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         
         {/* Submission Volume Chart */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-primary-400 to-theme-accent p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/20 shadow-lg shadow-theme-primary/40 flex flex-col min-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-48 h-48 bg-white/20 rounded-full blur-3xl pointer-events-none -ml-10 -mt-10"></div>
+        <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col min-h-[350px] relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-48 h-48 bg-theme-primary/5 rounded-full blur-3xl pointer-events-none -ml-10 -mt-10"></div>
           <div className="flex flex-wrap justify-between items-center gap-3 mb-6 relative z-10">
-            <h3 className="text-sm font-extrabold text-white drop-shadow-sm">Submission Volume</h3>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Submission Volume</h3>
             <select 
-              className="text-xs font-bold text-theme-primary bg-white hover:bg-primary-50 px-3 py-1.5 rounded-full transition-colors shadow-sm cursor-pointer focus:outline-none"
+              className="text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-250 px-3 py-1.5 rounded-full transition-colors shadow-sm cursor-pointer focus:outline-none"
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
             >
@@ -271,9 +270,9 @@ const AdminDashboard = () => {
           </div>
           
           {isChartLoading ? (
-            <div className="flex-1 w-full flex flex-col justify-center items-center text-white/50 relative z-10">
-              <div className="animate-spin w-8 h-8 border-4 border-white/30 border-t-white rounded-full mb-2"></div>
-              <span className="text-xs font-bold uppercase tracking-widest">Loading Data...</span>
+            <div className="flex-1 w-full flex flex-col justify-center items-center text-slate-400 relative z-10">
+              <div className="animate-spin w-8 h-8 border-4 border-slate-200 border-t-theme-primary rounded-full mb-2"></div>
+              <span className="text-[10px] font-bold uppercase tracking-widest">Loading Data...</span>
             </div>
           ) : stats?.chartData && stats.chartData.length > 0 ? (
             <div className="flex-1 w-full mt-2 relative z-10 animate-in fade-in duration-500">
@@ -281,49 +280,49 @@ const AdminDashboard = () => {
                 <AreaChart key={timeframe} data={stats.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorAdminSubmissions" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.5}/>
-                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="var(--color-theme-primary)" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="var(--color-theme-primary)" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.7)' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255, 255, 255, 0.7)' }} allowDecimals={false} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-theme-accent)', opacity: 0.8 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--color-theme-accent)', opacity: 0.8 }} allowDecimals={false} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)', padding: '12px', color: '#0f172a' }}
-                    itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-primary-200)', backgroundColor: 'var(--color-primary-50)', padding: '12px', color: 'var(--color-primary-900)' }}
+                    itemStyle={{ color: 'var(--color-theme-primary)', fontWeight: 'bold' }}
                   />
-                  <Area type="monotone" dataKey="submissions" stroke="#ffffff" strokeWidth={3} fillOpacity={1} fill="url(#colorAdminSubmissions)" activeDot={{ r: 6, fill: '#ffffff', stroke: activeTheme?.primary || '#10b981', strokeWidth: 2 }} />
+                  <Area type="monotone" dataKey="submissions" stroke="var(--color-theme-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorAdminSubmissions)" activeDot={{ r: 6, fill: 'var(--color-theme-primary)', stroke: '#ffffff', strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col justify-center items-center text-cyan-100 relative z-10">
+            <div className="flex-1 flex flex-col justify-center items-center text-slate-400 relative z-10">
               <p className="text-sm font-medium">No submission data available.</p>
             </div>
           )}
         </div>
 
         {/* Recent Activities Feed */}
-        <div className="lg:col-span-7 bg-gradient-to-br from-slate-700 to-slate-900 p-6 rounded-3xl border-t border-white/40 border-b-[3px] border-black/40 shadow-lg shadow-slate-900/40 flex flex-col min-h-[350px] max-h-[350px] text-white hover:-translate-y-1 active:translate-y-1 active:border-b-0 transition-all block relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl pointer-events-none -mr-10 -mt-10"></div>
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col min-h-[350px] max-h-[350px] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-theme-primary/5 rounded-full blur-3xl pointer-events-none -mr-10 -mt-10"></div>
           <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
-            <h3 className="text-sm font-extrabold text-white drop-shadow-sm">Recent Activities Feed</h3>
-            <span className="text-xs font-bold text-slate-300 uppercase tracking-widest drop-shadow-sm">Latest</span>
+            <h3 className="text-sm font-extrabold text-slate-800 dark:text-white">Recent Activities Feed</h3>
+            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Latest</span>
           </div>
 
           <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 relative z-10">
              {stats?.notifications && stats.notifications.length > 0 ? (
                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                {stats.notifications.map((notif, idx) => (
-                 <div key={notif.id} className="flex items-start gap-4 group/item hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors cursor-pointer">
+                 <div key={notif.id} className="flex items-start gap-4 group/item hover:bg-slate-50 dark:hover:bg-slate-800/40 p-2 -mx-2 rounded-xl transition-colors cursor-pointer">
                    <div className="flex flex-col items-center mt-1">
-                     <div className={`w-3 h-3 rounded-full border-2 border-slate-700 shadow-[0_0_8px_rgba(255,255,255,0.3)] ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
+                     <div className={`w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 shadow-sm ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
                    </div>
                    <div className="flex-1 min-w-0 pb-1">
-                     <p className="text-sm font-bold text-white truncate drop-shadow-sm">{notif.title}</p>
-                     <p className="text-xs font-medium text-slate-300 mt-0.5 leading-snug drop-shadow-sm">{notif.message}</p>
+                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{notif.title}</p>
+                     <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-0.5 leading-snug">{notif.message}</p>
                    </div>
                    <div className="text-right shrink-0">
-                     <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-sm ${notif.type === 'task' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'}`}>
+                     <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-sm ${notif.type === 'task' ? 'bg-indigo-500/10 text-indigo-500 dark:bg-indigo-950/20' : 'bg-emerald-500/10 text-emerald-500 dark:bg-emerald-950/20'}`}>
                        {notif.type === 'task' ? 'New' : 'Sent'}
                      </span>
                    </div>
@@ -331,7 +330,7 @@ const AdminDashboard = () => {
                ))}
                </div>
              ) : (
-               <div className="text-center text-slate-400 py-8 bg-white/5 rounded-xl border border-white/10 border-dashed">
+               <div className="text-center text-slate-400 py-8 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-slate-150 dark:border-slate-800 border-dashed">
                  <p className="text-sm font-medium">No recent activities.</p>
                </div>
              )}

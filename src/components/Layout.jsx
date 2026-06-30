@@ -1041,41 +1041,51 @@ const Layout = () => {
                   <div className="mx-3 my-2 border-t border-slate-100 dark:border-white/5"></div>
                 )}
                 
-                {/* Freezed Section Header */}
-                <div className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 border-l-[3px] border-transparent">
+                {/* Collapsible Section Header */}
+                <button
+                  onClick={() => toggleSection(section.label)}
+                  className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer border-l-[3px] border-transparent"
+                >
                   <span>{section.label}</span>
-                </div>
+                  {expandedSections[section.label] ? (
+                    <ChevronDown size={12} className="text-slate-400 dark:text-slate-500" />
+                  ) : (
+                    <ChevronRight size={12} className="text-slate-400 dark:text-slate-500" />
+                  )}
+                </button>
 
                 {/* Section Links */}
-                <div className="space-y-1 mt-1">
-                  {section.links.map((link) => {
-                    const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
-                    return (
-                      <Link
-                        key={link.name}
-                        to={link.path}
-                        className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-[13px] border-l-4 ${
-                          isActive
-                            ? 'bg-gradient-to-r from-theme-primary/10 to-theme-accent/5 text-theme-primary font-bold border-theme-primary shadow-[0_2px_10px_-3px_var(--color-theme-primary)]'
-                            : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/40 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium border-transparent hover:border-slate-300 dark:hover:border-slate-700'
-                        }`}
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className={`transition-transform duration-250 ${isActive ? 'text-theme-primary scale-105' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'}`}>
-                            {link.icon}
-                          </span>
-                          <span>{link.name}</span>
-                        </div>
-                        {link.badge > 0 && !isActive && (
-                          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                            {link.badge}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
+                {expandedSections[section.label] && (
+                  <div className="space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
+                    {section.links.map((link) => {
+                      const isActive = location.pathname === link.path || (link.path !== '/' && link.path !== '/student' && location.pathname.startsWith(link.path));
+                      return (
+                        <Link
+                          key={link.name}
+                          to={link.path}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 text-[13px] border-l-4 ${
+                            isActive
+                              ? 'bg-gradient-to-r from-theme-primary/10 to-theme-accent/5 text-theme-primary font-bold border-theme-primary shadow-[0_2px_10px_-3px_var(--color-theme-primary)]'
+                              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50/40 dark:hover:bg-white/5 hover:text-slate-800 dark:hover:text-slate-200 font-medium border-transparent hover:border-slate-300 dark:hover:border-slate-700'
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className={`transition-transform duration-250 ${isActive ? 'text-theme-primary scale-105' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600'}`}>
+                              {link.icon}
+                            </span>
+                            <span>{link.name}</span>
+                          </div>
+                          {link.badge > 0 && !isActive && (
+                            <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                              {link.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
