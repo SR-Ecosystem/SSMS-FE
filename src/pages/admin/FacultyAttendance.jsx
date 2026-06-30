@@ -1,0 +1,296 @@
+import { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import axios from 'axios';
+import { Users, Clock, Search, RefreshCw, ArrowUpDown } from 'lucide-react';
+import Loader from '../../components/Loader';
+
+const FacultyAttendance = () => {
+  const [batches, setBatches] = useState([]);
+  const [selectedBatch, setSelectedBatch] = useState('');
+  const [attendance, setAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Filters and Sorting
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name-asc'); // name-asc, name-desc, hours-desc, hours-asc, active-first
+
+  const fetchBatches = async () => {
+    try {
+      const res = await axios.get('/batches');
+      setBatches(res.data);
+      if (res.data.length > 0 && !selectedBatch) {
+        setSelectedBatch(res.data[0]._id);
+      }
+    } catch (err) {
+      console.error('Error fetching batches:', err);
+    }
+  };
+
+  const fetchAttendance = async () => {
+    if (!selectedBatch) return;
+    try {
+      setRefreshing(true);
+      // Fetch today's summary list
+      const res = await axios.get(`/attendance/summary?batchId=${selectedBatch}`);
+      
+      // Filter for students whose status is 'On-Site' today
+      const today = new Date().toISOString().split('T')[0];
+      const presentOnSite = res.data.filter(log => log.date === today && log.status === 'On-Site');
+      
+      setAttendance(presentOnSite);
+    } catch (err) {
+      console.error('Error fetching attendance summary:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBatches();
+  }, []);
+
+  useEffect(() => {
+    if (selectedBatch) {
+      fetchAttendance();
+    }
+  }, [selectedBatch]);
+
+  const formatDuration = (seconds) => {
+    if (!seconds) return '0h 0m';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '--:--';
+    return new Date(timeStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Filter and sort logs
+  const filteredLogs = attendance
+    .filter(log => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        log.name.toLowerCase().includes(searchLower) ||
+        (log.rollNumber && log.rollNumber.toLowerCase().includes(searchLower))
+      );
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name-asc') {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortBy === 'name-desc') {
+        return b.name.localeCompare(a.name);
+      }
+      if (sortBy === 'hours-desc') {
+        return b.totalSeconds - a.totalSeconds;
+      }
+      if (sortBy === 'hours-asc') {
+        return a.totalSeconds - b.totalSeconds;
+      }
+      if (sortBy === 'active-first') {
+        if (a.isActive && !b.isActive) return -1;
+        if (!a.isActive && b.isActive) return 1;
+        return b.totalSeconds - a.totalSeconds;
+      }
+      return 0;
+    });
+
+  // Calculate statistics
+  const totalPresent = attendance.length;
+  const activeNow = attendance.filter(log => log.isActive).length;
+  const totalSecondsWorked = attendance.reduce((acc, curr) => acc + curr.totalSeconds, 0);
+  const avgSecondsWorked = totalPresent > 0 ? Math.floor(totalSecondsWorked / totalPresent) : 0;
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 p-6 md:p-8 space-y-6 text-slate-800 light-theme-override">
+      <style>{`
+        /* Keep page light theme-only as requested */
+        .light-theme-override {
+          background-color: #f8fafc !important;
+          color: #1e293b !important;
+        }
+        .light-theme-override h1, 
+        .light-theme-override h2, 
+        .light-theme-override h3, 
+        .light-theme-override p, 
+        .light-theme-override span, 
+        .light-theme-override label {
+          color: #1e293b !important;
+        }
+        .light-theme-override .text-muted {
+          color: #64748b !important;
+        }
+        .light-theme-override .glass-card {
+          background-color: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+        }
+        .light-theme-override input, 
+        .light-theme-override select {
+          background-color: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          color: #1e293b !important;
+        }
+        .light-theme-override input::placeholder {
+          color: #94a3b8 !important;
+        }
+      `}</style>
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight">On-Site Classroom Attendance</h1>
+          <p className="text-muted text-sm font-medium mt-1">Faculty real-time dashboard of students physically present in the lab today</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <select
+            className="px-4 py-2 text-sm font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+            value={selectedBatch}
+            onChange={(e) => setSelectedBatch(e.target.value)}
+          >
+            <option value="">Choose Batch...</option>
+            {batches.map(b => (
+              <option key={b._id} value={b._id}>{b.batchName}</option>
+            ))}
+          </select>
+
+          <button
+            onClick={fetchAttendance}
+            disabled={refreshing || !selectedBatch}
+            className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 text-slate-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center"
+            title="Refresh Attendance List"
+          >
+            <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
+          </button>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+            <Users size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Total Present Today</p>
+            <h3 className="text-2xl font-black mt-0.5">{totalPresent} <span className="text-xs font-medium text-muted">students</span></h3>
+          </div>
+        </div>
+
+        <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 relative">
+            <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full animate-ping absolute"></div>
+            <div className="w-3.5 h-3.5 bg-emerald-500 rounded-full relative"></div>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Active in Class</p>
+            <h3 className="text-2xl font-black mt-0.5">{activeNow} <span className="text-xs font-medium text-muted">checked-in now</span></h3>
+          </div>
+        </div>
+
+        <div className="glass-card p-5 rounded-2xl flex items-center gap-4">
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+            <Clock size={24} />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-muted uppercase tracking-wider">Avg. Time Worked</p>
+            <h3 className="text-2xl font-black mt-0.5">{formatDuration(avgSecondsWorked)}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Sort Panel */}
+      <div className="glass-card p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="w-full md:flex-1 relative">
+          <Search className="absolute left-3.5 top-2.5 text-slate-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search student by name or roll number..."
+            className="w-full pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="w-full md:w-auto flex items-center gap-2">
+          <ArrowUpDown size={16} className="text-slate-400 shrink-0" />
+          <span className="text-xs font-bold text-muted uppercase tracking-wider whitespace-nowrap">Sort By:</span>
+          <select
+            className="w-full md:w-[180px] px-3 py-2 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+            <option value="hours-desc">Hours (Highest First)</option>
+            <option value="hours-asc">Hours (Lowest First)</option>
+            <option value="active-first">Active Now First</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Student List */}
+      {loading ? (
+        <div className="p-12"><Loader /></div>
+      ) : filteredLogs.length === 0 ? (
+        <div className="glass-card p-12 text-center rounded-2xl">
+          <p className="text-muted font-bold text-base">No on-site students found matching current filters.</p>
+          <p className="text-xs text-slate-400 mt-1 font-medium">Verify that the correct batch is selected and that students have checked in as On-Site today.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredLogs.map(student => (
+            <div key={student._id} className="glass-card p-5 rounded-2xl flex flex-col justify-between hover:translate-y-[-2px] transition-transform duration-200 bg-white">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="font-bold text-base text-slate-900 leading-snug">{student.name}</h3>
+                  <p className="text-xs font-semibold text-muted tracking-wide uppercase mt-0.5">{student.rollNumber || 'No ID'}</p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {student.isActive ? (
+                    <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-black text-emerald-600 uppercase tracking-wider relative">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping absolute"></span>
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full relative"></span>
+                      Active
+                    </span>
+                  ) : (
+                    <span className="bg-slate-105 border border-slate-200 px-2.5 py-1 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                      Checked Out
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                <div>
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Total Time Worked</p>
+                  <p className="text-sm font-black text-slate-800 mt-0.5">{formatDuration(student.totalSeconds)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Check-in Status</p>
+                  <p className="text-sm font-black text-indigo-600 mt-0.5">{student.status}</p>
+                </div>
+              </div>
+
+              <div className="mt-3 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-[11px] text-muted">
+                <div>
+                  <span className="font-medium">In:</span> <span className="font-bold text-slate-700">{formatTime(student.firstCheckIn)}</span>
+                </div>
+                <div>
+                  <span className="font-medium">Out:</span> <span className="font-bold text-slate-700">{student.isActive ? 'Active now' : formatTime(student.lastCheckOut)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FacultyAttendance;
