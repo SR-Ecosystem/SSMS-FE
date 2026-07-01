@@ -665,10 +665,11 @@ const MockDriveManagement = () => {
                                         value={editGrade} 
                                         onChange={e => setEditGrade(e.target.value)}
                                       >
-                                        <option value="Pass">Pass</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
                                         <option value="Fail">Fail</option>
-                                        <option value="Excellent">Excellent</option>
-                                        <option value="Good">Good</option>
                                       </select>
                                     </td>
                                     <td className="px-4 py-3 text-center">
