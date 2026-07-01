@@ -71,7 +71,7 @@ const MyAttendance = () => {
 
     // 2. Calculate the finalized status for each DAY
     Object.values(dailyMap).forEach(day => {
-      if (day.status === 'Leave' || day.isLeave) {
+      if ((day.status === 'Leave' || day.isLeave) && (day.leaveHours || 0) === 0) {
         day.status = 'Leave';
         return;
       }

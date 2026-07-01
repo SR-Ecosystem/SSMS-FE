@@ -136,7 +136,7 @@ const AttendanceLogs = () => {
 
     Object.values(groupedMap).forEach(day => {
       if (viewMode === 'Day') {
-        if (day.status === 'Leave' || day.isLeave) {
+        if ((day.status === 'Leave' || day.isLeave) && (day.leaveHours || 0) === 0) {
           day.status = 'Leave';
           return;
         }

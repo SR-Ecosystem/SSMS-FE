@@ -58,7 +58,7 @@ const StudentDashboard = () => {
         // Exclude today from percentage calculation (day still in progress)
         Object.entries(dayMap).forEach(([dateKey, day]) => {
           if (dateKey === todayDateStr) return; // skip today
-          if (day.isLeave) { leave++; return; }
+          if (day.isLeave && (day.leaveHours || 0) === 0) { leave++; return; }
           const hours = day.totalSeconds / 3600;
           const minRequired = 8 - day.leaveHours;
           if (hours >= minRequired && hours <= 10) { present++; }
