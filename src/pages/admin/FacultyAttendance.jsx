@@ -86,7 +86,10 @@ const FacultyAttendance = () => {
         return log.isActive === true;
       }
       if (presenceFilter === 'absent') {
-        return log.isCheckedIn === false;
+        return log.isCheckedIn === false && log.isLeave === false;
+      }
+      if (presenceFilter === 'permission') {
+        return log.isLeave === true;
       }
       return true;
     })
@@ -112,8 +115,8 @@ const FacultyAttendance = () => {
 
   // Calculate statistics
   const activeNow = attendance.filter(log => log.isActive).length;
-  const totalCheckedIn = attendance.filter(log => log.isCheckedIn).length;
-  const totalAbsent = attendance.length - totalCheckedIn;
+  const totalOnLeave = attendance.filter(log => log.isLeave).length;
+  const totalAbsent = attendance.filter(log => !log.isActive && !log.isLeave && (!log.isCheckedIn || log.status === 'Absent')).length;
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 space-y-6 text-slate-800 light-theme-override">
@@ -181,7 +184,7 @@ const FacultyAttendance = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-5">
         <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
           <div className="hidden sm:flex w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl items-center justify-center shrink-0">
             <Users size={24} />
@@ -212,6 +215,16 @@ const FacultyAttendance = () => {
             <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalAbsent} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
+
+        <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex w-12 h-12 bg-amber-50 text-amber-600 rounded-xl items-center justify-center shrink-0">
+            <Clock size={24} className="text-amber-500" />
+          </div>
+          <div>
+            <p className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">Permission</p>
+            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalOnLeave} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
+          </div>
+        </div>
       </div>
 
       {/* Search & Sort Panel */}
@@ -230,7 +243,7 @@ const FacultyAttendance = () => {
         {/* Filter & Sort Controls Row */}
         <div className="flex flex-row items-center gap-2 w-full justify-between">
           {/* Segmented Filter Buttons (Show All, Present, Absent) */}
-          <div className="flex flex-1 bg-slate-100 p-1 rounded-xl items-center max-w-[240px] sm:max-w-none">
+          <div className="flex flex-1 bg-slate-100 p-1 rounded-xl items-center max-w-[320px] sm:max-w-none">
             <button
               onClick={() => setPresenceFilter('all')}
               className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
@@ -248,6 +261,12 @@ const FacultyAttendance = () => {
               className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'absent' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
               Absent
+            </button>
+            <button
+              onClick={() => setPresenceFilter('permission')}
+              className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'permission' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              Permission
             </button>
           </div>
 
@@ -292,6 +311,10 @@ const FacultyAttendance = () => {
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full relative"></span>
                       Active
                     </span>
+                  ) : student.isLeave ? (
+                    <span className="bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-black text-amber-600 uppercase tracking-wider">
+                      Permission
+                    </span>
                   ) : !student.isCheckedIn ? (
                     <span className="bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-black text-rose-600 uppercase tracking-wider">
                       Absent
@@ -311,7 +334,17 @@ const FacultyAttendance = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-muted uppercase tracking-wider">Check-in Status</p>
-                  <p className={`text-sm font-black mt-0.5 ${student.isActive ? 'text-emerald-600' : student.status === 'Absent' ? 'text-rose-600' : 'text-indigo-600'}`}>{student.status}</p>
+                  <p className={`text-sm font-black mt-0.5 ${
+                    student.isActive 
+                      ? 'text-emerald-600' 
+                      : student.isLeave 
+                        ? 'text-amber-600' 
+                        : student.status === 'Absent' 
+                          ? 'text-rose-600' 
+                          : 'text-indigo-600'
+                  }`}>
+                    {student.isLeave ? 'Permission Leave' : student.status}
+                  </p>
                 </div>
               </div>
 
