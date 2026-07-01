@@ -348,14 +348,21 @@ const FacultyAttendance = () => {
                 </div>
               </div>
 
-              <div className="mt-3 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-[11px] text-muted">
-                <div>
-                  <span className="font-medium">In:</span> <span className="font-bold text-slate-700">{formatTime(student.firstCheckIn)}</span>
+              {student.isLeave ? (
+                <div className="mt-3 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100 flex items-center justify-between text-[11px] text-amber-700">
+                  <span className="font-extrabold tracking-wide uppercase">Details:</span>
+                  <span className="font-bold text-right">{student.leaveInfo}</span>
                 </div>
-                <div>
-                  <span className="font-medium">Out:</span> <span className="font-bold text-slate-700">{student.isActive ? 'Active now' : formatTime(student.lastCheckOut)}</span>
+              ) : (
+                <div className="mt-3 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100 flex items-center justify-between text-[11px] text-muted">
+                  <div>
+                    <span className="font-medium">In:</span> <span className="font-bold text-slate-700">{formatTime(student.firstCheckIn)}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Out:</span> <span className="font-bold text-slate-700">{student.isActive ? 'Active now' : formatTime(student.lastCheckOut)}</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </div>
