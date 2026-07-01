@@ -582,25 +582,10 @@ const Layout = () => {
                 setAttendanceId(activeRecord._id);
                 attendanceIdRef.current = activeRecord._id;
               } else {
-                const wasActiveOnFrontend = localStorage.getItem('sessionActive') === 'true';
-                if (wasActiveOnFrontend) {
-                  console.log('Session was active on frontend but inactive on backend. Auto-resuming check-in...');
-                  try {
-                    const { data: checkinData } = await axios.post('/attendance/checkin');
-                    setAttendanceId(checkinData._id);
-                    attendanceIdRef.current = checkinData._id;
-                    setSessionActive(true);
-                  } catch (err) {
-                    console.error('Auto-resume check-in failed:', err);
-                    setSessionActive(false);
-                    setAttendanceId(null);
-                    attendanceIdRef.current = null;
-                  }
-                } else {
-                  setSessionActive(false);
-                  setAttendanceId(null);
-                  attendanceIdRef.current = null;
-                }
+                setSessionActive(false);
+                setAttendanceId(null);
+                attendanceIdRef.current = null;
+                localStorage.removeItem('sessionActive');
               }
             } else {
               setSessionActive(false);
