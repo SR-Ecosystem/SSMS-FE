@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, FileText, CheckCircle,
   LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor,
-  Briefcase, ChevronDown, ChevronRight, Palette, Network, ShieldCheck, Activity
+  Briefcase, ChevronDown, ChevronRight, Palette, Network, ShieldCheck, Activity, Sparkles
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
@@ -341,6 +341,8 @@ const Layout = () => {
   });
   const [sessionSeconds, setSessionSeconds] = useState(0);
   const [isSyncing, setIsSyncing] = useState(user?.role === 'student');
+  const [userCoins, setUserCoins] = useState(0);
+  const [gamificationData, setGamificationData] = useState(null);
   const sessionSecondsRef = useRef(0);
   useEffect(() => { sessionSecondsRef.current = sessionSeconds; }, [sessionSeconds]);
   const attendanceIdRef = useRef(null);
@@ -536,9 +538,17 @@ const Layout = () => {
           }
           setNotifications(newNotifs);
         } else if (user?.role === 'student') {
-          const { data } = await axios.get(`/analytics/student/${user._id}`);
+          const [analyticsRes, gamificationRes] = await Promise.all([
+            axios.get(`/analytics/student/${user._id}`),
+            axios.get('/gamification/status')
+          ]);
+          const data = analyticsRes.data;
+          const gamification = gamificationRes.data;
+          
           setPendingCount(data.pendingTasks || 0);
           setChatCount(data.recentChats || 0);
+          setUserCoins(gamification.coins || 0);
+          setGamificationData(gamification);
 
           const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
           if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
@@ -850,6 +860,7 @@ const Layout = () => {
         { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
         { name: 'Mock Drives', path: '/student/grades?tab=mockDrives', icon: <Briefcase size={20} /> },
         { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
+        { name: 'Avatar Wardrobe', path: '/student/wardrobe', icon: <Sparkles size={20} /> },
         { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={20} /> },
       ]
     },
@@ -1191,6 +1202,14 @@ const Layout = () => {
               </div>
             )}
 
+            {/* Student Coins Display */}
+            {user?.role === 'student' && (
+              <div className="flex items-center gap-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-full text-sm font-extrabold border border-amber-500/20">
+                <span className="text-base">🪙</span>
+                <span>{userCoins} Coins</span>
+              </div>
+            )}
+
             {/* Notifications Bell */}
             <div className="relative" ref={notificationRef}>
               <button
@@ -1350,7 +1369,8 @@ const Layout = () => {
         <div className={`flex-1 overflow-auto p-4 lg:p-8 pt-4 relative ${user?.role === 'admin' ? 'pb-24 lg:pb-8' : ''}`}>
           <Outlet context={{ 
             sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus,
-            themeColor, activeTheme: themes.find(t => t.name === themeColor) || themes[0]
+            themeColor, activeTheme: themes.find(t => t.name === themeColor) || themes[0],
+            userCoins, gamificationData, fetchCounts
           }} />
         </div>
       </main>

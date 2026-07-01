@@ -44,6 +44,7 @@ const StudentSetup = lazy(() => import('./pages/student/StudentSetup'));
 const StudentLeaderboard = lazy(() => import('./pages/student/StudentLeaderboard'));
 const StudentLeetcode = lazy(() => import('./pages/student/StudentLeetcode'));
 const LeaveApplication = lazy(() => import('./pages/student/LeaveApplication'));
+const GamificationShop = lazy(() => import('./pages/student/GamificationShop'));
 
 function App() {
   return (
@@ -154,6 +155,9 @@ function App() {
             } />
             <Route path="student/leaderboard" element={
               <ProtectedRoute allowedRoles={['student', 'admin']}><StudentLeaderboard /></ProtectedRoute>
+            } />
+            <Route path="student/wardrobe" element={
+              <ProtectedRoute allowedRoles={['student']}><GamificationShop /></ProtectedRoute>
             } />
             <Route path="*" element={<div className="p-8"><h1 className="text-2xl">Page Under Construction</h1></div>} />
           </Route>

@@ -135,16 +135,32 @@ const StudentLeaderboard = () => {
                       </div>
                       
                       <div className="col-span-4 flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-400 to-purple-500 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
-                          {student.name.charAt(0)}
+                        <div className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0 shadow-sm p-0.5">
+                          {student.equippedAvatar ? (
+                            <img src={student.equippedAvatar} alt={student.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{student.name.charAt(0)}</span>
+                          )}
                         </div>
                         <div className="min-w-0">
                           <h3 className={`font-bold truncate ${isCurrentUser ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-800 dark:text-slate-100'}`} title={student.name}>
                             {student.name} {isCurrentUser && '(You)'}
                           </h3>
-                          <div className="flex items-center gap-1 text-xs font-medium text-orange-500 mt-0.5">
-                            <Flame size={12} fill="currentColor" />
-                            <span>{student.leetcodeStreak} Day Streak</span>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <div className="flex items-center gap-1 text-xs font-medium text-orange-500">
+                              <Flame size={12} fill="currentColor" />
+                              <span>{student.leetcodeStreak} Day Streak</span>
+                            </div>
+                            {student.badges && student.badges.length > 0 && (
+                              <div className="flex items-center gap-0.5">
+                                {student.badges.slice(0, 3).map((b, i) => (
+                                  <span key={i} className="text-xs" title={b.name}>{b.icon}</span>
+                                ))}
+                                {student.badges.length > 3 && (
+                                  <span className="text-[10px] text-slate-400 font-bold">+{student.badges.length - 3}</span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -11,7 +11,7 @@ const StudentDashboard = () => {
   const { user } = useAuth();
   const { 
     sessionActive, startSession, endSession, sessionSeconds, formatTime, isCheckingIn, activeLeaveStatus,
-    themeColor, activeTheme
+    themeColor, activeTheme, userCoins, gamificationData, fetchCounts
   } = useOutletContext();
   const [analytics, setAnalytics] = useState(null);
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0, leave: 0, inProgress: 0, invalid: 0, total: 0, percentage: 0 });
@@ -135,8 +135,12 @@ const StudentDashboard = () => {
       {/* Header section styling matching the Wallet App */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-theme-accent text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-theme-primary/30">
-            {user?.name.charAt(0)}
+          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-0.5 shadow-lg shadow-theme-primary/10">
+            {gamificationData?.equippedAvatar ? (
+              <img src={gamificationData.equippedAvatar} alt="Avatar" className="w-full h-full object-contain" />
+            ) : (
+              <span className="text-xl font-bold text-slate-700 dark:text-slate-200">{user?.name.charAt(0)}</span>
+            )}
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">Hello, {user?.name.split(' ')[0]}!</h1>
@@ -154,6 +158,30 @@ const StudentDashboard = () => {
             <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{user?.leetcodeStreak || 0} <span className="text-sm font-medium text-slate-500">Days</span></p>
           </div>
         </div>
+
+        {/* XP Level Pill */}
+        <div className="flex items-center gap-3 bg-violet-50 dark:bg-violet-900/20 px-4 py-2 rounded-2xl border border-violet-100 dark:border-violet-800/50 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-500 text-lg font-black">
+            {gamificationData?.level || 1}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-violet-400 uppercase tracking-wider">Level</p>
+            <div className="w-24 h-2 bg-violet-200 dark:bg-violet-800/50 rounded-full overflow-hidden mt-1">
+              <div className="h-full bg-gradient-to-r from-violet-400 to-violet-600 rounded-full transition-all" style={{ width: `${gamificationData?.pct || 0}%` }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Coins Pill */}
+        <Link to="/student/wardrobe" className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-2xl border border-amber-100 dark:border-amber-800/50 shadow-sm hover:scale-[1.02] transition-transform">
+          <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-2xl">
+            🪙
+          </div>
+          <div>
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Coins</p>
+            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{userCoins}</p>
+          </div>
+        </Link>
       </div>
 
       {/* Row 1: Task Completion (3), ID Card (6), Leaderboard (3) */}
