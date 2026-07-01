@@ -38,11 +38,10 @@ const FacultyAttendance = () => {
       const res = await axios.get(`/public/attendance/summary?batchId=${selectedBatch}&date=${selectedDate}`);
       
       const { totalStrength, logs } = res.data;
-      // Filter for students whose check-in access is 'on-site' on selected date
-      const presentOnSite = logs.filter(log => log.date === selectedDate && log.accessType === 'on-site');
+      const allStudents = logs.filter(log => log.date === selectedDate);
       
-      setAttendance(presentOnSite);
-      setTotalClassStrength(presentOnSite.length);
+      setAttendance(allStudents);
+      setTotalClassStrength(allStudents.length);
     } catch (err) {
       console.error('Error fetching attendance summary:', err);
     } finally {
@@ -91,6 +90,9 @@ const FacultyAttendance = () => {
       if (presenceFilter === 'permission') {
         return log.isLeave === true;
       }
+      if (presenceFilter === 'wfh') {
+        return log.accessType === 'wfh';
+      }
       return true;
     })
     .sort((a, b) => {
@@ -116,6 +118,7 @@ const FacultyAttendance = () => {
   // Calculate statistics
   const activeNow = attendance.filter(log => log.isActive).length;
   const totalOnLeave = attendance.filter(log => log.isLeave).length;
+  const totalWfh = attendance.filter(log => log.accessType === 'wfh').length;
   const totalAbsent = attendance.filter(log => !log.isActive && !log.isLeave && (!log.isCheckedIn || log.status === 'Absent')).length;
 
   return (
@@ -156,8 +159,8 @@ const FacultyAttendance = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight">On-Site Classroom Attendance</h1>
-          <p className="text-muted text-sm font-medium mt-1">Faculty real-time dashboard of students physically present in the lab</p>
+          <h1 className="text-2xl font-black tracking-tight">Classroom & Remote Attendance</h1>
+          <p className="text-muted text-sm font-medium mt-1">Faculty real-time dashboard of student attendance status (On-Site & WFH)</p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -184,7 +187,7 @@ const FacultyAttendance = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
         <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
           <div className="hidden sm:flex w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl items-center justify-center shrink-0">
             <Users size={24} />
@@ -225,6 +228,16 @@ const FacultyAttendance = () => {
             <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalOnLeave} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
           </div>
         </div>
+
+        <div className="glass-card p-3 sm:p-5 rounded-2xl flex items-center gap-2 sm:gap-4">
+          <div className="hidden sm:flex w-12 h-12 bg-cyan-50 text-cyan-600 rounded-xl items-center justify-center shrink-0">
+            <Users size={24} className="text-cyan-500" />
+          </div>
+          <div>
+            <p className="text-[10px] sm:text-xs font-bold text-muted uppercase tracking-wider">WFH</p>
+            <h3 className="text-sm sm:text-2xl font-black mt-0.5">{totalWfh} <span className="hidden md:inline text-xs font-medium text-muted">students</span></h3>
+          </div>
+        </div>
       </div>
 
       {/* Search & Sort Panel */}
@@ -243,7 +256,7 @@ const FacultyAttendance = () => {
         {/* Filter & Sort Controls Row */}
         <div className="flex flex-row items-center gap-2 w-full justify-between">
           {/* Segmented Filter Buttons (Show All, Present, Absent) */}
-          <div className="flex flex-1 bg-slate-100 p-1 rounded-xl items-center max-w-[320px] sm:max-w-none">
+          <div className="flex flex-1 bg-slate-100 p-1 rounded-xl items-center max-w-[400px] sm:max-w-none">
             <button
               onClick={() => setPresenceFilter('all')}
               className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
@@ -267,6 +280,12 @@ const FacultyAttendance = () => {
               className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'permission' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
               Permission
+            </button>
+            <button
+              onClick={() => setPresenceFilter('wfh')}
+              className={`flex-1 text-center py-1.5 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${presenceFilter === 'wfh' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              WFH
             </button>
           </div>
 
@@ -292,8 +311,8 @@ const FacultyAttendance = () => {
         <div className="p-12"><Loader /></div>
       ) : filteredLogs.length === 0 ? (
         <div className="glass-card p-12 text-center rounded-2xl">
-          <p className="text-muted font-bold text-base">No on-site students found matching current filters.</p>
-          <p className="text-xs text-slate-400 mt-1 font-medium">Verify that the correct batch is selected and that students have checked in as On-Site today.</p>
+          <p className="text-muted font-bold text-base">No students found matching current filters.</p>
+          <p className="text-xs text-slate-400 mt-1 font-medium">Verify that the correct batch is selected and that students have checked in today.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -305,6 +324,11 @@ const FacultyAttendance = () => {
                   <p className="text-xs font-semibold text-muted tracking-wide uppercase mt-0.5">{student.rollNumber || 'No ID'}</p>
                 </div>
                  <div className="flex items-center gap-1.5">
+                  {student.accessType === 'wfh' && (
+                    <span className="bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded text-[9px] font-black text-cyan-600 uppercase tracking-wider shrink-0">
+                      WFH
+                    </span>
+                  )}
                   {student.isActive ? (
                     <span className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-black text-emerald-600 uppercase tracking-wider relative">
                       <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping absolute"></span>
