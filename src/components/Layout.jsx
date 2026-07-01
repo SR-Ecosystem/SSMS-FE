@@ -474,6 +474,7 @@ const Layout = () => {
       setAttendanceId(data._id);
       attendanceIdRef.current = data._id;
       setSessionActive(true);
+      localStorage.setItem('sessionActive', 'true');
     } catch (error) {
       console.error('Checkin failed:', error);
       Swal.fire({
@@ -661,9 +662,11 @@ const Layout = () => {
         await axios.post(`/attendance/checkout/${attendanceIdRef.current}`, {
           totalSeconds: finalSeconds
         });
+        
         setSessionActive(false);
         setAttendanceId(null);
         attendanceIdRef.current = null;
+        localStorage.removeItem('sessionActive');
 
         if (timerIntervalRef.current) {
           clearInterval(timerIntervalRef.current);
@@ -681,12 +684,40 @@ const Layout = () => {
           const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
           setSessionSeconds(totalTodaySeconds);
         } catch (e) { console.error('Failed to sync summary:', e); }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Checked Out Successfully',
+          text: 'Have a great day! Your attendance session has been ended.',
+          confirmButtonColor: '#10b981',
+          timer: 3500
+        });
+
       } catch (e) {
         console.error('Checkout failed:', e);
+        Swal.fire({
+          icon: 'error',
+          title: 'Check-out Failed',
+          text: e.response?.data?.message || 'Unable to check out. Please verify your internet connection and try again.',
+          confirmButtonColor: '#ef4444'
+        });
       } finally {
         checkingInRef.current = false;
         setIsCheckingIn(false);
       }
+    } else {
+      setSessionActive(false);
+      localStorage.removeItem('sessionActive');
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      Swal.fire({
+        icon: 'warning',
+        title: 'Check-out Resynced',
+        text: 'The active session could not be verified on the server, but your local session has been cleared.',
+        confirmButtonColor: '#f59e0b'
+      });
     }
   };
 
