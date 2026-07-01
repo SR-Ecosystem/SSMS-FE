@@ -88,7 +88,7 @@ const FacultyAttendance = () => {
         return log.isCheckedIn === false && log.isLeave === false;
       }
       if (presenceFilter === 'permission') {
-        return log.isLeave === true;
+        return log.isLeave === true && log.isActive === false && log.status !== 'Present';
       }
       if (presenceFilter === 'wfh') {
         return log.accessType === 'wfh';
@@ -117,9 +117,9 @@ const FacultyAttendance = () => {
 
   // Calculate statistics
   const activeNow = attendance.filter(log => log.isActive).length;
-  const totalOnLeave = attendance.filter(log => log.isLeave).length;
+  const totalOnLeave = attendance.filter(log => log.isLeave && !log.isActive && log.status !== 'Present').length;
   const totalWfh = attendance.filter(log => log.accessType === 'wfh').length;
-  const totalAbsent = attendance.filter(log => !log.isActive && !log.isLeave && (!log.isCheckedIn || log.status === 'Absent')).length;
+  const totalAbsent = attendance.filter(log => !log.isActive && (!log.isLeave || log.status === 'Present') && (!log.isCheckedIn || log.status === 'Absent')).length;
 
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 md:p-8 space-y-6 text-slate-800 light-theme-override">
@@ -361,13 +361,19 @@ const FacultyAttendance = () => {
                   <p className={`text-sm font-black mt-0.5 ${
                     student.isActive 
                       ? 'text-emerald-600' 
-                      : student.isLeave 
+                      : (student.isLeave && student.status !== 'Present') 
                         ? 'text-amber-600' 
-                        : student.status === 'Absent' 
-                          ? 'text-rose-600' 
-                          : 'text-indigo-600'
+                        : student.status === 'Present'
+                          ? 'text-emerald-600'
+                          : student.status === 'Absent' 
+                            ? 'text-rose-600' 
+                            : 'text-indigo-600'
                   }`}>
-                    {student.isLeave ? 'Permission Leave' : student.status}
+                    {student.isActive 
+                      ? 'Active' 
+                      : (student.isLeave && student.status !== 'Present') 
+                        ? 'Permission Leave' 
+                        : student.status}
                   </p>
                 </div>
               </div>
