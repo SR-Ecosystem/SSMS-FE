@@ -661,7 +661,7 @@ const Layout = () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       };
     }
-  }, [user, location.pathname]); // Re-fetch or clear if path changes
+  }, [user]); // Re-fetch or clear if user changes
 
 
 
