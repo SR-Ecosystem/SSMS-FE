@@ -604,33 +604,6 @@ const Layout = () => {
       }
     };
 
-    // Listen for real-time administrator force-checkout events
-    if (socket && user?.role === 'student') {
-      const handleForceCheckout = (data) => {
-        console.log('Force-checkout event received via socket:', data);
-        setSessionActive(false);
-        setAttendanceId(null);
-        attendanceIdRef.current = null;
-        localStorage.removeItem('sessionActive');
-        if (timerIntervalRef.current) {
-          clearInterval(timerIntervalRef.current);
-          timerIntervalRef.current = null;
-        }
-        Swal.fire({
-          icon: 'warning',
-          title: 'Session Checked Out',
-          text: 'Your active attendance session has been ended by the administrator.',
-          confirmButtonColor: '#f97316'
-        });
-      };
-
-      socket.on('force-checkout', handleForceCheckout);
-
-      return () => {
-        socket.off('force-checkout', handleForceCheckout);
-      };
-    }
-
     if (user) {
       fetchCounts();
       
@@ -662,6 +635,35 @@ const Layout = () => {
       };
     }
   }, [user]); // Re-fetch or clear if user changes
+
+  // Listen for real-time administrator force-checkout events
+  useEffect(() => {
+    if (socket && user?.role === 'student') {
+      const handleForceCheckout = (data) => {
+        console.log('Force-checkout event received via socket:', data);
+        setSessionActive(false);
+        setAttendanceId(null);
+        attendanceIdRef.current = null;
+        localStorage.removeItem('sessionActive');
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
+        Swal.fire({
+          icon: 'warning',
+          title: 'Session Checked Out',
+          text: 'Your active attendance session has been ended by the administrator.',
+          confirmButtonColor: '#f97316'
+        });
+      };
+
+      socket.on('force-checkout', handleForceCheckout);
+
+      return () => {
+        socket.off('force-checkout', handleForceCheckout);
+      };
+    }
+  }, [socket, user]);
 
 
 
