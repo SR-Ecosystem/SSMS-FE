@@ -80,7 +80,7 @@ const MyAttendance = () => {
       
       if (hours >= minRequired && hours <= 10) day.status = 'Present';
       else if (hours > 10) day.status = 'Invalid';
-      else if (day.isActive || day.date === todayStr) day.status = 'In Progress';
+      else if (day.isActive) day.status = 'In Progress';
       else day.status = 'Absent';
     });
 
