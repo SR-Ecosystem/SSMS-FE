@@ -4,14 +4,39 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
 import { 
-  User as UserIcon, Mail, Phone, GitBranch, Briefcase, Globe, Save, Loader2, Code, Terminal, Eye, EyeOff 
+  User as UserIcon, Mail, Phone, GitBranch, Briefcase, Globe, Save, Loader2, Code, Terminal, Eye, EyeOff, Camera 
 } from 'lucide-react';
+
+const getBorderPreviewClass = (value) => {
+  const map = {
+    'bronze-glow': 'border-amber-700 shadow-[0_0_12px_rgba(180,83,9,0.5)]',
+    'silver-pulse': 'border-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.6)] animate-pulse',
+    'gold-shimmer': 'border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.9)] bg-transparent',
+    'diamond-sparkle': 'border-cyan-300 shadow-[0_0_22px_rgba(34,211,238,0.8)] animate-pulse duration-700',
+    'fire-ring': 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.9)] bg-gradient-to-tr from-orange-500 to-red-600 animate-pulse',
+    'lightning-arc': 'border-violet-500 shadow-[0_0_30px_rgba(139,92,246,0.95)] bg-gradient-to-tr from-violet-600 to-indigo-600 animate-pulse duration-500',
+    'galaxy-swirl': 'border-pink-500 shadow-[0_0_35px_rgba(236,72,153,1)] bg-gradient-to-tr from-fuchsia-600 via-pink-600 to-purple-600 animate-pulse duration-[2000ms]',
+    'rainbow-spin': 'border-transparent shadow-[0_0_25px_rgba(16,185,129,0.8)] bg-gradient-to-r from-red-500 via-green-500 via-blue-500 to-yellow-500 animate-spin',
+    'emerald-pulse': 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse duration-1000',
+    'ruby-fire': 'border-rose-600 shadow-[0_0_30px_rgba(225,29,72,0.9)] animate-ping duration-[2000ms]',
+    'nebula-cloud': 'border-indigo-400 shadow-[0_0_30px_rgba(129,140,248,0.9)] bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-pulse',
+    'placement-ready': 'border-double border-4 border-yellow-400 shadow-[0_0_35px_rgba(250,204,21,1)] animate-bounce duration-[2000ms]',
+    'top-10-border': 'border-transparent bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_30px_rgba(6,182,212,0.9)] animate-pulse',
+    'frozen-frost': 'border-sky-300 shadow-[0_0_18px_rgba(125,211,252,0.8)] animate-pulse bg-gradient-to-tr from-sky-400 to-blue-500',
+    'shadow-assassin': 'border-purple-950 shadow-[0_0_20px_rgba(88,28,135,0.7)] bg-gradient-to-tr from-zinc-950 via-purple-950 to-zinc-900 animate-pulse duration-[3000ms]',
+    'weekly-warrior-shield': 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] border-dashed animate-pulse',
+    'legend-league-crown': 'border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,1)] bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 animate-pulse'
+  };
+  return map[value] || 'border-slate-500';
+};
 
 const UserProfile = () => {
   const { user: authUser, login, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [gamificationData, setGamificationData] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -27,9 +52,13 @@ const UserProfile = () => {
   });
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileAndStatus = async () => {
       try {
-        const { data } = await axios.get('/auth/profile');
+        const [profileRes, gamificationRes] = await Promise.all([
+          axios.get('/auth/profile'),
+          axios.get('/gamification/status')
+        ]);
+        const data = profileRes.data;
         setFormData({
           name: data.name || '',
           email: data.email || '',
@@ -42,18 +71,65 @@ const UserProfile = () => {
           password: '',
           confirmPassword: '',
         });
+        setGamificationData(gamificationRes.data);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Error fetching profile or status:', error);
         Swal.fire('Error', 'Failed to load profile data', 'error');
       } finally {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchProfileAndStatus();
   }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      Swal.fire('Error', 'Please upload an image file.', 'error');
+      return;
+    }
+
+    setUploading(true);
+    const formDataUpload = new FormData();
+    formDataUpload.append('file', file);
+
+    try {
+      // 1. Upload file
+      const uploadRes = await axios.post('/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const fileUrl = uploadRes.data.fileUrl;
+
+      // 2. Equipped via custom avatar endpoint
+      await axios.post('/gamification/custom-avatar', { avatarUrl: fileUrl });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Custom Photo Equipped!',
+        text: 'Your custom profile photo has been successfully set.',
+        timer: 2000,
+        showConfirmButton: false,
+        background: document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000'
+      });
+
+      // 3. Refresh local profile image
+      if (updateUser) {
+        updateUser({ ...authUser, equippedAvatar: fileUrl });
+      }
+      setGamificationData(prev => ({ ...prev, equippedAvatar: fileUrl }));
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', err.response?.data?.message || 'Failed to upload photo', 'error');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -113,9 +189,59 @@ const UserProfile = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 flex items-center justify-center border-4 border-white dark:border-white/10 shadow-lg overflow-hidden">
-          <UserIcon size={32} />
+        <div 
+          onClick={() => {
+            if (gamificationData?.isRankOne) {
+              document.getElementById('profile-photo-input').click();
+            } else {
+              Swal.fire({
+                icon: 'info',
+                title: 'Leaderboard Rank #1 Exclusive',
+                text: 'Only the Top #1 student on the leaderboard is allowed to upload and use a custom profile photo! Keep scoring high to reach Rank #1!',
+                confirmButtonColor: '#0ea5e9',
+                background: document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff',
+                color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000',
+              });
+            }
+          }}
+          className={`w-16 h-16 rounded-full flex items-center justify-center overflow-hidden cursor-pointer relative group transition-transform hover:scale-105 shadow-lg ${
+            gamificationData?.profileBorder 
+              ? `border-3 p-0.5 ${getBorderPreviewClass(gamificationData.profileBorder)}` 
+              : 'border-4 border-white dark:border-white/10 bg-slate-100 dark:bg-slate-800'
+          }`}
+        >
+          {uploading ? (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+              <Loader2 className="text-white animate-spin" size={20} />
+            </div>
+          ) : null}
+
+          {/* Camera hover overlay (Only if Rank 1) */}
+          {gamificationData?.isRankOne && (
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-opacity z-10">
+              <Camera size={18} />
+              <span className="text-[9px] font-bold mt-0.5 uppercase tracking-wider">Change</span>
+            </div>
+          )}
+
+          {gamificationData?.equippedAvatar ? (
+            <img src={gamificationData.equippedAvatar} alt="Profile" className="w-full h-full object-cover object-top rounded-full" />
+          ) : (
+            <UserIcon className="text-slate-400 dark:text-slate-500" size={32} />
+          )}
         </div>
+
+        {/* Hidden File Input */}
+        {gamificationData?.isRankOne && (
+          <input 
+            type="file" 
+            id="profile-photo-input" 
+            className="hidden" 
+            accept="image/*" 
+            onChange={handlePhotoUpload} 
+          />
+        )}
+
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">My Profile</h1>
           <p className="text-slate-600 dark:text-slate-400">Manage your personal information and social links</p>

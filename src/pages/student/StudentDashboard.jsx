@@ -7,6 +7,76 @@ import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserI
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
+const getBorderPreviewClass = (value) => {
+  const map = {
+    'bronze-glow': 'border-amber-700 shadow-[0_0_12px_rgba(180,83,9,0.5)]',
+    'silver-pulse': 'border-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.6)] animate-pulse',
+    'gold-shimmer': 'border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.9)] bg-transparent',
+    'diamond-sparkle': 'border-cyan-300 shadow-[0_0_22px_rgba(34,211,238,0.8)] animate-pulse duration-700',
+    'fire-ring': 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.9)] bg-gradient-to-tr from-orange-500 to-red-600 animate-pulse',
+    'lightning-arc': 'border-violet-500 shadow-[0_0_30px_rgba(139,92,246,0.95)] bg-gradient-to-tr from-violet-600 to-indigo-600 animate-pulse duration-500',
+    'galaxy-swirl': 'border-pink-500 shadow-[0_0_35px_rgba(236,72,153,1)] bg-gradient-to-tr from-fuchsia-600 via-pink-600 to-purple-600 animate-pulse duration-[2000ms]',
+    'rainbow-spin': 'border-transparent shadow-[0_0_25px_rgba(16,185,129,0.8)] bg-gradient-to-r from-red-500 via-green-500 via-blue-500 to-yellow-500 animate-spin',
+    'emerald-pulse': 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse duration-1000',
+    'ruby-fire': 'border-rose-600 shadow-[0_0_30px_rgba(225,29,72,0.9)] animate-ping duration-[2000ms]',
+    'nebula-cloud': 'border-indigo-400 shadow-[0_0_30px_rgba(129,140,248,0.9)] bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-pulse',
+    'placement-ready': 'border-double border-4 border-yellow-400 shadow-[0_0_35px_rgba(250,204,21,1)] animate-bounce duration-[2000ms]',
+    'top-10-border': 'border-transparent bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_30px_rgba(6,182,212,0.9)] animate-pulse'
+  };
+  return map[value] || 'border-slate-500';
+};
+
+const PET_EMOJIS = {
+  Cat: '🐱',
+  Dog: '🐶',
+  Robot: '🤖',
+  Dragon: '🐲',
+  Panda: '🐼',
+  Tiger: '🐯',
+  Alien: '👽',
+  Phoenix: '🔥',
+  'Weekly Warrior Owl': '🦉'
+};
+
+const getEffectStyles = (effectName) => {
+  switch (effectName) {
+    case 'fire-aura':
+      return 'ring-4 ring-orange-500 ring-offset-2 shadow-[0_0_20px_#f97316] animate-pulse';
+    case 'lightning-aura':
+      return 'ring-4 ring-violet-500 ring-offset-2 shadow-[0_0_20px_#a855f7] animate-pulse';
+    case 'galaxy-aura':
+      return 'ring-4 ring-pink-500 ring-offset-2 shadow-[0_0_20px_#ec4899]';
+    case 'sparkles':
+      return 'ring-4 ring-yellow-400 ring-offset-2 shadow-[0_0_15px_#eab308]';
+    case 'snowstorm':
+      return 'ring-4 ring-sky-300 ring-offset-2 shadow-[0_0_15px_#38bdf8]';
+    case 'heartbeat':
+      return 'ring-4 ring-rose-500 ring-offset-2 shadow-[0_0_18px_#f43f5e]';
+    case 'cyber-grid':
+      return 'ring-4 ring-cyan-400 ring-offset-2 shadow-[0_0_20px_#22d3ee]';
+    case 'perfect-attendance-aura':
+      return 'ring-4 ring-amber-400 ring-offset-2 shadow-[0_0_25px_#f59e0b]';
+    default:
+      return '';
+  }
+};
+
+const getNamecolorClass = (value) => {
+  const classes = {
+    'text-green-500': 'text-green-500',
+    'text-blue-500': 'text-blue-500',
+    'text-purple-500': 'text-purple-500',
+    'text-amber-500': 'text-amber-500',
+    'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-green-500 to-blue-500 font-extrabold': 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-green-500 to-blue-500 font-extrabold',
+    'text-emerald-600 font-extrabold': 'text-emerald-600 font-extrabold',
+    'text-red-500 font-bold animate-pulse': 'text-red-500 font-bold animate-pulse',
+    'text-cyan-400 font-black animate-pulse': 'text-cyan-400 font-black animate-pulse',
+    'text-indigo-400 font-extrabold': 'text-indigo-400 font-extrabold',
+    'text-yellow-400 font-extrabold animate-bounce duration-[2000ms]': 'text-yellow-400 font-extrabold animate-bounce duration-[2000ms]'
+  };
+  return classes[value] || value || '';
+};
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { 
@@ -135,16 +205,38 @@ const StudentDashboard = () => {
       {/* Header section styling matching the Wallet App */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden p-0.5 shadow-lg shadow-theme-primary/10">
-            {gamificationData?.equippedAvatar ? (
-              <img src={gamificationData.equippedAvatar} alt="Avatar" className="w-full h-full object-contain" />
-            ) : (
-              <span className="text-xl font-bold text-slate-700 dark:text-slate-200">{user?.name.charAt(0)}</span>
+          <div className="relative shrink-0">
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center relative ${
+              gamificationData?.profileBorder 
+                ? `border-3 p-0.5 ${getBorderPreviewClass(gamificationData.profileBorder)}` 
+                : 'border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-lg shadow-theme-primary/10'
+            } ${getEffectStyles(gamificationData?.equippedEffect || user?.equippedEffect)}`}>
+              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                {gamificationData?.equippedAvatar ? (
+                  <img src={gamificationData.equippedAvatar} alt="Avatar" className="w-full h-full object-cover object-top" />
+                ) : (
+                  <span className="text-xl font-bold text-slate-700 dark:text-slate-200">{user?.name.charAt(0)}</span>
+                )}
+              </div>
+            </div>
+            {(gamificationData?.equippedPet || user?.equippedPet) && (
+              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-750 rounded-full w-6 h-6 flex items-center justify-center text-sm animate-bounce" title={`Pet: ${gamificationData?.equippedPet || user?.equippedPet}`}>
+                {PET_EMOJIS[gamificationData?.equippedPet || user?.equippedPet] || '🐾'}
+              </div>
             )}
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">Hello, {user?.name.split(' ')[0]}!</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Great, your learning is on track</p>
+            <h1 className={`text-2xl font-extrabold leading-tight ${getNamecolorClass(gamificationData?.currentNamecolor || user?.currentNamecolor) || 'text-slate-800 dark:text-white'} namecolor-shine`}>
+              Hello, {user?.name.split(' ')[0]}!
+            </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 mt-0.5">
+              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold">Great, your learning is on track</p>
+              {(gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle) && (
+                <span className="self-start inline-flex items-center text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-sm animate-pulse">
+                  🏆 {gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         
@@ -154,8 +246,19 @@ const StudentDashboard = () => {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
           </div>
           <div>
-            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">LeetCode Streak</p>
-            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{user?.leetcodeStreak || 0} <span className="text-sm font-medium text-slate-500">Days</span></p>
+            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Coding Streak</p>
+            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{gamificationData?.codingStreak || user?.leetcodeStreak || 0} <span className="text-sm font-medium text-slate-500">Days</span></p>
+          </div>
+        </div>
+
+        {/* League Badge */}
+        <div className="flex items-center gap-3 bg-cyan-50 dark:bg-cyan-900/20 px-4 py-2 rounded-2xl border border-cyan-100 dark:border-cyan-800/50 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center text-2xl">
+            {gamificationData?.leagueIcon || '🥉'}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-cyan-400 uppercase tracking-wider">League</p>
+            <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{gamificationData?.league || 'Bronze'}</p>
           </div>
         </div>
 

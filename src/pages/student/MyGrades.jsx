@@ -72,21 +72,7 @@ const MyGrades = () => {
           <p className="text-slate-500 mt-1 font-medium">Review your performance across assignments and mock placement drives</p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex items-center gap-1 max-w-max border border-slate-200 dark:border-slate-700/50">
-          <button
-            onClick={() => setActiveTab('assignments')}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'assignments' ? 'bg-white dark:bg-slate-950 text-theme-primary shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
-          >
-            Assignments
-          </button>
-          <button
-            onClick={() => setActiveTab('mockDrives')}
-            className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'mockDrives' ? 'bg-white dark:bg-slate-950 text-theme-primary shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
-          >
-            Mock Drives
-          </button>
-        </div>
+
       </div>
       
       {activeTab === 'assignments' ? (

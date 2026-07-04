@@ -127,12 +127,7 @@ const MyTasks = () => {
   };
 
   const handleViewSubmission = async (sub) => {
-    if (sub.submissionType === 'link' && sub.linkUrl) {
-      window.open(sub.linkUrl, '_blank');
-    } else if (sub.submissionType === 'file' && sub.fileUrl) {
-      const url = sub.fileUrl.startsWith('http') ? sub.fileUrl : `${import.meta.env.VITE_API_URL}${sub.fileUrl}`;
-      window.open(url, '_blank');
-    } else if (sub.submissionType === 'text') {
+    if (sub.submittedLinks && sub.submittedLinks.length > 0 || sub.submissionType === 'text') {
       try {
         Swal.fire({
           title: 'Loading Submission...',
@@ -146,6 +141,22 @@ const MyTasks = () => {
         
         const newWin = window.open('', '_blank');
         if (newWin) {
+          const linksHtml = fullSub.submittedLinks && fullSub.submittedLinks.length > 0
+            ? `<div style="margin: 20px 0; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 12px;">
+                <h3 style="margin-top: 0; color: #16a34a; font-size: 18px; font-family: inherit;">Submitted Links</h3>
+                <ul style="padding-left: 20px; margin: 0;">
+                  ${fullSub.submittedLinks.map(link => `
+                    <li style="margin-bottom: 10px; font-size: 15px;">
+                      <strong style="color: #1e293b;">${link.label}:</strong> 
+                      <a href="${link.url}" target="_blank" style="color: #2563eb; text-decoration: underline; word-break: break-all; font-weight: 500;">
+                        ${link.url}
+                      </a>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>`
+            : '';
+
           newWin.document.write(`
             <html>
               <head>
@@ -161,7 +172,8 @@ const MyTasks = () => {
                 <h2 style="margin-bottom: 5px;">My Submitted Work</h2>
                 <p style="color: #666; margin-top: 0; font-size: 14px;">Submitted on: ${formatDateTime(fullSub.submittedAt || fullSub.createdAt)}</p>
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 20px;" />
-                <div class="ql-editor" style="padding: 0;">${fullSub.textContent || '<p>No text content submitted.</p>'}</div>
+                ${linksHtml}
+                ${fullSub.textContent && fullSub.textContent !== '<p><br></p>' && fullSub.textContent !== '' ? `<div class="ql-editor" style="padding: 0;">${fullSub.textContent}</div>` : ''}
                 ${fullSub.remarks ? `<div class="remarks"><h4 style="margin-top: 0;">Remarks</h4><p style="margin-bottom: 0;">${fullSub.remarks}</p></div>` : ''}
               </body>
             </html>
@@ -173,6 +185,11 @@ const MyTasks = () => {
         console.error('Error fetching submission details:', error);
         Swal.fire('Error', 'Could not fetch submission details.', 'error');
       }
+    } else if (sub.submissionType === 'link' && sub.linkUrl) {
+      window.open(sub.linkUrl, '_blank');
+    } else if (sub.submissionType === 'file' && sub.fileUrl) {
+      const url = sub.fileUrl.startsWith('http') ? sub.fileUrl : `${import.meta.env.VITE_API_URL}${sub.fileUrl}`;
+      window.open(url, '_blank');
     }
   };
 

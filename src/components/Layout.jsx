@@ -1,16 +1,105 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, BookOpen, FileText, CheckCircle,
   LogOut, Menu, X, User as UserIcon, Sun, Moon, Clock, Gamepad2, MessageCircle, Bell, Code, Trophy, Calendar, Monitor,
-  Briefcase, ChevronDown, ChevronRight, Palette, Network, ShieldCheck, Activity, Sparkles
+  Briefcase, ChevronDown, ChevronRight, Palette, Network, ShieldCheck, Activity, Sparkles, Lock
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import Swal from 'sweetalert2';
 import { soundManager } from '../utils/soundManager';
 import Loader from './Loader';
+
+const getBorderPreviewClass = (value) => {
+  const map = {
+    'bronze-glow': 'border-amber-700 shadow-[0_0_12px_rgba(180,83,9,0.5)]',
+    'silver-pulse': 'border-slate-300 shadow-[0_0_15px_rgba(203,213,225,0.6)] animate-pulse',
+    'gold-shimmer': 'border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.9)] bg-transparent',
+    'diamond-sparkle': 'border-cyan-300 shadow-[0_0_22px_rgba(34,211,238,0.8)] animate-pulse duration-700',
+    'fire-ring': 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.9)] bg-gradient-to-tr from-orange-500 to-red-600 animate-pulse',
+    'lightning-arc': 'border-violet-500 shadow-[0_0_30px_rgba(139,92,246,0.95)] bg-gradient-to-tr from-violet-600 to-indigo-600 animate-pulse duration-500',
+    'galaxy-swirl': 'border-pink-500 shadow-[0_0_35px_rgba(236,72,153,1)] bg-gradient-to-tr from-fuchsia-600 via-pink-600 to-purple-600 animate-pulse duration-[2000ms]',
+    'rainbow-spin': 'border-transparent shadow-[0_0_25px_rgba(16,185,129,0.8)] bg-gradient-to-r from-red-500 via-green-500 via-blue-500 to-yellow-500 animate-spin',
+    'emerald-pulse': 'border-emerald-400 shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse duration-1000',
+    'ruby-fire': 'border-rose-600 shadow-[0_0_30px_rgba(225,29,72,0.9)] animate-ping duration-[2000ms]',
+    'nebula-cloud': 'border-indigo-400 shadow-[0_0_30px_rgba(129,140,248,0.9)] bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 animate-pulse',
+    'placement-ready': 'border-double border-4 border-yellow-400 shadow-[0_0_35px_rgba(250,204,21,1)] animate-bounce duration-[2000ms]',
+    'top-10-border': 'border-transparent bg-gradient-to-tr from-cyan-400 via-blue-500 to-purple-600 shadow-[0_0_30px_rgba(6,182,212,0.9)] animate-pulse',
+    'frozen-frost': 'border-sky-300 shadow-[0_0_18px_rgba(125,211,252,0.8)] animate-pulse bg-gradient-to-tr from-sky-400 to-blue-500',
+    'shadow-assassin': 'border-purple-950 shadow-[0_0_20px_rgba(88,28,135,0.7)] bg-gradient-to-tr from-zinc-950 via-purple-950 to-zinc-900 animate-pulse duration-[3000ms]',
+    'weekly-warrior-shield': 'border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] border-dashed animate-pulse',
+    'legend-league-crown': 'border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,1)] bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 animate-pulse'
+  };
+  return map[value] || 'border-slate-500';
+};
+
+const themeDisplayNames = {
+  Emerald: 'Emerald Green',
+  Amethyst: 'Master Purple',
+  Crimson: 'Ruby Sovereign',
+  Ocean: 'Ocean Blue',
+  Amber: 'Legendary Gold',
+  Rose: 'Rose Red',
+  Midnight: 'Midnight',
+  Sakura: 'Sakura Pink',
+  Mint: 'Forest Sovereign',
+  Slate: 'Slate',
+  Coral: 'Coral',
+  Cyber: 'Cosmic Diamond'
+};
+
+const PET_EMOJIS = {
+  Cat: '🐱',
+  Dog: '🐶',
+  Robot: '🤖',
+  Dragon: '🐲',
+  Panda: '🐼',
+  Tiger: '🐯',
+  Alien: '👽',
+  Phoenix: '🔥',
+  'Weekly Warrior Owl': '🦉'
+};
+
+const getEffectStyles = (effectName) => {
+  switch (effectName) {
+    case 'fire-aura':
+      return 'ring-2 ring-orange-500 ring-offset-1 shadow-[0_0_12px_#f97316] animate-pulse';
+    case 'lightning-aura':
+      return 'ring-2 ring-violet-500 ring-offset-1 shadow-[0_0_12px_#a855f7] animate-pulse';
+    case 'galaxy-aura':
+      return 'ring-2 ring-pink-500 ring-offset-1 shadow-[0_0_12px_#ec4899]';
+    case 'sparkles':
+      return 'ring-2 ring-yellow-400 ring-offset-1 shadow-[0_0_8px_#eab308]';
+    case 'snowstorm':
+      return 'ring-2 ring-sky-300 ring-offset-1 shadow-[0_0_8px_#38bdf8]';
+    case 'heartbeat':
+      return 'ring-2 ring-rose-500 ring-offset-1 shadow-[0_0_10px_#f43f5e]';
+    case 'cyber-grid':
+      return 'ring-2 ring-cyan-400 ring-offset-1 shadow-[0_0_12px_#22d3ee]';
+    case 'perfect-attendance-aura':
+      return 'ring-2 ring-amber-400 ring-offset-1 shadow-[0_0_15px_#f59e0b]';
+    default:
+      return '';
+  }
+};
+
+const getNamecolorClass = (value) => {
+  const classes = {
+    'text-green-500': 'text-green-500',
+    'text-blue-500': 'text-blue-500',
+    'text-purple-500': 'text-purple-500',
+    'text-amber-500': 'text-amber-500',
+    'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-green-500 to-blue-500 font-extrabold': 'text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-green-500 to-blue-500 font-extrabold',
+    'text-emerald-600 font-extrabold': 'text-emerald-600 font-extrabold',
+    'text-red-500 font-bold animate-pulse': 'text-red-500 font-bold animate-pulse',
+    'text-cyan-400 font-black animate-pulse': 'text-cyan-400 font-black animate-pulse',
+    'text-indigo-400 font-extrabold': 'text-indigo-400 font-extrabold',
+    'text-yellow-400 font-extrabold animate-bounce duration-[2000ms]': 'text-yellow-400 font-extrabold animate-bounce duration-[2000ms]'
+  };
+  return classes[value] || value || '';
+};
 
 const Layout = () => {
   const { user, logout, socket } = useAuth();
@@ -140,7 +229,12 @@ const Layout = () => {
       accent: '#14b8a6',
       shades: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#a7f3d0', 300: '#6ee7b7', 400: '#34d399', 500: '#10b981', 600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b' },
       bgLight: { start: '#dcfce7', middle: '#f0fdf4', end: '#ffffff' },
-      bgDark: { start: '#052217', middle: '#02120c', end: '#010604' }
+      bgDark: { start: '#052217', middle: '#02120c', end: '#010604' },
+      font: "'Inter', sans-serif",
+      radius: '24px',
+      btnRadius: '12px',
+      glow: '0 8px 30px rgba(16, 185, 129, 0.15)',
+      speedMultiplier: '1.0'
     },
     {
       name: 'Amethyst',
@@ -148,15 +242,25 @@ const Layout = () => {
       accent: '#6366f1',
       shades: { 50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95' },
       bgLight: { start: '#ede9fe', middle: '#f5f3ff', end: '#ffffff' },
-      bgDark: { start: '#120d2b', middle: '#070512', end: '#020106' }
+      bgDark: { start: '#120d2b', middle: '#070512', end: '#020106' },
+      font: "'Outfit', sans-serif",
+      radius: '16px',
+      btnRadius: '10px',
+      glow: '0 0 20px rgba(139, 92, 246, 0.5)',
+      speedMultiplier: '0.8'
     },
     {
       name: 'Crimson',
-      primary: '#f97316',
-      accent: '#ef4444',
-      shades: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 800: '#9a3412', 900: '#7c2d12' },
-      bgLight: { start: '#ffedd5', middle: '#fff7ed', end: '#ffffff' },
-      bgDark: { start: '#220b02', middle: '#0e0400', end: '#040100' }
+      primary: '#e11d48',
+      accent: '#f43f5e',
+      shades: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#e11d48', 600: '#be123c', 700: '#9f1239', 800: '#881337', 900: '#4c0519' },
+      bgLight: { start: '#ffe4e6', middle: '#fff1f2', end: '#ffffff' },
+      bgDark: { start: '#1c0309', middle: '#0e0104', end: '#040001' },
+      font: "'Outfit', sans-serif",
+      radius: '20px',
+      btnRadius: '14px',
+      glow: '0 0 30px rgba(244, 63, 94, 0.45), 0 0 60px rgba(225, 29, 72, 0.15)',
+      speedMultiplier: '0.7'
     },
     {
       name: 'Ocean',
@@ -164,7 +268,12 @@ const Layout = () => {
       accent: '#3b82f6',
       shades: { 50: '#f0f9ff', 100: '#e0f2fe', 200: '#bae6fd', 300: '#7dd3fc', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 800: '#075985', 900: '#0c4a6e' },
       bgLight: { start: '#e0f2fe', middle: '#f0f9ff', end: '#ffffff' },
-      bgDark: { start: '#041727', middle: '#010911', end: '#000306' }
+      bgDark: { start: '#041727', middle: '#010911', end: '#000306' },
+      font: "'Outfit', sans-serif",
+      radius: '24px',
+      btnRadius: '12px',
+      glow: '0 8px 30px rgba(14, 165, 233, 0.15)',
+      speedMultiplier: '1.0'
     },
     {
       name: 'Amber',
@@ -172,7 +281,12 @@ const Layout = () => {
       accent: '#eab308',
       shades: { 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309', 800: '#92400e', 900: '#78350f' },
       bgLight: { start: '#fef3c7', middle: '#fffbeb', end: '#ffffff' },
-      bgDark: { start: '#1d1102', middle: '#0b0600', end: '#030100' }
+      bgDark: { start: '#1a1000', middle: '#0d0800', end: '#050200' },
+      font: "'Cinzel', serif",
+      radius: '20px',
+      btnRadius: '14px',
+      glow: '0 0 30px rgba(245, 158, 11, 0.45), 0 0 60px rgba(234, 179, 8, 0.15)',
+      speedMultiplier: '0.7'
     },
     {
       name: 'Rose',
@@ -180,7 +294,12 @@ const Layout = () => {
       accent: '#d946ef',
       shades: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337' },
       bgLight: { start: '#ffe4e6', middle: '#fff1f2', end: '#ffffff' },
-      bgDark: { start: '#22040b', middle: '#0e0104', end: '#040001' }
+      bgDark: { start: '#22040b', middle: '#0e0104', end: '#040001' },
+      font: "'Playfair Display', serif",
+      radius: '32px',
+      btnRadius: '16px',
+      glow: '0 0 25px rgba(244, 63, 94, 0.5)',
+      speedMultiplier: '0.7'
     },
     {
       name: 'Midnight',
@@ -188,7 +307,12 @@ const Layout = () => {
       accent: '#818cf8',
       shades: { 50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81' },
       bgLight: { start: '#e0e7ff', middle: '#eef2ff', end: '#ffffff' },
-      bgDark: { start: '#0c0a2a', middle: '#050419', end: '#010106' }
+      bgDark: { start: '#0c0a2a', middle: '#050419', end: '#010106' },
+      font: "'Cinzel', serif",
+      radius: '12px',
+      btnRadius: '6px',
+      glow: '0 0 18px rgba(99, 102, 241, 0.5)',
+      speedMultiplier: '1.4'
     },
     {
       name: 'Sakura',
@@ -196,15 +320,25 @@ const Layout = () => {
       accent: '#f472b6',
       shades: { 50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6', 500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9d174d', 900: '#831843' },
       bgLight: { start: '#fce7f3', middle: '#fdf2f8', end: '#ffffff' },
-      bgDark: { start: '#200716', middle: '#0e030a', end: '#040002' }
+      bgDark: { start: '#200716', middle: '#0e030a', end: '#040002' },
+      font: "'Playfair Display', serif",
+      radius: '28px',
+      btnRadius: '14px',
+      glow: '0 0 22px rgba(236, 72, 153, 0.5)',
+      speedMultiplier: '0.8'
     },
     {
       name: 'Mint',
       primary: '#2dd4bf',
-      accent: '#5eead4',
+      accent: '#10b981',
       shades: { 50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4', 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 700: '#0f766e', 800: '#115e59', 900: '#134e4a' },
       bgLight: { start: '#ccfbf1', middle: '#f0fdfa', end: '#ffffff' },
-      bgDark: { start: '#041f1b', middle: '#020e0c', end: '#010504' }
+      bgDark: { start: '#00140c', middle: '#000704', end: '#000201' },
+      font: "'Space Grotesk', sans-serif",
+      radius: '20px',
+      btnRadius: '14px',
+      glow: '0 0 30px rgba(45, 212, 191, 0.45), 0 0 60px rgba(16, 185, 129, 0.15)',
+      speedMultiplier: '0.8'
     },
     {
       name: 'Slate',
@@ -212,7 +346,12 @@ const Layout = () => {
       accent: '#94a3b8',
       shades: { 50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155', 800: '#1e293b', 900: '#0f172a' },
       bgLight: { start: '#f1f5f9', middle: '#f8fafc', end: '#ffffff' },
-      bgDark: { start: '#0a0f18', middle: '#05080e', end: '#020305' }
+      bgDark: { start: '#0a0f18', middle: '#05080e', end: '#020305' },
+      font: "'Inter', sans-serif",
+      radius: '8px',
+      btnRadius: '6px',
+      glow: '0 0 10px rgba(100, 116, 139, 0.3)',
+      speedMultiplier: '1.5'
     },
     {
       name: 'Coral',
@@ -220,7 +359,12 @@ const Layout = () => {
       accent: '#f97316',
       shades: { 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337' },
       bgLight: { start: '#ffe4e6', middle: '#fff1f2', end: '#ffffff' },
-      bgDark: { start: '#220812', middle: '#0e0308', end: '#040002' }
+      bgDark: { start: '#220812', middle: '#0e0308', end: '#040002' },
+      font: "'Space Grotesk', sans-serif",
+      radius: '14px',
+      btnRadius: '8px',
+      glow: '0 0 18px rgba(251, 113, 133, 0.4)',
+      speedMultiplier: '0.7'
     },
     {
       name: 'Cyber',
@@ -228,7 +372,12 @@ const Layout = () => {
       accent: '#a78bfa',
       shades: { 50: '#ecfeff', 100: '#cffafe', 200: '#a5f3fc', 300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 700: '#0e7490', 800: '#155e75', 900: '#164e63' },
       bgLight: { start: '#cffafe', middle: '#ecfeff', end: '#ffffff' },
-      bgDark: { start: '#041c22', middle: '#020d11', end: '#010405' }
+      bgDark: { start: '#061320', middle: '#030910', end: '#010305' },
+      font: "'Share Tech Mono', monospace",
+      radius: '20px',
+      btnRadius: '14px',
+      glow: '0 0 30px rgba(34, 211, 238, 0.45), 0 0 60px rgba(167, 139, 250, 0.15)',
+      speedMultiplier: '0.9'
     }
   ];
 
@@ -237,6 +386,12 @@ const Layout = () => {
   });
   const [customColor, setCustomColor] = useState(() => {
     return localStorage.getItem('custom-theme-color') || '#6366f1';
+  });
+  const [customFont, setCustomFont] = useState(() => {
+    return localStorage.getItem('custom-theme-font') || 'Inter';
+  });
+  const [customFontSize, setCustomFontSize] = useState(() => {
+    return localStorage.getItem('custom-theme-fontsize') || '100%';
   });
 
   const [showThemeMenu, setShowThemeMenu] = useState(false);
@@ -253,6 +408,25 @@ const Layout = () => {
     document.documentElement.style.setProperty('--color-theme-primary', selected.primary);
     document.documentElement.style.setProperty('--color-theme-accent', selected.accent);
     
+    // Inject custom fonts and parameters
+    if (themeName === 'Custom') {
+      const fontVal = localStorage.getItem('custom-theme-font') || customFont;
+      const sizeVal = localStorage.getItem('custom-theme-fontsize') || customFontSize;
+      document.documentElement.style.setProperty('--font-family-theme', `'${fontVal}', sans-serif`);
+      document.documentElement.style.setProperty('--theme-font-size-adjust', sizeVal);
+      document.documentElement.style.setProperty('--theme-border-radius', '24px');
+      document.documentElement.style.setProperty('--theme-button-border-radius', '12px');
+      document.documentElement.style.setProperty('--theme-glow-shadow', 'none');
+      document.documentElement.style.setProperty('--theme-speed-multiplier', '1.0');
+    } else {
+      document.documentElement.style.setProperty('--font-family-theme', selected.font || "'Inter', sans-serif");
+      document.documentElement.style.setProperty('--theme-font-size-adjust', '100%');
+      document.documentElement.style.setProperty('--theme-border-radius', selected.radius || '24px');
+      document.documentElement.style.setProperty('--theme-button-border-radius', selected.btnRadius || '12px');
+      document.documentElement.style.setProperty('--theme-glow-shadow', selected.glow || 'none');
+      document.documentElement.style.setProperty('--theme-speed-multiplier', selected.speedMultiplier || '1.0');
+    }
+
     // Inject all 10 shades for the selected theme dynamically
     document.documentElement.style.setProperty('--color-primary-50', selected.shades[50]);
     document.documentElement.style.setProperty('--color-primary-100', selected.shades[100]);
@@ -282,9 +456,28 @@ const Layout = () => {
     localStorage.setItem('custom-theme-color', hex);
     localStorage.setItem('theme-color', 'Custom');
     setThemeColor('Custom');
+    setGamificationData(prev => prev ? { ...prev, currentTheme: 'Custom' } : { currentTheme: 'Custom' });
+    
+    // Save custom theme selection to backend database if not already set
+    if (gamificationData?.currentTheme !== 'Custom') {
+      axios.post('/gamification/shop/equip', { category: 'theme', value: 'Custom' })
+        .then(() => {
+          if (socket) socket.emit('equip_change', { category: 'theme', value: 'Custom' });
+        })
+        .catch(err => console.error('Failed to equip Custom theme on backend:', err));
+    }
     const custom = generateThemeFromHex(hex);
     document.documentElement.style.setProperty('--color-theme-primary', custom.primary);
     document.documentElement.style.setProperty('--color-theme-accent', custom.accent);
+    
+    // Inject default values for custom color
+    document.documentElement.style.setProperty('--font-family-theme', `'${customFont}', sans-serif`);
+    document.documentElement.style.setProperty('--theme-font-size-adjust', customFontSize);
+    document.documentElement.style.setProperty('--theme-border-radius', '24px');
+    document.documentElement.style.setProperty('--theme-button-border-radius', '12px');
+    document.documentElement.style.setProperty('--theme-glow-shadow', 'none');
+    document.documentElement.style.setProperty('--theme-speed-multiplier', '1.0');
+
     Object.entries(custom.shades).forEach(([k,v]) => document.documentElement.style.setProperty(`--color-primary-${k}`, v));
     document.documentElement.style.setProperty('--bg-gradient-start', custom.bgLight.start);
     document.documentElement.style.setProperty('--bg-gradient-middle', custom.bgLight.middle);
@@ -292,6 +485,63 @@ const Layout = () => {
     document.documentElement.style.setProperty('--dark-bg-gradient-start', custom.bgDark.start);
     document.documentElement.style.setProperty('--dark-bg-gradient-middle', custom.bgDark.middle);
     document.documentElement.style.setProperty('--dark-bg-gradient-end', custom.bgDark.end);
+  };
+
+  const handleCustomFontChange = (font) => {
+    setCustomFont(font);
+    localStorage.setItem('custom-theme-font', font);
+    if (themeColor === 'Custom') {
+      document.documentElement.style.setProperty('--font-family-theme', `'${font}', sans-serif`);
+    }
+  };
+
+  const handleCustomFontSizeChange = (size) => {
+    setCustomFontSize(size);
+    localStorage.setItem('custom-theme-fontsize', size);
+    if (themeColor === 'Custom') {
+      document.documentElement.style.setProperty('--theme-font-size-adjust', size);
+    }
+  };
+
+  const isThemeUnlocked = (themeName) => {
+    if (user?.role !== 'student') return true;
+    if (themeName === 'Emerald') return true;
+    
+    const currentEquipped = gamificationData?.currentTheme || '';
+    if (currentEquipped === themeName) return true;
+    
+    const unlocked = gamificationData?.unlockedThemes || [];
+    if (unlocked.includes(themeName)) return true;
+    
+    // Check badge requirements for achievement-locked themes
+    const userBadges = gamificationData?.badges || [];
+    console.log('[ThemeLockCheck] name:', themeName, 'current:', currentEquipped, 'unlocked:', unlocked, 'badges:', userBadges.map(b => typeof b === 'object' ? b.name : b));
+    
+    if (themeName === 'Amethyst') {
+      return userBadges.some(b => b && (b.name === 'Coding Legend' || b === 'Coding Legend'));
+    }
+    if (themeName === 'Amber') {
+      return userBadges.some(b => b && (b.name === 'Millionaire' || b === 'Millionaire'));
+    }
+    if (themeName === 'Cyber') {
+      return userBadges.some(b => b && (b.name === 'Legend League' || b === 'Legend League'));
+    }
+    if (themeName === 'Crimson') {
+      return userBadges.some(b => b && (b.name === 'Coding Titan' || b === 'Coding Titan'));
+    }
+    if (themeName === 'Mint') {
+      return userBadges.some(b => b && (b.name === 'Perfect Attendance' || b === 'Perfect Attendance'));
+    }
+    return false;
+  };
+
+  const isCustomColorAllowed = () => {
+    if (user?.role !== 'student') return true;
+    if (gamificationData?.isRankOne) return true;
+    
+    // Unlocks as achievement reward (Coding Master or Legend League badge)
+    const userBadges = gamificationData?.badges || [];
+    return userBadges.some(b => b.name === 'Coding Master' || b.name === 'Legend League');
   };
 
   useEffect(() => {
@@ -346,6 +596,14 @@ const Layout = () => {
   const sessionSecondsRef = useRef(0);
   useEffect(() => { sessionSecondsRef.current = sessionSeconds; }, [sessionSeconds]);
   const attendanceIdRef = useRef(null);
+
+  useEffect(() => {
+    if (gamificationData?.currentTheme) {
+      applyThemeColor(gamificationData.currentTheme);
+    } else if (gamificationData) {
+      applyThemeColor('Emerald');
+    }
+  }, [gamificationData?.currentTheme, gamificationData]);
 
   useEffect(() => {
     localStorage.setItem('sessionActive', sessionActive ? 'true' : 'false');
@@ -408,7 +666,7 @@ const Layout = () => {
     if (location.pathname.startsWith('/leaves')) updateSeen('leaves', leavesCount);
   }, [location.pathname, pendingCount, chatCount, joinsCount, leavesCount, seenCounts]);
 
-  // Global Click Sound Listener
+  // Global Click Sound & Particle Effect Listener
   useEffect(() => {
     const handleGlobalClick = (e) => {
       const isClickable = e.target.closest('button, a, select, input[type="submit"]');
@@ -416,10 +674,64 @@ const Layout = () => {
         soundManager.init(); // Init context if needed
         soundManager.playClick();
       }
+
+      // Dynamic cursor click particle effects
+      const activeEffect = gamificationData?.equippedEffect || user?.equippedEffect;
+      if (activeEffect) {
+        const getEffectParticles = (eff) => {
+          switch (eff) {
+            case 'sparkles':
+              return ['✨', '⭐', '🌟'];
+            case 'fire-aura':
+              return ['🔥', '💥', '✨'];
+            case 'lightning-aura':
+              return ['⚡', '🌀', '✨'];
+            case 'galaxy-aura':
+              return ['🪐', '✨', '☄️'];
+            case 'snowstorm':
+              return ['❄️', '❄️', '⛄'];
+            case 'heartbeat':
+              return ['❤️', '💖', '💗', '💘'];
+            case 'cyber-grid':
+              return ['0', '1', '👾'];
+            case 'perfect-attendance-aura':
+              return ['👑', '⭐', '✨'];
+            default:
+              return [];
+          }
+        };
+
+        const items = getEffectParticles(activeEffect);
+        if (items.length > 0) {
+          const particleCount = 8;
+          for (let i = 0; i < particleCount; i++) {
+            const el = document.createElement('span');
+            el.className = 'click-particle';
+            el.textContent = items[Math.floor(Math.random() * items.length)];
+
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 40 + Math.random() * 60;
+            const x = Math.cos(angle) * distance;
+            const y = Math.sin(angle) * distance;
+            const rotate = -180 + Math.random() * 360;
+            const fontSize = 10 + Math.random() * 14;
+
+            el.style.left = `${e.clientX}px`;
+            el.style.top = `${e.clientY}px`;
+            el.style.fontSize = `${fontSize}px`;
+            el.style.setProperty('--x', `${x}px`);
+            el.style.setProperty('--y', `${y}px`);
+            el.style.setProperty('--r', `${rotate}deg`);
+
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 700);
+          }
+        }
+      }
     };
     document.addEventListener('click', handleGlobalClick);
     return () => document.removeEventListener('click', handleGlobalClick);
-  }, []);
+  }, [gamificationData?.equippedEffect, user?.equippedEffect]);
 
   // Initialize Dark/Light Mode & Close Notifications on Outside Click
   useEffect(() => {
@@ -477,6 +789,7 @@ const Layout = () => {
       attendanceIdRef.current = data._id;
       setSessionActive(true);
       localStorage.setItem('sessionActive', 'true');
+      await syncAttendanceSession();
     } catch (error) {
       console.error('Checkin failed:', error);
       Swal.fire({
@@ -519,103 +832,108 @@ const Layout = () => {
     };
   }, [sessionActive]);
 
-  // Fetch pending notifications count
-  useEffect(() => {
-    const fetchCounts = async () => {
+  // Sync attendance session and active leave state (run on mount & checked state updates)
+  const syncAttendanceSession = useCallback(async () => {
+    if (!user || user.role !== 'student') return;
+    try {
       try {
-        const { data: onlineData } = await axios.get('/attendance/active-count');
-        setOnlineStudentsCount(onlineData.activeCount || 0);
+        const { data: leaveData } = await axios.get('/leaves/active-status');
+        setActiveLeaveStatus({ isOnLeave: leaveData.isOnLeave, message: leaveData.message });
+      } catch (leaveErr) {
+        console.error('Failed to fetch active leave status:', leaveErr);
+      }
 
-        if (user?.role === 'admin') {
-          const { data } = await axios.get('/analytics/dashboard');
-          setPendingCount(data.pendingReviews || 0);
-          setLeavesCount(data.pendingLeavesCount || 0);
-          setJoinsCount(data.joinRequestsCount || 0);
+      // Restore today's attendance session state
+      const summaryRes = await axios.get('/attendance/my-summary');
+      const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+      const todayRecords = summaryRes.data.filter(r => {
+        const rDate = r.date || (r.firstCheckIn ? new Date(r.firstCheckIn).toISOString().split('T')[0] : '');
+        return rDate === todayStr;
+      });
 
-          const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
-          if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
-            soundManager.playNotification();
-          }
-          setNotifications(newNotifs);
-        } else if (user?.role === 'student') {
-          const [analyticsRes, gamificationRes] = await Promise.all([
-            axios.get(`/analytics/student/${user._id}`),
-            axios.get('/gamification/status')
-          ]);
-          const data = analyticsRes.data;
-          const gamification = gamificationRes.data;
-          
-          setPendingCount(data.pendingTasks || 0);
-          setChatCount(data.recentChats || 0);
-          setUserCoins(gamification.coins || 0);
-          setGamificationData(gamification);
+      if (todayRecords.length > 0) {
+        const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
+        const activeRecord = todayRecords.find(r => r.isActive);
 
-          const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
-          if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
-            soundManager.playNotification();
-          }
-          setNotifications(newNotifs);
-
-          try {
-            const { data: leaveData } = await axios.get('/leaves/active-status');
-            setActiveLeaveStatus({ isOnLeave: leaveData.isOnLeave, message: leaveData.message });
-          } catch (leaveErr) {
-            console.error('Failed to fetch active leave status:', leaveErr);
-          }
-
-          // Restore today's attendance session state
-          try {
-            const summaryRes = await axios.get('/attendance/my-summary');
-            const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            const todayRecords = summaryRes.data.filter(r => {
-              const rDate = r.date || (r.firstCheckIn ? new Date(r.firstCheckIn).toISOString().split('T')[0] : '');
-              return rDate === todayStr;
-            });
-
-            if (todayRecords.length > 0) {
-              const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
-              const activeRecord = todayRecords.find(r => r.isActive);
-
-              let additionalSeconds = 0;
-              if (activeRecord && activeRecord.lastCheckInTime) {
-                const now = Date.now();
-                const lastCheckIn = new Date(activeRecord.lastCheckInTime).getTime();
-                if (now > lastCheckIn) {
-                  additionalSeconds = Math.floor((now - lastCheckIn) / 1000);
-                }
-              }
-
-              setSessionSeconds(totalTodaySeconds + additionalSeconds);
-
-              if (activeRecord) {
-                setSessionActive(true);
-                setAttendanceId(activeRecord._id);
-                attendanceIdRef.current = activeRecord._id;
-              } else {
-                setSessionActive(false);
-                setAttendanceId(null);
-                attendanceIdRef.current = null;
-                localStorage.removeItem('sessionActive');
-              }
-            } else {
-              setSessionActive(false);
-              setAttendanceId(null);
-              attendanceIdRef.current = null;
-              setSessionSeconds(0);
-            }
-          } catch (attErr) {
-            console.error('Failed to restore attendance session:', attErr);
-          } finally {
-            setIsSyncing(false);
+        let additionalSeconds = 0;
+        if (activeRecord && activeRecord.lastCheckInTime) {
+          const now = Date.now();
+          const lastCheckIn = new Date(activeRecord.lastCheckInTime).getTime();
+          if (now > lastCheckIn) {
+            additionalSeconds = Math.floor((now - lastCheckIn) / 1000);
           }
         }
-      } catch (e) {
-        console.error('Failed to fetch counts');
-      }
-    };
 
+        setSessionSeconds(totalTodaySeconds + additionalSeconds);
+
+        if (activeRecord) {
+          setSessionActive(true);
+          setAttendanceId(activeRecord._id);
+          attendanceIdRef.current = activeRecord._id;
+        } else {
+          setSessionActive(false);
+          setAttendanceId(null);
+          attendanceIdRef.current = null;
+          localStorage.removeItem('sessionActive');
+        }
+      } else {
+        setSessionActive(false);
+        setAttendanceId(null);
+        attendanceIdRef.current = null;
+        setSessionSeconds(0);
+      }
+    } catch (attErr) {
+      console.error('Failed to restore attendance session:', attErr);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [user]);
+
+  // Fetch pending notifications count – extracted to component scope so child pages can call it
+  const fetchCounts = useCallback(async () => {
+    try {
+      const { data: onlineData } = await axios.get('/attendance/active-count');
+      setOnlineStudentsCount(onlineData.activeCount || 0);
+
+      if (user?.role === 'admin') {
+        const { data } = await axios.get('/analytics/dashboard');
+        setPendingCount(data.pendingReviews || 0);
+        setLeavesCount(data.pendingLeavesCount || 0);
+        setJoinsCount(data.joinRequestsCount || 0);
+
+        const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
+        if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
+          soundManager.playNotification();
+        }
+        setNotifications(newNotifs);
+      } else if (user?.role === 'student') {
+        const [analyticsRes, gamificationRes] = await Promise.all([
+          axios.get(`/analytics/student/${user._id}?mini=true`),
+          axios.get('/gamification/status')
+        ]);
+        const data = analyticsRes.data;
+        const gamification = gamificationRes.data;
+        
+        setPendingCount(data.pendingTasks || 0);
+        setChatCount(data.recentChats || 0);
+        setUserCoins(gamification.coins || 0);
+        setGamificationData(gamification);
+
+        const newNotifs = (data.notifications || []).filter(n => !clearedNotifs.includes(n.id));
+        if (newNotifs.length > notifLengthRef.current && notifLengthRef.current > 0) {
+          soundManager.playNotification();
+        }
+        setNotifications(newNotifs);
+      }
+    } catch (e) {
+      console.error('Failed to fetch counts');
+    }
+  }, [user]);
+
+  useEffect(() => {
     if (user) {
       fetchCounts();
+      syncAttendanceSession();
       
       let intervalId;
       const startInterval = (ms) => {
@@ -644,7 +962,7 @@ const Layout = () => {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
       };
     }
-  }, [user]); // Re-fetch or clear if user changes
+  }, [user, fetchCounts, syncAttendanceSession]); // Re-fetch or clear if user changes
 
   // Listen for real-time administrator force-checkout events
   useEffect(() => {
@@ -700,14 +1018,7 @@ const Layout = () => {
 
         // Fetch fresh aggregated total
         try {
-          const summaryRes = await axios.get('/attendance/my-summary');
-          const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-          const todayRecords = summaryRes.data.filter(r => {
-            const rDate = r.date || (r.firstCheckIn ? new Date(r.firstCheckIn).toISOString().split('T')[0] : '');
-            return rDate === todayStr;
-          });
-          const totalTodaySeconds = todayRecords.reduce((acc, curr) => acc + (curr.totalSeconds || 0), 0);
-          setSessionSeconds(totalTodaySeconds);
+          await syncAttendanceSession();
         } catch (e) { console.error('Failed to sync summary:', e); }
 
         Swal.fire({
@@ -845,6 +1156,7 @@ const Layout = () => {
       label: 'Main',
       links: [
         { name: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} /> },
+        { name: 'Gamification Hub', path: '/student/wardrobe', icon: <Gamepad2 size={20} /> },
       ]
     },
     {
@@ -860,7 +1172,6 @@ const Layout = () => {
         { name: 'My Grades', path: '/student/grades', icon: <CheckCircle size={20} /> },
         { name: 'Mock Drives', path: '/student/grades?tab=mockDrives', icon: <Briefcase size={20} /> },
         { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
-        { name: 'Avatar Wardrobe', path: '/student/wardrobe', icon: <Sparkles size={20} /> },
         { name: 'Attendance Tracker', path: '/attendance-tracker', icon: <Clock size={20} /> },
       ]
     },
@@ -935,6 +1246,193 @@ const Layout = () => {
 
   return (
     <div className="min-h-screen transition-colors duration-500 flex bg-transparent relative">
+      {/* Premium Theme Card Shimmer & Legibility Style Overrides */}
+      {['Amber', 'Cyber', 'Crimson', 'Mint'].includes(themeColor) && (() => {
+        let cardBgDark, cardBgLight, borderColor, borderColorLight, shimmerColor, highlightDark, highlightLight, glassBgDark, glassBgLight, buttonGradient, glowShadow;
+        
+        if (themeColor === 'Amber') {
+          cardBgDark = 'linear-gradient(135deg, rgba(24, 16, 4, 0.8) 0%, rgba(13, 8, 2, 0.9) 100%)';
+          cardBgLight = 'linear-gradient(135deg, rgba(255, 252, 245, 0.9) 0%, rgba(254, 243, 205, 0.8) 100%)';
+          borderColor = 'rgba(245, 158, 11, 0.3)';
+          borderColorLight = 'rgba(217, 119, 6, 0.35)';
+          shimmerColor = 'rgba(251, 191, 36, 0.2)';
+          highlightDark = '#fbbf24';
+          highlightLight = '#b45309';
+          glassBgDark = 'rgba(20, 13, 3, 0.55)';
+          glassBgLight = 'rgba(254, 243, 202, 0.45)';
+          buttonGradient = 'linear-gradient(135deg, #f59e0b, #d97706)';
+          glowShadow = '0 0 30px rgba(245, 158, 11, 0.45), 0 0 60px rgba(234, 179, 8, 0.15)';
+        } else if (themeColor === 'Cyber') {
+          cardBgDark = 'linear-gradient(135deg, rgba(4, 16, 24, 0.8) 0%, rgba(2, 8, 13, 0.9) 100%)';
+          cardBgLight = 'linear-gradient(135deg, rgba(245, 253, 255, 0.9) 0%, rgba(207, 250, 254, 0.8) 100%)';
+          borderColor = 'rgba(34, 211, 238, 0.3)';
+          borderColorLight = 'rgba(8, 145, 178, 0.35)';
+          shimmerColor = 'rgba(34, 211, 238, 0.2)';
+          highlightDark = '#22d3ee';
+          highlightLight = '#0891b2';
+          glassBgDark = 'rgba(3, 13, 20, 0.55)';
+          glassBgLight = 'rgba(207, 250, 254, 0.45)';
+          buttonGradient = 'linear-gradient(135deg, #22d3ee, #0891b2)';
+          glowShadow = '0 0 30px rgba(34, 211, 238, 0.45), 0 0 60px rgba(167, 139, 250, 0.15)';
+        } else if (themeColor === 'Crimson') {
+          cardBgDark = 'linear-gradient(135deg, rgba(24, 4, 10, 0.8) 0%, rgba(13, 2, 5, 0.9) 100%)';
+          cardBgLight = 'linear-gradient(135deg, rgba(255, 245, 247, 0.9) 0%, rgba(254, 228, 232, 0.8) 100%)';
+          borderColor = 'rgba(225, 29, 72, 0.3)';
+          borderColorLight = 'rgba(225, 29, 72, 0.35)';
+          shimmerColor = 'rgba(244, 63, 94, 0.2)';
+          highlightDark = '#f43f5e';
+          highlightLight = '#be123c';
+          glassBgDark = 'rgba(20, 3, 10, 0.55)';
+          glassBgLight = 'rgba(254, 228, 232, 0.45)';
+          buttonGradient = 'linear-gradient(135deg, #f43f5e, #be123c)';
+          glowShadow = '0 0 30px rgba(244, 63, 94, 0.45), 0 0 60px rgba(225, 29, 72, 0.15)';
+        } else if (themeColor === 'Mint') {
+          cardBgDark = 'linear-gradient(135deg, rgba(4, 24, 16, 0.8) 0%, rgba(2, 13, 8, 0.9) 100%)';
+          cardBgLight = 'linear-gradient(135deg, rgba(240, 253, 250, 0.9) 0%, rgba(204, 251, 241, 0.8) 100%)';
+          borderColor = 'rgba(45, 212, 191, 0.3)';
+          borderColorLight = 'rgba(13, 148, 136, 0.35)';
+          shimmerColor = 'rgba(45, 212, 191, 0.2)';
+          highlightDark = '#2dd4bf';
+          highlightLight = '#0d9488';
+          glassBgDark = 'rgba(3, 20, 13, 0.55)';
+          glassBgLight = 'rgba(204, 251, 241, 0.45)';
+          buttonGradient = 'linear-gradient(135deg, #2dd4bf, #0d9488)';
+          glowShadow = '0 0 30px rgba(45, 212, 191, 0.45), 0 0 60px rgba(16, 185, 129, 0.15)';
+        }
+
+        return (
+          <style>{`
+            /* Dark Mode: Make premium cards look beautiful glassmorphic */
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-amber-500"],
+            .dark [class*="bg-gradient-to-br"][class*="from-emerald-"] {
+              background: ${cardBgDark} !important;
+              border: 1px solid ${borderColor} !important;
+              box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 0 25px ${borderColor.replace('0.3', '0.12')} !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+
+            /* Light Mode: Make premium cards look beautiful glassmorphic */
+            [class*="bg-gradient-to-br"][class*="from-primary-"],
+            [class*="bg-gradient-to-br"][class*="from-amber-500"],
+            [class*="bg-gradient-to-br"][class*="from-emerald-"] {
+              background: ${cardBgLight} !important;
+              border: 1px solid ${borderColorLight} !important;
+              box-shadow: 0 10px 30px -10px rgba(180, 83, 9, 0.08), 0 0 20px ${borderColor.replace('0.3', '0.08')} !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+
+            /* Ensure text color inside light-mode cards has maximum contrast */
+            [class*="bg-gradient-to-br"][class*="from-primary-"] h3,
+            [class*="bg-gradient-to-br"][class*="from-primary-"] p,
+            [class*="bg-gradient-to-br"][class*="from-primary-"] span,
+            [class*="bg-gradient-to-br"][class*="from-primary-"] div,
+            [class*="bg-gradient-to-br"][class*="from-amber-500"] h3,
+            [class*="bg-gradient-to-br"][class*="from-amber-500"] p,
+            [class*="bg-gradient-to-br"][class*="from-amber-500"] span,
+            [class*="bg-gradient-to-br"][class*="from-amber-500"] div,
+            [class*="bg-gradient-to-br"][class*="from-emerald-"] h3,
+            [class*="bg-gradient-to-br"][class*="from-emerald-"] p,
+            [class*="bg-gradient-to-br"][class*="from-emerald-"] span,
+            [class*="bg-gradient-to-br"][class*="from-emerald-"] div {
+              color: #1e293b !important;
+            }
+
+            /* Reset text colors in Dark Mode */
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] h3,
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] p,
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] span,
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] div,
+            .dark [class*="bg-gradient-to-br"][class*="from-amber-500"] h3,
+            .dark [class*="bg-gradient-to-br"][class*="from-amber-500"] p,
+            .dark [class*="bg-gradient-to-br"][class*="from-amber-500"] span,
+            .dark [class*="bg-gradient-to-br"][class*="from-amber-500"] div,
+            .dark [class*="bg-gradient-to-br"][class*="from-emerald-"] h3,
+            .dark [class*="bg-gradient-to-br"][class*="from-emerald-"] p,
+            .dark [class*="bg-gradient-to-br"][class*="from-emerald-"] span,
+            .dark [class*="bg-gradient-to-br"][class*="from-emerald-"] div {
+              color: #ffffff !important;
+            }
+
+            /* Style labels/subtext in Light Mode */
+            [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-primary-"],
+            [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-emerald-"],
+            [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-indigo-"],
+            [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-teal-"],
+            [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-purple-"],
+            [class*="bg-gradient-to-br"][class*="from-amber-500"] [class*="text-primary-"],
+            [class*="bg-gradient-to-br"][class*="from-emerald-"] [class*="text-indigo-"] {
+              color: ${highlightLight} !important;
+            }
+
+            /* Style labels/subtext in Dark Mode */
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-primary-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-emerald-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-indigo-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-teal-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-primary-"] [class*="text-purple-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-amber-500"] [class*="text-primary-"],
+            .dark [class*="bg-gradient-to-br"][class*="from-emerald-"] [class*="text-indigo-"] {
+              color: ${highlightDark} !important;
+            }
+
+            /* Individual components shine effect */
+            [class*="bg-gradient-to-br"][class*="from-primary-"]::after,
+            [class*="bg-gradient-to-br"][class*="from-amber-500"]::after,
+            [class*="bg-gradient-to-br"][class*="from-emerald-"]::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -150%;
+              width: 50%;
+              height: 100%;
+              background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                ${shimmerColor} 50%,
+                rgba(255, 255, 255, 0) 100%
+              );
+              transform: skewX(-25deg);
+              animation: card-sweeping-shine 7s infinite ease-in-out;
+              pointer-events: none;
+              z-index: 5;
+            }
+
+            @keyframes card-sweeping-shine {
+              0% { left: -150%; }
+              30% { left: 150%; }
+              100% { left: 150%; }
+            }
+
+            /* Dark Mode Premium overrides for General Glass Panels */
+            .dark .glass-panel {
+              background: ${glassBgDark} !important;
+              border-color: ${borderColor} !important;
+              box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 20px ${borderColor.replace('0.3', '0.08')} !important;
+            }
+            
+            /* Light Mode Premium overrides for General Glass Panels */
+            .glass-panel {
+              background: ${glassBgLight} !important;
+              border-color: ${borderColorLight} !important;
+              box-shadow: 0 8px 32px 0 rgba(180, 83, 9, 0.08), 0 0 20px ${borderColor.replace('0.3', '0.1')} !important;
+            }
+
+            /* Primary buttons styling: Dynamic gradient */
+            .btn-primary {
+              background: ${buttonGradient} !important;
+              border-color: ${borderColorLight} !important;
+              box-shadow: 0 4px 15px ${borderColor.replace('0.3', '0.4')} !important;
+              color: #ffffff !important;
+            }
+            .btn-primary:hover {
+              box-shadow: 0 6px 20px ${borderColor.replace('0.3', '0.6')} !important;
+            }
+          `}</style>
+        );
+      })()}
       {/* Background Animated Dots */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Large blurry spots */}
@@ -1079,7 +1577,7 @@ const Layout = () => {
               </div>
             </div>
             <div className="flex flex-col relative z-10">
-              <span className="font-extrabold text-[22px] leading-none tracking-tight bg-gradient-to-b from-slate-700 to-slate-900 dark:from-white dark:to-slate-300 text-transparent bg-clip-text drop-shadow-md mb-1 transition-all group-hover:drop-shadow-lg">SSMS</span>
+              <span className="font-extrabold text-[22px] leading-none tracking-tight bg-gradient-to-b from-slate-700 to-slate-900 dark:from-white dark:to-slate-300 text-transparent bg-clip-text drop-shadow-md mb-1 transition-all group-hover:drop-shadow-lg">SSMS 3.0</span>
               <span className="text-[9px] font-black tracking-widest text-theme-primary uppercase leading-[1.1] drop-shadow-sm">Saran Students <br /> Management</span>
             </div>
           </div>
@@ -1175,7 +1673,7 @@ const Layout = () => {
               <div className="w-8 h-8 rounded-lg bg-white/10 p-0.5 shadow-md flex items-center justify-center overflow-hidden">
                 <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="font-extrabold text-base tracking-tight dark:text-white">SSMS Admin</span>
+              <span className="font-extrabold text-base tracking-tight dark:text-white">SSMS 3.0 Admin</span>
             </div>
           ) : (
             <button
@@ -1286,16 +1784,35 @@ const Layout = () => {
                       <button
                         key={t.name}
                         onClick={() => {
+                          if (!isThemeUnlocked(t.name)) {
+                            Swal.fire({
+                              title: 'Theme Locked!',
+                              text: `The ${themeDisplayNames[t.name] || t.name} is locked. You can unlock/buy it in the Gamification Hub Shop!`,
+                              icon: 'lock',
+                              confirmButtonColor: 'var(--color-theme-primary)',
+                              background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#ffffff',
+                              color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#0f172a'
+                            });
+                            return;
+                          }
                           applyThemeColor(t.name);
+                          setGamificationData(prev => prev ? { ...prev, currentTheme: t.name } : { currentTheme: t.name });
                           setShowThemeMenu(false);
+                          
+                          // Save equipped theme to backend database
+                          axios.post('/gamification/shop/equip', { category: 'theme', value: t.name })
+                            .then(() => {
+                              if (socket) socket.emit('equip_change', { category: 'theme', value: t.name });
+                            })
+                            .catch(err => console.error('Failed to equip theme via navbar:', err));
                         }}
-                        className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all duration-150 cursor-pointer group ${
+                        className={`flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all duration-150 cursor-pointer group relative ${
                           themeColor === t.name
                             ? 'bg-slate-100 dark:bg-slate-700 ring-2 ring-offset-1 dark:ring-offset-slate-800'
                             : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                        }`}
+                        } ${!isThemeUnlocked(t.name) ? 'opacity-60' : ''}`}
                         style={themeColor === t.name ? { ringColor: t.primary } : {}}
-                        title={t.name}
+                        title={themeDisplayNames[t.name] || t.name}
                       >
                         <div className="relative">
                           <span
@@ -1305,10 +1822,15 @@ const Layout = () => {
                           {themeColor === t.name && (
                             <svg className="absolute inset-0 w-7 h-7 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                           )}
+                          {!isThemeUnlocked(t.name) && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-slate-900/90 dark:bg-slate-700/95 rounded-full flex items-center justify-center text-white border border-white/20">
+                              <Lock size={8} />
+                            </div>
+                          )}
                         </div>
                         <span className={`text-[9px] font-semibold leading-none truncate w-full text-center ${
                           themeColor === t.name ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'
-                        }`}>{t.name}</span>
+                        }`}>{themeDisplayNames[t.name] || t.name}</span>
                       </button>
                     ))}
                   </div>
@@ -1316,31 +1838,100 @@ const Layout = () => {
                   <div className="border-t border-slate-100 dark:border-slate-700 p-3">
                     <div className="flex items-center gap-3">
                       <label
-                        className="relative cursor-pointer group"
-                        title="Pick a custom color"
+                        className="relative cursor-pointer group shrink-0"
+                        title={!isCustomColorAllowed() ? "Locked - Reached Rank #1 to unlock" : "Pick a custom color"}
+                        onClick={(e) => {
+                          if (!isCustomColorAllowed()) {
+                            e.preventDefault();
+                            Swal.fire({
+                              title: 'Custom Theme Locked!',
+                              text: 'Custom themes are exclusive to the #1 ranked student, or unlocked via the Coding Master / Legend League achievements!',
+                              icon: 'lock',
+                              confirmButtonColor: 'var(--color-theme-primary)',
+                              background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#ffffff',
+                              color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#0f172a'
+                            });
+                          }
+                        }}
                       >
                         <span
-                          className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-600 shadow-md block group-hover:scale-110 transition-transform"
+                          className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-600 shadow-md block group-hover:scale-110 transition-transform relative"
                           style={{ background: `conic-gradient(#f43f5e, #f59e0b, #10b981, #0ea5e9, #8b5cf6, #ec4899, #f43f5e)` }}
-                        />
+                        >
+                          {!isCustomColorAllowed() && (
+                            <div className="absolute inset-0 bg-slate-900/40 rounded-full flex items-center justify-center text-white">
+                              <Lock size={10} />
+                            </div>
+                          )}
+                        </span>
                         {themeColor === 'Custom' && (
                           <svg className="absolute inset-0 w-7 h-7 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         )}
-                        <input
-                          type="color"
-                          value={customColor}
-                          onChange={(e) => handleCustomColorChange(e.target.value)}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        />
+                        {isCustomColorAllowed() && (
+                          <input
+                            type="color"
+                            value={customColor}
+                            onChange={(e) => handleCustomColorChange(e.target.value)}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                        )}
                       </label>
                       <div className="flex-1">
                         <p className={`text-[11px] font-bold leading-none ${
                           themeColor === 'Custom' ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'
-                        }`}>Custom Color</p>
-                        <p className="text-[9px] text-slate-400 mt-0.5">Pick any color you like</p>
+                        }`}>Custom Color Theme</p>
+                        <p className="text-[9px] text-slate-400 mt-0.5">
+                          {!isCustomColorAllowed() ? "Requires Rank #1 or Coding Master" : "Customize your workspace style"}
+                        </p>
                       </div>
                       <span className="text-[10px] font-mono text-slate-400 bg-slate-50 dark:bg-slate-700 px-1.5 py-0.5 rounded">{themeColor === 'Custom' ? customColor : '—'}</span>
                     </div>
+
+                    {/* Font and Size Controls - only show if unlocked & selected Custom Theme */}
+                    {isCustomColorAllowed() && themeColor === 'Custom' && (
+                      <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700/60 flex flex-col gap-2.5 animate-fadeIn">
+                        {/* Font Family Selector */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Font Family</label>
+                          <select
+                            value={customFont}
+                            onChange={(e) => handleCustomFontChange(e.target.value)}
+                            className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-1.5 focus:outline-none focus:ring-1 focus:ring-primary-500 text-slate-700 dark:text-slate-300 font-medium"
+                          >
+                            <option value="Inter">Inter (Clean)</option>
+                            <option value="Outfit">Outfit (Modern)</option>
+                            <option value="Space Grotesk">Space Grotesk (Tech)</option>
+                            <option value="Cinzel">Cinzel (Royal)</option>
+                            <option value="Playfair Display">Playfair Display (Elegant)</option>
+                            <option value="Share Tech Mono">Share Tech Mono (Console)</option>
+                          </select>
+                        </div>
+
+                        {/* Font Size Selector */}
+                        <div className="flex flex-col gap-1">
+                          <label className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Font Size Scale</label>
+                          <div className="grid grid-cols-3 gap-1 bg-slate-100 dark:bg-slate-900/60 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            {[
+                              { label: 'Small', value: '100%' },
+                              { label: 'Medium', value: '106.25%' },
+                              { label: 'Large', value: '112.5%' }
+                            ].map((sz) => (
+                              <button
+                                key={sz.value}
+                                onClick={() => handleCustomFontSizeChange(sz.value)}
+                                className={`text-[10px] font-bold py-1 px-1.5 rounded-md transition-all cursor-pointer ${
+                                  customFontSize === sz.value
+                                    ? 'bg-white dark:bg-slate-800 text-primary-500 shadow-sm border border-slate-200 dark:border-slate-700/60'
+                                    : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+                                }`}
+                              >
+                                {sz.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -1356,11 +1947,34 @@ const Layout = () => {
             </button>
 
             <div className="hidden md:block text-right border-l border-slate-200 dark:border-white/10 pl-4 pr-2">
-              <p className="text-sm font-bold text-slate-800 dark:text-white leading-tight">{user?.name}</p>
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 capitalize">{user?.role}</p>
+              <p className={`text-sm font-bold leading-tight ${getNamecolorClass(gamificationData?.currentNamecolor || user?.currentNamecolor) || 'text-slate-800 dark:text-white'} namecolor-shine`}>{user?.name}</p>
+              <p className={`text-[10px] font-bold capitalize ${
+                (gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle)
+                  ? 'text-violet-400 dark:text-violet-300 font-extrabold animate-pulse'
+                  : 'text-slate-400 dark:text-slate-500'
+              }`}>
+                {(gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle) ? `🏆 ${gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle}` : user?.role}
+              </p>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-theme-primary to-theme-accent text-white flex items-center justify-center shadow-md mr-1 overflow-hidden">
-              <UserIcon size={18} />
+            <div className="relative shrink-0">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center relative ${
+                (gamificationData?.profileBorder || user?.profileBorder)
+                  ? `border-3 p-0.5 ${getBorderPreviewClass(gamificationData?.profileBorder || user?.profileBorder)}` 
+                  : 'bg-gradient-to-br from-theme-primary to-theme-accent text-white shadow-md'
+              } ${getEffectStyles(gamificationData?.equippedEffect || user?.equippedEffect)}`}>
+                <div className="w-full h-full rounded-lg overflow-hidden flex items-center justify-center">
+                  {(gamificationData?.equippedAvatar || user?.equippedAvatar) ? (
+                    <img src={gamificationData?.equippedAvatar || user?.equippedAvatar} alt="Profile" className="w-full h-full object-cover object-top" />
+                  ) : (
+                    <UserIcon size={18} />
+                  )}
+                </div>
+              </div>
+              {(gamificationData?.equippedPet || user?.equippedPet) && (
+                <div className="absolute -bottom-1 -right-1.5 bg-white dark:bg-slate-850 shadow-md border border-slate-200 dark:border-slate-700/60 rounded-full w-5 h-5 flex items-center justify-center text-xs animate-bounce" style={{ zIndex: 10 }} title={`Pet: ${gamificationData?.equippedPet || user?.equippedPet}`}>
+                  {PET_EMOJIS[gamificationData?.equippedPet || user?.equippedPet] || '🐾'}
+                </div>
+              )}
             </div>
           </div>
         </header>
