@@ -1129,6 +1129,7 @@ const Layout = () => {
       links: [
         { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
         { name: 'Task Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
+        { name: 'Gamification Shop', path: '/admin/gamification', icon: <Gamepad2 size={20} /> },
       ]
     },
     {

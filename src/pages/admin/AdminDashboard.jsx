@@ -1,14 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Link, useOutletContext } from 'react-router-dom';
+import { Link, useOutletContext, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe, Briefcase, Trophy, Network } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe, Briefcase, Trophy, Network, LayoutTemplate } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
+import { MagicDust } from '../../components/ui/magic-dust-shader';
+import { GlassEffect, GlassDock, GlassButton, GlassFilter } from '../../components/ui/liquid-glass';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { themeColor, activeTheme } = useOutletContext();
+  const navigate = useNavigate();
+  const [liquidGlassTheme, setLiquidGlassTheme] = useState(() => {
+    return localStorage.getItem('admin_liquid_glass_theme') === 'true';
+  });
+
+  const toggleLiquidGlassTheme = () => {
+    setLiquidGlassTheme(prev => {
+      const next = !prev;
+      localStorage.setItem('admin_liquid_glass_theme', String(next));
+      return next;
+    });
+  };
+
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isChartLoading, setIsChartLoading] = useState(false);
@@ -46,8 +61,69 @@ const AdminDashboard = () => {
         : 100)
     : 0;
 
+  const CardContainer = ({ children, className = "", lgSpan = "" }) => {
+    if (liquidGlassTheme) {
+      return (
+        <div className={`${lgSpan} text-white`}>
+          <GlassEffect className={`w-full h-full flex flex-col justify-between p-6 rounded-3xl border border-white/10 ${className}`}>
+            <div className="dark text-white select-none w-full h-full">
+              {children}
+            </div>
+          </GlassEffect>
+        </div>
+      );
+    }
+    return (
+      <div className={`${lgSpan} bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between ${className}`}>
+        {children}
+      </div>
+    );
+  };
+
+  const dockIcons = [
+    {
+      src: "https://cdn-icons-png.flaticon.com/512/9385/9385212.png",
+      alt: "Students",
+      onClick: () => navigate('/students'),
+    },
+    {
+      src: "https://cdn-icons-png.flaticon.com/512/2666/2666505.png",
+      alt: "Tasks",
+      onClick: () => navigate('/batch-tracker'),
+    },
+    {
+      src: "https://cdn-icons-png.flaticon.com/512/869/869636.png",
+      alt: "Shop",
+      onClick: () => navigate('/admin/gamification'),
+    },
+    {
+      src: "https://cdn-icons-png.flaticon.com/512/5968/5968779.png",
+      alt: "Chat",
+      onClick: () => navigate('/chat'),
+    },
+    {
+      src: "https://cdn-icons-png.flaticon.com/512/906/906334.png",
+      alt: "Logs",
+      onClick: () => navigate('/activity-logs'),
+    },
+  ];
+
+  const wrapperStyle = liquidGlassTheme ? {
+    backgroundImage: `url("https://images.unsplash.com/photo-1432251407527-504a6b4174a2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    animation: 'moveBackground 240s linear infinite',
+    borderRadius: '32px',
+    padding: '24px',
+    boxShadow: 'inset 0 0 100px rgba(0, 0, 0, 0.4)'
+  } : {};
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+    <div 
+      className="max-w-7xl mx-auto space-y-6 pb-12 transition-all duration-700"
+      style={wrapperStyle}
+    >
+      {liquidGlassTheme && <GlassFilter />}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
@@ -59,23 +135,74 @@ const AdminDashboard = () => {
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Here's the current system status</p>
           </div>
         </div>
-        <button
-          onClick={() => fetchStats(true)}
-          disabled={isChartLoading || loading}
-          className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm cursor-pointer"
-          title="Refresh Dashboard"
-        >
-          <RefreshCw size={16} className={(isChartLoading || loading) ? 'animate-spin' : ''} />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={toggleLiquidGlassTheme}
+            className={`p-1.5 rounded-lg border transition-all shadow-sm cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
+              liquidGlassTheme 
+                ? 'bg-amber-500 text-slate-950 border-amber-600' 
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+            }`}
+            title="Toggle Liquid Glass Theme"
+          >
+            <LayoutTemplate size={16} />
+            <span>Glass Mode</span>
+          </button>
+          <button
+            onClick={() => fetchStats(true)}
+            disabled={isChartLoading || loading}
+            className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm cursor-pointer"
+            title="Refresh Dashboard"
+          >
+            <RefreshCw size={16} className={(isChartLoading || loading) ? 'animate-spin' : ''} />
+          </button>
+        </div>
       </div>
 
       {/* Grid Layout Container */}
       <div className="space-y-6 animate-in fade-in duration-300">
 
+        {/* Dynamic Magic Dust Shader Banner */}
+        <div className="relative w-full h-[180px] bg-slate-955 rounded-3xl overflow-hidden border border-slate-800/85 flex flex-col items-center justify-center shadow-lg group text-left">
+          <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-r from-slate-955 via-slate-950/95 to-slate-955" />
+          <div className="absolute inset-0 z-2 pointer-events-none">
+            <MagicDust 
+              particleCount={8500}
+              particleColor="#f59e0b"
+              particleSize={0.022}
+              holdDuration={2.2}
+              sequence={[
+                { type: 'text', text: 'SSMS 3.0', offset: [0, 0, 0] },
+                { type: 'shape', shape: 'torus', offset: [0, 0, 0] },
+                { type: 'text', text: 'SYSTEMS', offset: [0, 0, 0] },
+                { type: 'shape', shape: 'sphere', offset: [0, 0, 0] }
+              ]}
+            />
+          </div>
+          
+          <div className="relative z-10 pointer-events-none px-8 w-full flex flex-col md:flex-row md:items-center justify-between gap-2">
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-widest px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/25 animate-pulse">
+                System Core Online
+              </span>
+              <h2 className="text-2xl font-black text-white mt-2 drop-shadow-md">
+                SSMS 3.0 Supercharged Admin Console
+              </h2>
+              <p className="text-xs text-slate-400 mt-1 font-medium max-w-md drop-shadow">
+                Live database monitoring, socket streams, and gamification controls active.
+              </p>
+            </div>
+            <div className="hidden md:flex items-center gap-1.5 bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-2xl border border-slate-800 text-xs font-bold text-slate-350 shadow-inner">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>All Services Operational</span>
+            </div>
+          </div>
+        </div>
+
         {/* Row 1: Academic Center (Asymmetric 8:4 Grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left Block (8 cols): Academic Submissions & Tasks */}
-          <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+          <CardContainer lgSpan="lg:col-span-8" className="min-h-[350px]">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
               <div>
                 <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Submissions & Grading Review</h3>
@@ -139,7 +266,7 @@ const AdminDashboard = () => {
                         <FileText size={16} className="text-slate-400 shrink-0" />
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{task.title.replace('New Task Created', '') || 'Active Task'}</p>
-                          <p className="text-[10px] font-semibold text-slate-450 dark:text-slate-500 truncate mt-0.5">{task.message}</p>
+                          <p className="text-[10px] font-semibold text-slate-455 dark:text-slate-505 truncate mt-0.5">{task.message}</p>
                         </div>
                       </div>
                     </div>
@@ -154,10 +281,10 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </CardContainer>
 
           {/* Right Block (4 cols): Hiring & Coding Hub */}
-          <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+          <CardContainer lgSpan="lg:col-span-4" className="min-h-[350px]">
             <div>
               <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider mb-1">Hiring & Coding Hub</h3>
               <p className="text-xs text-slate-400 font-medium">Synced challenges and drive standings</p>
@@ -217,13 +344,13 @@ const AdminDashboard = () => {
                 <ChevronRight size={12} className="text-indigo-400 group-hover:translate-x-0.5 transition-transform" />
               </a>
             </div>
-          </div>
+          </CardContainer>
         </div>
 
         {/* Row 2: Operations Metrics (Grid: 3 Columns) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Student & Batch Directory */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+          <CardContainer className="relative overflow-hidden group min-h-[160px]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
             <div className="flex justify-between items-start">
               <div>
@@ -231,7 +358,7 @@ const AdminDashboard = () => {
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.totalStudents || 0}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Registered Students</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-500 flex items-center justify-center border border-blue-100 dark:border-blue-950/50">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-500 flex items-center justify-center border border-blue-100 dark:border-blue-955/50">
                 <Users size={20} />
               </div>
             </div>
@@ -241,10 +368,10 @@ const AdminDashboard = () => {
                 Manage Directory <ChevronRight size={14} />
               </Link>
             </div>
-          </div>
+          </CardContainer>
 
           {/* Card 2: Leave Operations */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+          <CardContainer className="relative overflow-hidden group min-h-[160px]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-teal-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
             <div className="flex justify-between items-start">
               <div>
@@ -252,7 +379,7 @@ const AdminDashboard = () => {
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.pendingLeavesCount || 0}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Leave Requests</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/30 text-teal-500 flex items-center justify-center border border-teal-100 dark:border-teal-950/50">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/30 text-teal-500 flex items-center justify-center border border-teal-100 dark:border-teal-955/50">
                 <Calendar size={20} />
               </div>
             </div>
@@ -262,10 +389,10 @@ const AdminDashboard = () => {
                 Review Leaves <ChevronRight size={14} />
               </Link>
             </div>
-          </div>
+          </CardContainer>
 
           {/* Card 3: Batch Enrollments */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm relative overflow-hidden group flex flex-col justify-between min-h-[160px]">
+          <CardContainer className="relative overflow-hidden group min-h-[160px]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none -mr-6 -mt-6"></div>
             <div className="flex justify-between items-start">
               <div>
@@ -273,7 +400,7 @@ const AdminDashboard = () => {
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white leading-none mt-1">{stats?.joinRequestsCount || 0}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pending Enrollment Requests</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center border border-amber-100 dark:border-amber-950/50">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-500 flex items-center justify-center border border-amber-100 dark:border-amber-955/50">
                 <UserPlus size={20} />
               </div>
             </div>
@@ -283,13 +410,13 @@ const AdminDashboard = () => {
                 Review Joins <ChevronRight size={14} />
               </Link>
             </div>
-          </div>
+          </CardContainer>
         </div>
 
         {/* Row 3: Classroom Attendance & Matrix Tracker (Asymmetric 7:5 Grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Left Block (7 cols): Classroom Attendance Management */}
-          <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+          <CardContainer lgSpan="lg:col-span-7" className="min-h-[350px]">
             <div>
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
                 <div>
@@ -360,14 +487,14 @@ const AdminDashboard = () => {
                 </Link>
               </div>
             </div>
-          </div>
+          </CardContainer>
 
           {/* Right Block (5 cols): Activity Feed & Community Channels */}
-          <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between min-h-[350px]">
+          <CardContainer lgSpan="lg:col-span-5" className="min-h-[350px]">
             <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-4 mb-4 shrink-0">
               <div>
                 <h3 className="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Community & System Feed</h3>
-                <p className="text-xs text-slate-450 mt-0.5 font-medium">Recent server sync notifications and batch chats</p>
+                <p className="text-xs text-slate-455 mt-0.5 font-medium">Recent server sync notifications and batch chats</p>
               </div>
               <Link to="/activity-logs" className="text-[10px] font-black text-theme-primary hover:text-theme-primary/80 transition-colors uppercase tracking-widest flex items-center gap-1 hover:underline">
                 View Logs <ChevronRight size={10} />
@@ -384,7 +511,7 @@ const AdminDashboard = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{notif.title}</p>
-                        <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5 leading-normal truncate">{notif.message}</p>
+                        <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-505 mt-0.5 leading-normal truncate">{notif.message}</p>
                       </div>
                     </div>
                   ))}
@@ -410,13 +537,19 @@ const AdminDashboard = () => {
                   <Network size={15} className="text-violet-500" />
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-200">Traffic Log</span>
                 </div>
-                <ChevronRight size={12} className="text-slate-450 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight size={12} className="text-slate-455 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
-          </div>
+          </CardContainer>
         </div>
 
       </div>
+
+      {liquidGlassTheme && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hover:scale-105 transition-transform duration-300">
+          <GlassDock icons={dockIcons} />
+        </div>
+      )}
     </div>
   );
 };

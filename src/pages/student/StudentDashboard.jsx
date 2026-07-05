@@ -3,9 +3,10 @@ import { useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
-import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck, Briefcase } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck, Briefcase, Flame, Coins, Sparkles } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import SkeletonLoader from '../../components/SkeletonLoader';
+import { MagicDust } from '../../components/ui/magic-dust-shader';
 
 const getBorderPreviewClass = (value) => {
   const map = {
@@ -170,97 +171,113 @@ const StudentDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-12">
-      {/* Header section styling matching the Wallet App */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-4">
-          <div className="relative shrink-0">
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center relative ${
-              gamificationData?.profileBorder 
-                ? `border-3 p-0.5 ${getBorderPreviewClass(gamificationData.profileBorder)}` 
-                : 'border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-lg shadow-theme-primary/10'
-            } ${getEffectStyles(gamificationData?.equippedEffect || user?.equippedEffect)}`}>
-              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-                {gamificationData?.equippedAvatar ? (
-                  <img 
-                    src={
-                      gamificationData.equippedAvatar.startsWith('/uploads')
-                        ? `${import.meta.env.VITE_API_URL || ''}${gamificationData.equippedAvatar}`
-                        : gamificationData.equippedAvatar
-                    } 
-                    alt="Avatar" 
-                    className="w-full h-full object-cover object-top" 
-                  />
-                ) : (
-                  <span className="text-xl font-bold text-slate-700 dark:text-slate-200">{user?.name.charAt(0)}</span>
+      {/* Dynamic Magic Dust Shader Header Banner */}
+      <div className="relative w-full min-h-[180px] bg-slate-955 rounded-3xl overflow-hidden border border-slate-800/80 flex flex-col justify-center p-6 md:p-8 shadow-2xl mb-6 text-left">
+        <div className="absolute inset-0 z-0 pointer-events-none bg-gradient-to-r from-slate-955 via-slate-950/95 to-slate-955" />
+        <div className="absolute inset-0 z-2 pointer-events-none">
+          <MagicDust 
+            particleCount={8500}
+            particleColor="#f59e0b"
+            particleSize={0.022}
+            holdDuration={2.2}
+            sequence={[
+              { type: 'text', text: 'SSMS 3.0', offset: [0, 0, 0] },
+              { type: 'shape', shape: 'torus', offset: [0, 0, 0] },
+              { type: 'text', text: user?.name.toUpperCase() || 'STUDENT', offset: [0, 0, 0] },
+              { type: 'shape', shape: 'sphere', offset: [0, 0, 0] }
+            ]}
+          />
+        </div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <div className="relative shrink-0">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center relative ${
+                gamificationData?.profileBorder 
+                  ? `border-[3px] p-0.5 ${getBorderPreviewClass(gamificationData.profileBorder)}` 
+                  : 'border-2 border-slate-700 bg-slate-800 shadow-xl'
+              } ${getEffectStyles(gamificationData?.equippedEffect || user?.equippedEffect)}`}>
+                <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-slate-900">
+                  {gamificationData?.equippedAvatar ? (
+                    <img 
+                      src={
+                        gamificationData.equippedAvatar.startsWith('/uploads')
+                          ? `${import.meta.env.VITE_API_URL || ''}${gamificationData.equippedAvatar}`
+                          : gamificationData.equippedAvatar
+                      } 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover object-top" 
+                    />
+                  ) : (
+                    <span className="text-3xl font-extrabold text-white">{user?.name.charAt(0)}</span>
+                  )}
+                </div>
+              </div>
+              {(gamificationData?.equippedPet || user?.equippedPet) && (
+                <div className="absolute -bottom-1 -right-1 bg-slate-900 shadow-lg border border-slate-700 rounded-full w-7 h-7 flex items-center justify-center text-sm animate-bounce" title={`Pet: ${gamificationData?.equippedPet || user?.equippedPet}`}>
+                  {PET_EMOJIS[gamificationData?.equippedPet || user?.equippedPet] || '🐾'}
+                </div>
+              )}
+            </div>
+            <div className="space-y-1.5 flex flex-col justify-center">
+              <div>
+                <span className="inline-flex text-[9px] uppercase font-black tracking-widest px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/25 animate-pulse">
+                  Learning Portal Active
+                </span>
+              </div>
+              <h1 className="text-2xl font-black text-white leading-tight drop-shadow-md">
+                Hello, {user?.name.split(' ')[0]}!
+              </h1>
+              <div className="flex flex-wrap items-center gap-2 text-slate-400">
+                <p className="text-xs font-semibold">Great, your learning is on track</p>
+                {(gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle) && (
+                  <span className="inline-flex items-center text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-amber-500/10 text-amber-450 border border-amber-500/20 shadow-sm">
+                    🏆 {gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle}
+                  </span>
                 )}
               </div>
             </div>
-            {(gamificationData?.equippedPet || user?.equippedPet) && (
-              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-750 rounded-full w-6 h-6 flex items-center justify-center text-sm animate-bounce" title={`Pet: ${gamificationData?.equippedPet || user?.equippedPet}`}>
-                {PET_EMOJIS[gamificationData?.equippedPet || user?.equippedPet] || '🐾'}
+          </div>
+
+          {/* Quick Stats Pills - 2X2 Grid on the Right */}
+          <div className="grid grid-cols-2 gap-2.5 shrink-0 z-10 w-full lg:w-auto mt-4 lg:mt-0 max-w-[400px]">
+            {/* Streak Counter */}
+            <div className="flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-800/80 text-xs font-bold text-slate-350 shadow-inner w-[160px] justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Flame size={14} className="text-orange-500 shrink-0" />
+                <span className="truncate">Streak</span>
               </div>
-            )}
-          </div>
-          <div>
-            <h1 className={`text-2xl font-extrabold leading-tight ${getNamecolorClass(gamificationData?.currentNamecolor || user?.currentNamecolor) || 'text-slate-800 dark:text-white'} namecolor-shine`}>
-              Hello, {user?.name.split(' ')[0]}!
-            </h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 mt-0.5">
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold">Great, your learning is on track</p>
-              {(gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle) && (
-                <span className="self-start inline-flex items-center text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-sm animate-pulse">
-                  🏆 {gamificationData?.equippedTitle || gamificationData?.currentTitle || user?.equippedTitle || user?.currentTitle}
-                </span>
-              )}
+              <span className="text-white font-black text-[11px] shrink-0">{gamificationData?.leetcodeStreak !== undefined ? gamificationData.leetcodeStreak : (user?.leetcodeStreak || 0)}d</span>
             </div>
-          </div>
-        </div>
-        
-        {/* Streak Counter */}
-        <div className="flex items-center gap-3 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-2xl border border-orange-100 dark:border-orange-800/50 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-orange-500">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-          </div>
-          <div>
-            <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Coding Streak</p>
-            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{gamificationData?.leetcodeStreak !== undefined ? gamificationData.leetcodeStreak : (user?.leetcodeStreak || 0)} <span className="text-sm font-medium text-slate-500">Days</span></p>
-          </div>
-        </div>
-
-        {/* League Badge */}
-        <div className="flex items-center gap-3 bg-cyan-50 dark:bg-cyan-900/20 px-4 py-2 rounded-2xl border border-cyan-100 dark:border-cyan-800/50 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-900/40 flex items-center justify-center text-2xl">
-            {gamificationData?.leagueIcon || '🥉'}
-          </div>
-          <div>
-            <p className="text-xs font-bold text-cyan-400 uppercase tracking-wider">League</p>
-            <p className="text-lg font-black text-slate-800 dark:text-white leading-none">{gamificationData?.league || 'Bronze'}</p>
-          </div>
-        </div>
-
-        {/* XP Level Pill */}
-        <div className="flex items-center gap-3 bg-violet-50 dark:bg-violet-900/20 px-4 py-2 rounded-2xl border border-violet-100 dark:border-violet-800/50 shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-500 text-lg font-black">
-            {gamificationData?.level || 1}
-          </div>
-          <div>
-            <p className="text-xs font-bold text-violet-400 uppercase tracking-wider">Level</p>
-            <div className="w-24 h-2 bg-violet-200 dark:bg-violet-800/50 rounded-full overflow-hidden mt-1">
-              <div className="h-full bg-gradient-to-r from-violet-400 to-violet-600 rounded-full transition-all" style={{ width: `${gamificationData?.pct || 0}%` }} />
+            
+            {/* League */}
+            <div className="flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-800/80 text-xs font-bold text-slate-350 shadow-inner w-[160px] justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Trophy size={14} className="text-cyan-400 shrink-0" />
+                <span className="truncate">League</span>
+              </div>
+              <span className="text-white font-black text-[11px] shrink-0 truncate">{gamificationData?.league || 'Bronze'}</span>
             </div>
+
+            {/* Level */}
+            <div className="flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-slate-800/80 text-xs font-bold text-slate-350 shadow-inner w-[160px] justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Sparkles size={14} className="text-violet-400 shrink-0" />
+                <span className="truncate">Level</span>
+              </div>
+              <span className="text-white font-black text-[11px] shrink-0">Lvl {gamificationData?.level || 1}</span>
+            </div>
+
+            {/* Coins */}
+            <Link to="/student/wardrobe" className="flex items-center gap-2.5 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-2.5 rounded-2xl border border-amber-500/25 text-xs font-bold text-amber-450 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] w-[160px] justify-between">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <Coins size={14} className="text-amber-550 shrink-0" />
+                <span className="truncate">Coins</span>
+              </div>
+              <span className="text-white font-black text-[11px] shrink-0">{userCoins}</span>
+            </Link>
           </div>
         </div>
-
-        {/* Coins Pill */}
-        <Link to="/student/wardrobe" className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 px-4 py-2 rounded-2xl border border-amber-100 dark:border-amber-800/50 shadow-sm hover:scale-[1.02] transition-transform">
-          <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-2xl">
-            🪙
-          </div>
-          <div>
-            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">Coins</p>
-            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{userCoins}</p>
-          </div>
-        </Link>
       </div>
 
       {/* Rank #1 Perks Announcement */}
