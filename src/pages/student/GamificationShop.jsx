@@ -476,10 +476,19 @@ const GamificationShop = () => {
                       </div>
                     ) : (
                       <div className="w-20 h-20 rounded-full bg-slate-900/10 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/50 flex items-center justify-center overflow-hidden my-2 shadow-inner transition-colors group-hover:border-violet-500/30">
-                        {item.category === 'avatar' && item.imageUrl ? (
-                          <img src={item.imageUrl || item.value} alt={item.name} className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
-                        ) : item.category === 'avatar' ? (
-                          <img src={item.value} alt={item.name} className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
+                        {item.category === 'avatar' ? (
+                          <img 
+                            src={
+                              (() => {
+                                const path = item.imageUrl || item.value || '';
+                                return (path.startsWith('/uploads') || path.startsWith('/api')) 
+                                  ? `${import.meta.env.VITE_API_URL || ''}${path}` 
+                                  : path;
+                              })()
+                            } 
+                            alt={item.name} 
+                            className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" 
+                          />
                         ) : item.category === 'border' ? (
                           <div className={`w-14 h-14 rounded-full border-3 ${getBorderPreviewClass(item.value)} transition-transform duration-300 group-hover:scale-110`}></div>
                         ) : item.category === 'title' ? (
