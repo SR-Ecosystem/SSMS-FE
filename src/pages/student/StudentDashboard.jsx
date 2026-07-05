@@ -96,10 +96,9 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const [analyticsRes, leetcodeRes, attendanceRes, accessRes, mockRes] = await Promise.all([
+        const [analyticsRes, leetcodeRes, accessRes, mockRes] = await Promise.all([
           axios.get(`/analytics/student/${user._id}`),
           axios.get('/leetcode/active'),
-          axios.get('/attendance/my-summary'),
           axios.get('/checkin-access/my-status').catch(() => ({ data: { hasAccess: false } })),
           axios.get(`/mock-drives/student/${user._id}`).catch(() => ({ data: [] }))
         ]);
@@ -108,40 +107,9 @@ const StudentDashboard = () => {
         setCheckInAccess(accessRes.data);
         setMockScores(mockRes.data || []);
 
-        // Calculate attendance stats from logs
-        const logs = attendanceRes.data || [];
-        // Group by date to get unique days
-        const dayMap = {};
-        logs.forEach(log => {
-          const key = log.date;
-          if (!dayMap[key]) {
-            dayMap[key] = { totalSeconds: 0, isLeave: false, isActive: false, leaveHours: 0, status: null };
-          }
-          dayMap[key].totalSeconds += (log.totalSeconds || 0);
-          if (log.isLeave || log.status === 'Leave') dayMap[key].isLeave = true;
-          if (log.isActive) dayMap[key].isActive = true;
-          dayMap[key].leaveHours = Math.max(dayMap[key].leaveHours, log.leaveHours || 0);
-        });
-
-        let present = 0, absent = 0, leave = 0, inProgress = 0, invalid = 0;
-        const todayDateStr = new Date().toISOString().split('T')[0];
-        // Exclude today from percentage calculation (day still in progress)
-        Object.entries(dayMap).forEach(([dateKey, day]) => {
-          if (dateKey === todayDateStr) return; // skip today
-          if (day.isLeave && (day.leaveHours || 0) === 0) { leave++; return; }
-          const hours = day.totalSeconds / 3600;
-          const minRequired = 8 - day.leaveHours;
-          if (hours >= minRequired && hours <= 10) { present++; }
-          else if (hours > 10) { invalid++; }
-          else if (day.isActive) { inProgress++; }
-          else { absent++; }
-        });
-
-        const totalDays = Object.keys(dayMap).length;
-        const pastDays = totalDays - (dayMap[todayDateStr] ? 1 : 0);
-        const denominator = pastDays - leave;
-        const pct = denominator > 0 ? Math.round((present / denominator) * 100) : 0;
-        setAttendanceStats({ present, absent, leave, inProgress, invalid, total: totalDays, percentage: pct });
+        if (analyticsRes.data.attendanceStats) {
+          setAttendanceStats(analyticsRes.data.attendanceStats);
+        }
       } catch (error) {
         console.error('Error fetching analytics:', error);
       } finally {
@@ -255,7 +223,7 @@ const StudentDashboard = () => {
           </div>
           <div>
             <p className="text-xs font-bold text-orange-400 uppercase tracking-wider">Coding Streak</p>
-            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{gamificationData?.codingStreak || user?.leetcodeStreak || 0} <span className="text-sm font-medium text-slate-500">Days</span></p>
+            <p className="text-xl font-black text-slate-800 dark:text-white leading-none">{gamificationData?.leetcodeStreak !== undefined ? gamificationData.leetcodeStreak : (user?.leetcodeStreak || 0)} <span className="text-sm font-medium text-slate-500">Days</span></p>
           </div>
         </div>
 
