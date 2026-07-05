@@ -213,7 +213,15 @@ const StudentDashboard = () => {
             } ${getEffectStyles(gamificationData?.equippedEffect || user?.equippedEffect)}`}>
               <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
                 {gamificationData?.equippedAvatar ? (
-                  <img src={gamificationData.equippedAvatar} alt="Avatar" className="w-full h-full object-cover object-top" />
+                  <img 
+                    src={
+                      gamificationData.equippedAvatar.startsWith('/uploads')
+                        ? `${import.meta.env.VITE_API_URL || ''}${gamificationData.equippedAvatar}`
+                        : gamificationData.equippedAvatar
+                    } 
+                    alt="Avatar" 
+                    className="w-full h-full object-cover object-top" 
+                  />
                 ) : (
                   <span className="text-xl font-bold text-slate-700 dark:text-slate-200">{user?.name.charAt(0)}</span>
                 )}

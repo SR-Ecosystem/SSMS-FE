@@ -1964,7 +1964,15 @@ const Layout = () => {
               } ${getEffectStyles(gamificationData?.equippedEffect || user?.equippedEffect)}`}>
                 <div className="w-full h-full rounded-lg overflow-hidden flex items-center justify-center">
                   {(gamificationData?.equippedAvatar || user?.equippedAvatar) ? (
-                    <img src={gamificationData?.equippedAvatar || user?.equippedAvatar} alt="Profile" className="w-full h-full object-cover object-top" />
+                    <img 
+                      src={
+                        (gamificationData?.equippedAvatar || user?.equippedAvatar).startsWith('/uploads')
+                          ? `${import.meta.env.VITE_API_URL || ''}${gamificationData?.equippedAvatar || user?.equippedAvatar}`
+                          : (gamificationData?.equippedAvatar || user?.equippedAvatar)
+                      } 
+                      alt="Profile" 
+                      className="w-full h-full object-cover object-top" 
+                    />
                   ) : (
                     <UserIcon size={18} />
                   )}

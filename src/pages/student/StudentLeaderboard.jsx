@@ -236,7 +236,15 @@ const StudentLeaderboard = () => {
                           } ${getEffectStyles(student.equippedEffect)}`}>
                             <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
                               {student.equippedAvatar ? (
-                                <img src={student.equippedAvatar} alt={student.name} className="w-full h-full object-cover object-top" />
+                                <img 
+                                  src={
+                                    student.equippedAvatar.startsWith('/uploads')
+                                      ? `${import.meta.env.VITE_API_URL || ''}${student.equippedAvatar}`
+                                      : student.equippedAvatar
+                                  } 
+                                  alt={student.name} 
+                                  className="w-full h-full object-cover object-top" 
+                                />
                               ) : (
                                 <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{student.name.charAt(0)}</span>
                               )}
@@ -353,7 +361,15 @@ const StudentLeaderboard = () => {
                   } ${getEffectStyles(profileData?.equippedEffect)}`}>
                     <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-slate-800">
                       {profileData?.equippedAvatar ? (
-                        <img src={profileData.equippedAvatar} alt={profileData.name} className="w-full h-full object-cover object-top" />
+                        <img 
+                          src={
+                            profileData.equippedAvatar.startsWith('/uploads')
+                              ? `${import.meta.env.VITE_API_URL || ''}${profileData.equippedAvatar}`
+                              : profileData.equippedAvatar
+                          } 
+                          alt={profileData.name} 
+                          className="w-full h-full object-cover object-top" 
+                        />
                       ) : (
                         <span className="text-3xl font-bold text-slate-400">{profileData?.name?.charAt(0)}</span>
                       )}

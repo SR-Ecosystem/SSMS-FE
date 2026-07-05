@@ -226,7 +226,15 @@ const UserProfile = () => {
           )}
 
           {gamificationData?.equippedAvatar ? (
-            <img src={gamificationData.equippedAvatar} alt="Profile" className="w-full h-full object-cover object-top rounded-full" />
+            <img 
+              src={
+                gamificationData.equippedAvatar.startsWith('/uploads')
+                  ? `${import.meta.env.VITE_API_URL || ''}${gamificationData.equippedAvatar}`
+                  : gamificationData.equippedAvatar
+              } 
+              alt="Profile" 
+              className="w-full h-full object-cover object-top rounded-full" 
+            />
           ) : (
             <UserIcon className="text-slate-400 dark:text-slate-500" size={32} />
           )}
