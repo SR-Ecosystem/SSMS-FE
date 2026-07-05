@@ -287,6 +287,57 @@ const StudentDashboard = () => {
         </Link>
       </div>
 
+      {/* Rank #1 Perks Announcement */}
+      {gamificationData?.isRankOne && (
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/10 to-amber-600/20 border border-amber-500/30 p-6 md:p-8 shadow-xl shadow-amber-500/5 mb-6 group animate-in slide-in-from-top-4 duration-300 text-left">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none group-hover:bg-amber-500/20 transition-all duration-700"></div>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 relative z-10">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-4xl shadow-lg shadow-amber-500/20 shrink-0 animate-bounce">
+              👑
+            </div>
+            <div className="flex-1 space-y-2">
+              <h2 className="text-xl font-extrabold text-amber-500 dark:text-amber-400 flex items-center gap-2">
+                Leaderboard Dominance: You are Rank #1!
+                <span className="text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded bg-amber-500 text-slate-900 animate-pulse">Top Unlocked Perks</span>
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">
+                Congratulations! As the reigning Top #1 student on the SSMS leaderboard, you have unlocked exclusive legendary privileges:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                <div className="flex items-start gap-3 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 rounded-2xl p-3.5 hover:bg-amber-500/10 transition-colors">
+                  <div className="text-xl mt-0.5">📸</div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">Custom Profile Photo</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Upload any custom photo from your device. Go to <Link to="/student/profile" className="underline font-bold text-amber-500">My Profile</Link> and click your picture to upload!</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 rounded-2xl p-3.5 hover:bg-amber-500/10 transition-colors">
+                  <div className="text-xl mt-0.5">🎨</div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">Workspace Color Theme Customizer</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Style your workspace by picking a custom hex color from the palette menu in the top navbar header.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 rounded-2xl p-3.5 hover:bg-amber-500/10 transition-colors">
+                  <div className="text-xl mt-0.5">✨</div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">Pulsing Profile Glow</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Your profile image has a glowing ring aura highlighting your top rank in lists, chats, and rankings.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 rounded-2xl p-3.5 hover:bg-amber-500/10 transition-colors">
+                  <div className="text-xl mt-0.5">🔥</div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">Reigning Champion Prestige</h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">Showcase your rank position badge across the learning board and earn admiration from peers.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Row 1: Task Completion (3), ID Card (6), Leaderboard (3) */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch mb-6">
         
