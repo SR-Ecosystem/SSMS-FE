@@ -3,7 +3,7 @@ import { useOutletContext, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Swal from 'sweetalert2';
-import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck, Briefcase, Flame, Coins, Sparkles } from 'lucide-react';
+import { BookOpen, CheckCircle, Clock, Target, Play, Square, Bell, User as UserIcon, CreditCard, ChevronRight, TrendingUp, TrendingDown, Award, Trophy, Users, MessageCircle, FileText, Gamepad2, Code, Calendar, Loader2, ClipboardCheck, Briefcase, Flame, Coins, Sparkles, X, Lock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import { MagicDust } from '../../components/ui/magic-dust-shader';
@@ -85,6 +85,17 @@ const StudentDashboard = () => {
     themeColor, activeTheme, userCoins, gamificationData, fetchCounts
   } = useOutletContext();
   const [analytics, setAnalytics] = useState(null);
+
+  const [clearedNotifs, setClearedNotifs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('clearedNotifs')) || []; } catch { return []; }
+  });
+
+  const dismissNotification = (id) => {
+    const updated = [...clearedNotifs, id];
+    setClearedNotifs(updated);
+    localStorage.setItem('clearedNotifs', JSON.stringify(updated));
+    if (fetchCounts) fetchCounts();
+  };
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0, leave: 0, inProgress: 0, invalid: 0, total: 0, percentage: 0 });
   const [checkInAccess, setCheckInAccess] = useState({ hasAccess: false, accessType: null });
 
@@ -823,6 +834,37 @@ const StudentDashboard = () => {
       {activeLeetcode.length > 0 && (
         <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {activeLeetcode.map(problem => {
+            if (problem.isLocked) {
+              return (
+                <div key={problem._id} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-700 to-slate-800 p-6 text-white border-t border-white/20 border-b-[3px] border-black/20 shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:border-b-0 transition-all group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                  
+                  <div className="relative z-10 flex flex-col h-full justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-bold text-lg text-slate-300 flex items-center gap-2 drop-shadow-sm">
+                          <Lock size={20} className="text-slate-400" />
+                          Upcoming Challenge
+                        </h3>
+                        <div className="bg-white/10 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded border border-white/10 flex items-center gap-1 shadow-inner uppercase tracking-wider">
+                          Locked
+                        </div>
+                      </div>
+                      <p className="text-slate-400 text-xs mb-4">This challenge is scheduled and locked.</p>
+                      <span className="text-xl font-bold text-slate-400 block mb-6 leading-tight">
+                        {problem.title}
+                      </span>
+                    </div>
+                    
+                    <div className="bg-black/20 border border-white/10 shadow-inner rounded-xl p-3 flex items-center gap-3 text-slate-300 font-bold text-sm">
+                      <Lock size={16} className="text-slate-400" />
+                      Unlocks: {new Date(problem.scheduledAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             // Calculate remaining time
             const now = new Date();
             const deadline = new Date(problem.deadline);
@@ -937,30 +979,40 @@ const StudentDashboard = () => {
           </div>
 
           <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 relative z-10">
-             {analytics?.notifications && analytics.notifications.length > 0 ? (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-               {analytics.notifications.map((notif, idx) => (
-                 <div key={notif.id} className="flex items-start gap-4 group/item hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors cursor-pointer">
-                   <div className="flex flex-col items-center mt-1">
-                     <div className={`w-3 h-3 rounded-full border-2 border-slate-700 shadow-[0_0_8px_rgba(255,255,255,0.3)] ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
+             {(() => {
+               const visibleNotifs = (analytics?.notifications || []).filter(n => !clearedNotifs.includes(n.id));
+               return visibleNotifs.length > 0 ? (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                 {visibleNotifs.map((notif, idx) => (
+                   <div key={notif.id} className="flex items-start gap-4 group/item hover:bg-white/5 p-2 -mx-2 rounded-xl transition-colors cursor-pointer group/notif">
+                     <div className="flex flex-col items-center mt-1">
+                       <div className={`w-3 h-3 rounded-full border-2 border-slate-700 shadow-[0_0_8px_rgba(255,255,255,0.3)] ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
+                     </div>
+                     <div className="flex-1 min-w-0 pb-1">
+                       <p className="text-sm font-bold text-white truncate drop-shadow-sm">{notif.title}</p>
+                       <p className="text-xs font-medium text-slate-300 mt-0.5 leading-snug drop-shadow-sm">{notif.message}</p>
+                     </div>
+                     <div className="flex items-center gap-2 shrink-0">
+                       <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-sm ${notif.type === 'grade' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'}`}>
+                         {notif.type === 'grade' ? `+${notif.title.match(/\d+/)?.[0] || 0}` : 'New'}
+                       </span>
+                       <button 
+                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); dismissNotification(notif.id); }}
+                         className="p-1 text-slate-400 hover:text-white rounded hover:bg-white/10 opacity-0 group-hover/notif:opacity-100 transition-opacity duration-200 cursor-pointer"
+                         title="Dismiss"
+                       >
+                         <X size={12} />
+                       </button>
+                     </div>
                    </div>
-                   <div className="flex-1 min-w-0 pb-1">
-                     <p className="text-sm font-bold text-white truncate drop-shadow-sm">{notif.title}</p>
-                     <p className="text-xs font-medium text-slate-300 mt-0.5 leading-snug drop-shadow-sm">{notif.message}</p>
-                   </div>
-                   <div className="text-right shrink-0">
-                     <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shadow-sm ${notif.type === 'grade' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'}`}>
-                       {notif.type === 'grade' ? `+${notif.title.match(/\d+/)?.[0] || 0}` : 'New'}
-                     </span>
-                   </div>
+                 ))}
                  </div>
-               ))}
-               </div>
-             ) : (
-               <div className="text-center text-slate-400 py-8 bg-white/5 rounded-xl border border-white/10 border-dashed">
-                 <p className="text-sm font-medium">No recent activities.</p>
-               </div>
-             )}
+               ) : (
+                 <div className="text-center text-slate-400 py-8 bg-white/5 rounded-xl border border-white/10 border-dashed">
+                   <p className="text-sm font-medium">No recent activities.</p>
+                 </div>
+               );
+             })()}
           </div>
         </div>
       </div>

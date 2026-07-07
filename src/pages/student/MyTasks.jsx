@@ -4,7 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { Loader2, Upload, ExternalLink, Calendar, FileText as FileTextIcon, UploadCloud, Link as LinkIcon, AlignLeft, Download, CheckCircle } from 'lucide-react';
+import { Loader2, Upload, ExternalLink, Lock, Calendar, FileText as FileTextIcon, UploadCloud, Link as LinkIcon, AlignLeft, Download, CheckCircle } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const formatDateTime = (dateString) => {
@@ -366,6 +366,44 @@ const MyTasks = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {tasks.map(task => {
+          if (task.isLocked) {
+            return (
+              <div key={task._id} className="glass-panel overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between hover:-translate-y-0.5 active:translate-y-0 transition-all block relative text-left bg-slate-50/50 dark:bg-slate-900/40 opacity-70">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-500/5 rounded-full blur-2xl"></div>
+                
+                <div className="relative z-10 flex justify-between items-start mb-4">
+                  <div className="flex flex-col items-start gap-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="font-bold text-base text-slate-400 dark:text-slate-500 leading-tight flex items-center gap-2">
+                        <Lock size={16} /> {task.title}
+                      </h3>
+                      <span className="bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200 dark:border-slate-700">Locked</span>
+                    </div>
+                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">{task.batchId?.batchName}</span>
+                  </div>
+                </div>
+
+                <div className="mb-6 flex flex-col gap-2 flex-1">
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500">This task is scheduled and locked. Description and submission actions are hidden.</p>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-700/50 pt-5 mt-auto">
+                  <div className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg border text-slate-500 bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700">
+                    <Calendar size={14} /> Due: {new Date(task.dueDate).toLocaleDateString()}
+                  </div>
+                  {task.maxMarks !== undefined && (
+                    <div className="text-xs font-bold text-slate-500">
+                      Marks: {task.maxMarks}
+                    </div>
+                  )}
+                  <span className="text-xs text-indigo-500 dark:text-indigo-400 font-bold flex items-center gap-1">
+                    <Lock size={12} /> Unlocks: {new Date(task.scheduledAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            );
+          }
+
           const submission = submissions.find(s => s.taskId?._id === task._id || s.taskId === task._id);
           const isSubmitted = submission && submission.status !== 'resubmit';
           

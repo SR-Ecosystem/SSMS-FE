@@ -3,25 +3,24 @@ import { Link, useOutletContext, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe, Briefcase, Trophy, Network, LayoutTemplate } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, Clock, FileText, User as UserIcon, UserPlus, MessageCircle, Code, Gamepad2, Calendar, ChevronRight, RefreshCw, Activity, TrendingUp, ShieldCheck, Lock, Globe, Briefcase, Trophy, Network, LayoutTemplate, X } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import { MagicDust } from '../../components/ui/magic-dust-shader';
-import { GlassEffect, GlassDock, GlassButton, GlassFilter } from '../../components/ui/liquid-glass';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const { themeColor, activeTheme } = useOutletContext();
+  const { themeColor, activeTheme, fetchCounts } = useOutletContext();
   const navigate = useNavigate();
-  const [liquidGlassTheme, setLiquidGlassTheme] = useState(() => {
-    return localStorage.getItem('admin_liquid_glass_theme') === 'true';
+
+  const [clearedNotifs, setClearedNotifs] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('clearedNotifs')) || []; } catch { return []; }
   });
 
-  const toggleLiquidGlassTheme = () => {
-    setLiquidGlassTheme(prev => {
-      const next = !prev;
-      localStorage.setItem('admin_liquid_glass_theme', String(next));
-      return next;
-    });
+  const dismissNotification = (id) => {
+    const updated = [...clearedNotifs, id];
+    setClearedNotifs(updated);
+    localStorage.setItem('clearedNotifs', JSON.stringify(updated));
+    if (fetchCounts) fetchCounts();
   };
 
   const [stats, setStats] = useState(null);
@@ -62,17 +61,6 @@ const AdminDashboard = () => {
     : 0;
 
   const CardContainer = ({ children, className = "", lgSpan = "" }) => {
-    if (liquidGlassTheme) {
-      return (
-        <div className={`${lgSpan} text-white`}>
-          <GlassEffect className={`w-full h-full flex flex-col justify-between p-6 rounded-3xl border border-white/10 ${className}`}>
-            <div className="dark text-white select-none w-full h-full">
-              {children}
-            </div>
-          </GlassEffect>
-        </div>
-      );
-    }
     return (
       <div className={`${lgSpan} bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm flex flex-col justify-between ${className}`}>
         {children}
@@ -108,22 +96,8 @@ const AdminDashboard = () => {
     },
   ];
 
-  const wrapperStyle = liquidGlassTheme ? {
-    backgroundImage: `url("https://images.unsplash.com/photo-1432251407527-504a6b4174a2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D")`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    animation: 'moveBackground 240s linear infinite',
-    borderRadius: '32px',
-    padding: '24px',
-    boxShadow: 'inset 0 0 100px rgba(0, 0, 0, 0.4)'
-  } : {};
-
   return (
-    <div 
-      className="max-w-7xl mx-auto space-y-6 pb-12 transition-all duration-700"
-      style={wrapperStyle}
-    >
-      {liquidGlassTheme && <GlassFilter />}
+    <div className="max-w-7xl mx-auto space-y-6 pb-12 transition-all">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4">
@@ -137,21 +111,9 @@ const AdminDashboard = () => {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={toggleLiquidGlassTheme}
-            className={`p-1.5 rounded-lg border transition-all shadow-sm cursor-pointer flex items-center gap-1.5 text-xs font-bold ${
-              liquidGlassTheme 
-                ? 'bg-amber-500 text-slate-950 border-amber-600' 
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
-            }`}
-            title="Toggle Liquid Glass Theme"
-          >
-            <LayoutTemplate size={16} />
-            <span>Glass Mode</span>
-          </button>
-          <button
             onClick={() => fetchStats(true)}
             disabled={isChartLoading || loading}
-            className="p-1.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm cursor-pointer"
+            className="p-1.5 bg-white dark:bg-slate-800 text-slate-650 dark:text-slate-350 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shrink-0 shadow-sm cursor-pointer"
             title="Refresh Dashboard"
           >
             <RefreshCw size={16} className={(isChartLoading || loading) ? 'animate-spin' : ''} />
@@ -502,25 +464,37 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar my-2">
-              {stats?.notifications && stats.notifications.length > 0 ? (
-                <div className="space-y-4">
-                  {stats.notifications.slice(0, 4).map(notif => (
-                    <div key={notif.id} className="flex items-start gap-3 p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer">
-                      <div className="flex flex-col items-center mt-1 shrink-0">
-                        <div className={`w-2.5 h-2.5 rounded-full border border-white dark:border-slate-900 shadow-sm ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
+              {(() => {
+                const visibleNotifs = (stats?.notifications || []).filter(n => !clearedNotifs.includes(n.id));
+                return visibleNotifs.length > 0 ? (
+                  <div className="space-y-4">
+                    {visibleNotifs.slice(0, 4).map(notif => (
+                      <div key={notif.id} className="flex items-start justify-between gap-3 p-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer group">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <div className="flex flex-col items-center mt-1 shrink-0">
+                            <div className={`w-2.5 h-2.5 rounded-full border border-white dark:border-slate-900 shadow-sm ${notif.type === 'task' ? 'bg-indigo-400' : 'bg-emerald-400'}`}></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{notif.title}</p>
+                            <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-505 mt-0.5 leading-normal truncate">{notif.message}</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); dismissNotification(notif.id); }}
+                          className="p-1 text-slate-400 hover:text-slate-650 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0 cursor-pointer"
+                          title="Dismiss"
+                        >
+                          <X size={12} />
+                        </button>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{notif.title}</p>
-                        <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-505 mt-0.5 leading-normal truncate">{notif.message}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center text-slate-400 py-8 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-slate-150 dark:border-slate-800 border-dashed">
-                  <p className="text-sm font-medium">No recent activities.</p>
-                </div>
-              )}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-slate-400 py-8 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-slate-150 dark:border-slate-800 border-dashed">
+                    <p className="text-sm font-medium">No recent activities.</p>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Chat & Traffic Channels Dock */}
@@ -545,11 +519,6 @@ const AdminDashboard = () => {
 
       </div>
 
-      {liquidGlassTheme && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hover:scale-105 transition-transform duration-300">
-          <GlassDock icons={dockIcons} />
-        </div>
-      )}
     </div>
   );
 };

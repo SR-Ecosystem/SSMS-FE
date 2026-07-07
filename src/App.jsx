@@ -32,6 +32,7 @@ const CheckInPermissions = lazy(() => import('./pages/admin/CheckInPermissions')
 const FacultyAttendance = lazy(() => import('./pages/admin/FacultyAttendance'));
 const ActivityLogs = lazy(() => import('./pages/admin/ActivityLogs'));
 const GamificationManagement = lazy(() => import('./pages/admin/GamificationManagement'));
+const NotesManagement = lazy(() => import('./pages/admin/NotesManagement'));
 
 // Student Pages
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
@@ -46,6 +47,7 @@ const StudentLeaderboard = lazy(() => import('./pages/student/StudentLeaderboard
 const StudentLeetcode = lazy(() => import('./pages/student/StudentLeetcode'));
 const LeaveApplication = lazy(() => import('./pages/student/LeaveApplication'));
 const GamificationShop = lazy(() => import('./pages/student/GamificationShop'));
+const StudentNotes = lazy(() => import('./pages/student/StudentNotes'));
 
 function App() {
   return (
@@ -121,6 +123,9 @@ function App() {
             <Route path="admin/gamification" element={
               <ProtectedRoute allowedRoles={['admin']}><GamificationManagement /></ProtectedRoute>
             } />
+            <Route path="admin/notes" element={
+              <ProtectedRoute allowedRoles={['admin']}><NotesManagement /></ProtectedRoute>
+            } />
 
             {/* Student Routes */}
             <Route path="student/setup" element={
@@ -162,6 +167,9 @@ function App() {
             } />
             <Route path="student/wardrobe" element={
               <ProtectedRoute allowedRoles={['student']}><GamificationShop /></ProtectedRoute>
+            } />
+            <Route path="student/notes" element={
+              <ProtectedRoute allowedRoles={['student']}><StudentNotes /></ProtectedRoute>
             } />
             <Route path="*" element={<div className="p-8"><h1 className="text-2xl">Page Under Construction</h1></div>} />
           </Route>

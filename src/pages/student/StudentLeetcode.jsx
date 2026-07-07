@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { Code, Flame, CheckCircle, Clock, ExternalLink } from 'lucide-react';
+import { Code, Flame, CheckCircle, Clock, ExternalLink, Lock } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import Swal from 'sweetalert2';
 
@@ -135,15 +135,48 @@ const StudentLeetcode = () => {
         
         {history.length > 0 ? (
           <div className="space-y-8">
-            {/* Active Challenges */}
+            {/* Scheduled & Locked (Upcoming) */}
+            {history.filter(p => p.isLocked).length > 0 && (
+              <div>
+                <h3 className="text-md font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
+                  <Lock size={16} className="text-slate-400" />
+                  Upcoming Scheduled Challenges
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {history.filter(p => p.isLocked).map(problem => (
+                    <div key={problem._id} className="glass-panel overflow-hidden rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between bg-slate-50/50 dark:bg-slate-900/40 opacity-70">
+                      <div>
+                        <div className="p-4 text-white text-center flex items-center justify-between font-bold text-xs bg-gradient-to-r from-slate-650 to-slate-750">
+                          <span className="flex items-center gap-1.5"><Lock size={12} /> SCHEDULED & LOCKED</span>
+                          <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">UPCOMING</span>
+                        </div>
+                        
+                        <div className="p-6 space-y-4">
+                          <h3 className="font-extrabold text-slate-450 dark:text-slate-400 text-lg leading-snug">{problem.title}</h3>
+                          <p className="text-xs text-slate-400 dark:text-slate-550">This problem has been scheduled by an admin and will unlock at the release time.</p>
+                        </div>
+                      </div>
+
+                      <div className="p-6 border-t border-slate-100 dark:border-slate-700/50 mt-auto bg-slate-100/50 dark:bg-slate-800/10">
+                        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm">
+                          <Lock size={14} /> Unlocks: {new Date(problem.scheduledAt).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Active Challenges (Needs Attention) */}
             <div>
               <h3 className="text-md font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
                 Needs Attention
               </h3>
-              {history.filter(p => !p.isSubmitted && new Date(p.deadline) >= new Date()).length > 0 ? (
+              {history.filter(p => !p.isSubmitted && new Date(p.deadline) >= new Date() && !p.isLocked).length > 0 ? (
                 <div className="space-y-4">
-                  {history.filter(p => !p.isSubmitted && new Date(p.deadline) >= new Date()).map(problem => (
+                  {history.filter(p => !p.isSubmitted && new Date(p.deadline) >= new Date() && !p.isLocked).map(problem => (
                     <div 
                       key={problem._id} 
                       className="p-5 rounded-2xl border transition-all bg-slate-900 border-slate-800 shadow-xl shadow-orange-500/10"
@@ -207,15 +240,12 @@ const StudentLeetcode = () => {
                 <span className="w-2 h-2 rounded-full bg-slate-400"></span>
                 Past & Completed
               </h3>
-              {history.filter(p => p.isSubmitted || new Date(p.deadline) < new Date()).length > 0 ? (
+              {history.filter(p => (p.isSubmitted || new Date(p.deadline) < new Date()) && !p.isLocked).length > 0 ? (
                 <div className="space-y-4 opacity-80 hover:opacity-100 transition-opacity duration-300">
-                  {history.filter(p => p.isSubmitted || new Date(p.deadline) < new Date()).map(problem => {
+                  {history.filter(p => (p.isSubmitted || new Date(p.deadline) < new Date()) && !p.isLocked).map(problem => {
                     const isExpired = new Date(problem.deadline) < new Date();
                     return (
-                      <div 
-                        key={problem._id} 
-                        className="p-5 rounded-2xl border transition-all bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50"
-                      >
+                      <div key={problem._id} className="p-5 rounded-2xl border transition-all bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -228,14 +258,16 @@ const StudentLeetcode = () => {
                                 </span>
                               )}
                             </div>
-                            <a 
-                              href={problem.problemLink} 
-                              target="_blank" 
-                              rel="noreferrer" 
-                              className="text-sm flex items-center gap-1 w-fit hover:underline text-primary-500 dark:text-primary-400"
-                            >
-                              View Problem on LeetCode <ExternalLink size={14} />
-                            </a>
+                            {!problem.isLocked && (
+                              <a 
+                                href={problem.problemLink} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="text-sm flex items-center gap-1 w-fit hover:underline text-primary-500 dark:text-primary-400"
+                              >
+                                View Problem on LeetCode <ExternalLink size={14} />
+                              </a>
+                            )}
                             <div className="text-xs mt-2 font-medium flex items-center gap-1 text-slate-500">
                               <Clock size={14} /> 
                               Deadline: {new Date(problem.deadline).toLocaleString()}

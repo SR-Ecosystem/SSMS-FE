@@ -1122,6 +1122,7 @@ const Layout = () => {
         { name: 'LeetCode Challenges', path: '/leetcode', icon: <Code size={20} /> },
         { name: 'Mock Drives', path: '/mock-drives', icon: <Briefcase size={20} /> },
         { name: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
+        { name: 'Study Notes', path: '/admin/notes', icon: <BookOpen size={20} /> },
       ]
     },
     {
@@ -1165,6 +1166,7 @@ const Layout = () => {
       links: [
         { name: 'My Tasks', path: '/student/tasks', icon: <FileText size={20} />, badge: getBadge('tasks', pendingCount) },
         { name: 'LeetCode', path: '/student/leetcode', icon: <Code size={20} /> },
+        { name: 'My Notes', path: '/student/notes', icon: <BookOpen size={20} /> },
       ]
     },
     {
