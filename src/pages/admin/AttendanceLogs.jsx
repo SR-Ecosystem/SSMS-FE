@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Loader2, Calendar, Search, Filter, Download, User as UserIcon, CheckCircle, AlertTriangle, XCircle, RefreshCw, LogOut } from 'lucide-react';
+import { Loader2, Calendar, Search, Filter, Download, User as UserIcon, CheckCircle, AlertTriangle, XCircle, RefreshCw, LogOut, Edit } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Loader from '../../components/Loader';
 import * as XLSX from 'xlsx';
@@ -265,6 +265,76 @@ const AttendanceLogs = () => {
     }
   };
 
+  const handleEditAttendance = async (log) => {
+    const currentHours = ((log.totalSeconds || 0) / 3600).toFixed(2);
+    
+    const { value: formValues } = await Swal.fire({
+      title: `Edit Attendance for ${log.name}`,
+      html: `
+        <div class="flex flex-col gap-4 text-left">
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Login Hours</label>
+            <input id="swal-input-hours" type="number" step="0.1" class="swal2-input !m-0 !w-full" value="${currentHours}" placeholder="Enter hours...">
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Attendance Status</label>
+            <select id="swal-input-status" class="swal2-select !m-0 !w-full">
+              <option value="Present" ${log.status === 'Present' ? 'selected' : ''}>Present</option>
+              <option value="Absent" ${log.status === 'Absent' ? 'selected' : ''}>Absent</option>
+              <option value="Invalid" ${log.status === 'Invalid' ? 'selected' : ''}>Invalid</option>
+              <option value="Leave" ${log.status === 'Leave' ? 'selected' : ''}>Leave</option>
+              <option value="In Progress" ${log.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+            </select>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Save Changes',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#10b981',
+      background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+      color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+      preConfirm: () => {
+        return {
+          hours: document.getElementById('swal-input-hours').value,
+          status: document.getElementById('swal-input-status').value
+        }
+      }
+    });
+
+    if (formValues) {
+      try {
+        setLoading(true);
+        const logId = log._id;
+        await axios.put(`/attendance/${logId}`, {
+          hours: Number(formValues.hours),
+          status: formValues.status,
+          dateStr: log.date
+        });
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Attendance log updated successfully!',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+          confirmButtonColor: '#10b981'
+        });
+        fetchData();
+      } catch (error) {
+        console.error(error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Failed to update attendance log',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+        });
+        setLoading(false);
+      }
+    }
+  };
+
   const handleCheckoutAll = async () => {
     const activeLogs = filteredLogs.filter(log => log.isActive);
     if (activeLogs.length === 0) return;
@@ -414,15 +484,24 @@ const AttendanceLogs = () => {
                       </div>
                     </div>
                     {viewMode === 'Day' && (
-                      <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
-                        log.status === 'Present' ? 'bg-emerald-100 text-emerald-700' :
-                        log.status === 'Absent' ? 'bg-rose-100 text-rose-700' :
-                        log.status === 'Leave' ? 'bg-indigo-100 text-indigo-700' :
-                        log.status === 'Invalid' ? 'bg-amber-100 text-amber-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
-                        {log.status}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase tracking-wider ${
+                          log.status === 'Present' ? 'bg-emerald-100 text-emerald-700' :
+                          log.status === 'Absent' ? 'bg-rose-100 text-rose-700' :
+                          log.status === 'Leave' ? 'bg-indigo-100 text-indigo-700' :
+                          log.status === 'Invalid' ? 'bg-amber-100 text-amber-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {log.status}
+                        </span>
+                        <button 
+                          onClick={() => handleEditAttendance(log)}
+                          className="p-1 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-500 rounded transition-colors"
+                          title="Edit Log"
+                        >
+                          <Edit size={14} />
+                        </button>
+                      </div>
                     )}
                   </div>
                   
@@ -506,7 +585,10 @@ const AttendanceLogs = () => {
                     )}
                     <th className="p-4 font-semibold">Total Logged Time</th>
                     {viewMode === 'Day' ? (
-                      <th className="p-4 font-semibold">Daily Status</th>
+                      <>
+                        <th className="p-4 font-semibold">Daily Status</th>
+                        <th className="p-4 font-semibold">Actions</th>
+                      </>
                     ) : (
                       <>
                         <th className="p-4 font-semibold text-emerald-600">Days Present</th>
@@ -574,9 +656,20 @@ const AttendanceLogs = () => {
                         </span>
                       </td>
                       {viewMode === 'Day' ? (
-                        <td className="p-4">
-                          {renderStatusBadge(log.status)}
-                        </td>
+                        <>
+                          <td className="p-4">
+                            {renderStatusBadge(log.status)}
+                          </td>
+                          <td className="p-4">
+                            <button
+                              onClick={() => handleEditAttendance(log)}
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+                              title="Edit Attendance"
+                            >
+                              <Edit size={16} />
+                            </button>
+                          </td>
+                        </>
                       ) : (
                         <>
                           <td className="p-4 font-bold text-emerald-600">{log.daysPresent}</td>

@@ -374,8 +374,8 @@ const MyTasks = () => {
                 <div className="relative z-10 flex justify-between items-start mb-4">
                   <div className="flex flex-col items-start gap-2">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="font-bold text-base text-slate-400 dark:text-slate-500 leading-tight flex items-center gap-2">
-                        <Lock size={16} /> {task.title}
+                      <h3 className="font-bold text-base text-slate-400 dark:text-slate-550 leading-tight flex items-center gap-2">
+                        <Lock size={16} /> 🔒 Scheduled Task
                       </h3>
                       <span className="bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200 dark:border-slate-700">Locked</span>
                     </div>

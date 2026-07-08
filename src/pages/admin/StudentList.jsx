@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { Loader2, Mail, Phone, GitBranch, Briefcase, Globe, Code, Terminal, Search, User as UserIcon, RefreshCw, Key } from 'lucide-react';
+import { Loader2, Mail, Phone, GitBranch, Briefcase, Globe, Code, Terminal, Search, User as UserIcon, RefreshCw, Key, Edit } from 'lucide-react';
 import Loader from '../../components/Loader';
 
 const StudentList = () => {
@@ -106,6 +106,82 @@ const StudentList = () => {
     }
   };
 
+  const handleEditStudent = async (student) => {
+    const { value: formValues } = await Swal.fire({
+      title: `Edit Details: ${student.name}`,
+      html: `
+        <div class="flex flex-col gap-4 text-left">
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Name</label>
+            <input id="swal-student-name" type="text" class="swal2-input !m-0 !w-full" value="${student.name || ''}">
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Roll Number</label>
+            <input id="swal-student-roll" type="text" class="swal2-input !m-0 !w-full" value="${student.rollNumber || ''}">
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">LeetCode Coding Streak</label>
+            <input id="swal-student-streak" type="number" class="swal2-input !m-0 !w-full" value="${student.leetcodeStreak || student.codingStreak || 0}">
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">Coins</label>
+            <input id="swal-student-coins" type="number" class="swal2-input !m-0 !w-full" value="${student.coins || 0}">
+          </div>
+          <div>
+            <label class="block text-sm font-bold mb-1 text-slate-700 dark:text-slate-300">XP Points</label>
+            <input id="swal-student-points" type="number" class="swal2-input !m-0 !w-full" value="${student.points || 0}">
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Save Changes',
+      confirmButtonColor: '#10b981',
+      background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+      color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+      preConfirm: () => {
+        return {
+          name: document.getElementById('swal-student-name').value,
+          rollNumber: document.getElementById('swal-student-roll').value,
+          leetcodeStreak: document.getElementById('swal-student-streak').value,
+          coins: document.getElementById('swal-student-coins').value,
+          points: document.getElementById('swal-student-points').value,
+        }
+      }
+    });
+
+    if (formValues) {
+      try {
+        setLoading(true);
+        await axios.put(`/auth/students/${student._id}`, {
+          name: formValues.name,
+          rollNumber: formValues.rollNumber,
+          leetcodeStreak: Number(formValues.leetcodeStreak),
+          coins: Number(formValues.coins),
+          points: Number(formValues.points),
+        });
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Student profile details updated successfully.',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+          confirmButtonColor: '#10b981'
+        });
+        fetchData();
+      } catch (error) {
+        console.error('Error updating student profile:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Failed to update student details',
+          background: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff',
+          color: document.documentElement.classList.contains('dark') ? '#f1f5f9' : '#0f172a',
+        });
+        setLoading(false);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Loader />
@@ -170,13 +246,22 @@ const StudentList = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <h3 className="font-bold text-slate-800 dark:text-white text-lg truncate mr-2">{student.name}</h3>
-                    <button
-                      onClick={() => handleChangePassword(student)}
-                      className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors shrink-0"
-                      title="Change Password"
-                    >
-                      <Key size={16} />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleEditStudent(student)}
+                        className="p-1.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                        title="Edit Student Streak & Details"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleChangePassword(student)}
+                        className="p-1.5 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                        title="Change Password"
+                      >
+                        <Key size={16} />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tracking-wide">
                     {student.rollNumber || 'NO ROLL NUMBER'}

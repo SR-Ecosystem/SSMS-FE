@@ -100,9 +100,21 @@ const AdminDashboard = () => {
     <div className="max-w-7xl mx-auto space-y-6 pb-12 transition-all">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-primary-400 to-theme-accent text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-theme-primary/30">
-            {user?.name.charAt(0)}
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-full border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden shrink-0 flex items-center justify-center bg-gradient-to-tr from-primary-400 to-theme-accent text-white text-3xl font-bold">
+            {user?.equippedAvatar || user?.profileImage ? (
+              <img 
+                src={
+                  (user.equippedAvatar || user.profileImage).startsWith('/uploads')
+                    ? `${import.meta.env.VITE_API_URL || ''}${user.equippedAvatar || user.profileImage}`
+                    : (user.equippedAvatar || user.profileImage)
+                } 
+                alt="Profile" 
+                className="w-full h-full object-cover object-top" 
+              />
+            ) : (
+              user?.name.charAt(0)
+            )}
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">Hello, {user?.name.split(' ')[0]}!</h1>

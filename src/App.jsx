@@ -166,7 +166,7 @@ function App() {
               <ProtectedRoute allowedRoles={['student', 'admin']}><StudentLeaderboard /></ProtectedRoute>
             } />
             <Route path="student/wardrobe" element={
-              <ProtectedRoute allowedRoles={['student']}><GamificationShop /></ProtectedRoute>
+              <ProtectedRoute allowedRoles={['student', 'admin']}><GamificationShop /></ProtectedRoute>
             } />
             <Route path="student/notes" element={
               <ProtectedRoute allowedRoles={['student']}><StudentNotes /></ProtectedRoute>

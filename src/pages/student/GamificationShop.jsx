@@ -6,6 +6,7 @@ import Loader from '../../components/Loader';
 import SpinWheel from '../../components/SpinWheel';
 import TreasureChest from '../../components/TreasureChest';
 import DailyRewardsModal from '../../components/DailyRewardsModal';
+import { useAuth } from '../../context/AuthContext';
 import {
   Sparkles, Trophy, ShoppingBag, RotateCw, Package, Crown,
   Palette, Star, Shield, Zap, Award, Gift, Flame, Target, History, Heart, Smile, Info,
@@ -36,6 +37,7 @@ const LEAGUE_ICONS = {
 };
 
 const GamificationShop = () => {
+  const { user: authUser } = useAuth();
   const { userCoins, gamificationData, fetchCounts } = useOutletContext();
   const [catalog, setCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -294,9 +296,11 @@ const GamificationShop = () => {
   };
 
   const handleBuyChest = async (chestType, cost) => {
+    const isUserAdmin = authUser?.role === 'admin';
+    const displayCost = isUserAdmin ? 0 : cost;
     const result = await Swal.fire({
       title: `Buy ${chestType} Chest?`,
-      html: `Spend <span class="text-amber-500 font-bold">${cost} 🪙</span> for a ${chestType} Chest?`,
+      html: `Spend <span class="text-amber-500 font-bold">${displayCost} 🪙</span> for a ${chestType} Chest?`,
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#f59e0b',
@@ -335,74 +339,89 @@ const GamificationShop = () => {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Hero Header */}
-      <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl shadow-purple-500/20 overflow-hidden">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -mr-24 -mt-24"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/10 rounded-full blur-3xl -ml-12 -mb-12"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
+      {authUser?.role === 'admin' ? (
+        <div className="relative bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl shadow-blue-500/20 overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -mr-24 -mt-24"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-400/10 rounded-full blur-3xl -ml-12 -mb-12"></div>
+          <div className="relative z-10">
             <h1 className="text-3xl font-extrabold flex items-center gap-3">
-              <Sparkles className="text-amber-300" size={32} /> Gamification Hub
+              <Sparkles className="text-amber-300" size={32} /> Cosmetics Closet
             </h1>
-            <p className="text-purple-100 mt-2 font-medium">Earn rewards, unlock items, track your progress!</p>
+            <p className="text-sky-100 mt-2 font-medium">Equip any cosmetic customizations to your administrator account instantly for free!</p>
           </div>
-          <div className="flex items-center gap-4">
-            {/* Level Badge */}
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center backdrop-blur-sm">
-                <span className="text-2xl font-black">{level}</span>
-              </div>
-              <p className="text-xs text-purple-200 mt-1 font-bold">Level</p>
+        </div>
+      ) : (
+        <div className="relative bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-700 p-8 rounded-3xl text-white shadow-xl shadow-purple-500/20 overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full blur-3xl -mr-24 -mt-24"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-400/10 rounded-full blur-3xl -ml-12 -mb-12"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-3xl font-extrabold flex items-center gap-3">
+                <Sparkles className="text-amber-300" size={32} /> Gamification Hub
+              </h1>
+              <p className="text-purple-100 mt-2 font-medium">Earn rewards, unlock items, track your progress!</p>
             </div>
-            {/* League */}
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center backdrop-blur-sm text-3xl">
-                {LEAGUE_ICONS[league] || '🥉'}
+            <div className="flex items-center gap-4">
+              {/* Level Badge */}
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center backdrop-blur-sm">
+                  <span className="text-2xl font-black">{level}</span>
+                </div>
+                <p className="text-xs text-purple-200 mt-1 font-bold">Level</p>
               </div>
-              <p className="text-xs text-purple-200 mt-1 font-bold">{league}</p>
+              {/* League */}
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center backdrop-blur-sm text-3xl">
+                  {LEAGUE_ICONS[league] || '🥉'}
+                </div>
+                <p className="text-xs text-purple-200 mt-1 font-bold">{league}</p>
+              </div>
+              {/* Coins */}
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400/50 flex items-center justify-center backdrop-blur-sm">
+                  <span className="text-lg font-black text-amber-300">{userCoins}</span>
+                </div>
+                <p className="text-xs text-purple-200 mt-1 font-bold">Coins</p>
+              </div>
             </div>
-            {/* Coins */}
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-amber-500/20 border-2 border-amber-400/50 flex items-center justify-center backdrop-blur-sm">
-                <span className="text-lg font-black text-amber-300">{userCoins}</span>
-              </div>
-              <p className="text-xs text-purple-200 mt-1 font-bold">Coins</p>
+          </div>
+          {/* XP Progress */}
+          <div className="relative z-10 mt-4">
+            <div className="flex items-center justify-between text-xs text-purple-200 mb-1">
+              <span>XP: {gamificationData?.xpInLevel || 0} / {gamificationData?.levelTargetXP || 100}</span>
+              <span>Level {level} → {level + 1}</span>
+            </div>
+            <div className="w-full h-3 bg-purple-900/50 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
             </div>
           </div>
         </div>
-        {/* XP Progress */}
-        <div className="relative z-10 mt-4">
-          <div className="flex items-center justify-between text-xs text-purple-200 mb-1">
-            <span>XP: {gamificationData?.xpInLevel || 0} / {gamificationData?.levelTargetXP || 100}</span>
-            <span>Level {level} → {level + 1}</span>
-          </div>
-          <div className="w-full h-3 bg-purple-900/50 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all duration-500"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Tab Navigation */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 p-1.5 flex flex-wrap gap-1">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-              activeTab === tab.id
-                ? 'bg-violet-500 text-white shadow-md shadow-violet-500/30'
-                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'
-            }`}
-          >
-            {tab.icon} {tab.label}
-            {tab.id === 'daily' && canClaimDaily && (
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-            )}
-          </button>
-        ))}
-      </div>
+      {authUser?.role !== 'admin' && (
+        <div className="flex overflow-x-auto gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/50 dark:border-slate-700/60 custom-scrollbar shrink-0">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 shrink-0 cursor-pointer ${
+                activeTab === tab.id
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/40'
+              }`}
+            >
+              {tab.icon} {tab.label}
+              {tab.id === 'daily' && canClaimDaily && (
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Tab Content */}
       {activeTab === 'shop' && (

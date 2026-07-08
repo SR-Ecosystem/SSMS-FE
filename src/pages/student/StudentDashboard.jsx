@@ -852,7 +852,7 @@ const StudentDashboard = () => {
                       </div>
                       <p className="text-slate-400 text-xs mb-4">This challenge is scheduled and locked.</p>
                       <span className="text-xl font-bold text-slate-400 block mb-6 leading-tight">
-                        {problem.title}
+                        🔒 Scheduled Challenge
                       </span>
                     </div>
                     

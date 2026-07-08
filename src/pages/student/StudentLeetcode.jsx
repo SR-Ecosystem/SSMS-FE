@@ -152,7 +152,7 @@ const StudentLeetcode = () => {
                         </div>
                         
                         <div className="p-6 space-y-4">
-                          <h3 className="font-extrabold text-slate-450 dark:text-slate-400 text-lg leading-snug">{problem.title}</h3>
+                          <h3 className="font-extrabold text-slate-450 dark:text-slate-400 text-lg leading-snug">🔒 Scheduled Challenge</h3>
                           <p className="text-xs text-slate-400 dark:text-slate-550">This problem has been scheduled by an admin and will unlock at the release time.</p>
                         </div>
                       </div>

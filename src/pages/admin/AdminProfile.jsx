@@ -4,13 +4,15 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/Loader';
 import { 
-  User as UserIcon, Mail, Phone, Lock, Save, Loader2 
+  User as UserIcon, Mail, Phone, Lock, Save, Loader2, Camera 
 } from 'lucide-react';
 
 const AdminProfile = () => {
-  const { user: authUser } = useAuth();
+  const { user: authUser, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [profileImage, setProfileImage] = useState(authUser?.equippedAvatar || authUser?.profileImage || '');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -29,6 +31,7 @@ const AdminProfile = () => {
           phone: data.phone || '',
           password: '',
         });
+        setProfileImage(data.equippedAvatar || data.profileImage || '');
       } catch (error) {
         console.error('Error fetching profile:', error);
         Swal.fire('Error', 'Failed to load profile data', 'error');
@@ -38,6 +41,50 @@ const AdminProfile = () => {
     };
     fetchProfile();
   }, []);
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      Swal.fire('Error', 'Please upload an image file.', 'error');
+      return;
+    }
+
+    setUploading(true);
+    const formDataUpload = new FormData();
+    formDataUpload.append('file', file);
+
+    try {
+      const uploadRes = await axios.post('/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const fileUrl = uploadRes.data.url || uploadRes.data.fileUrl;
+
+      // Update backend profile record
+      await axios.put('/auth/profile', { profileImage: fileUrl });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Profile Photo Updated!',
+        text: 'Your custom profile photo has been successfully saved.',
+        timer: 2000,
+        showConfirmButton: false,
+        background: document.documentElement.classList.contains('dark') ? '#000000' : '#ffffff',
+        color: document.documentElement.classList.contains('dark') ? '#ffffff' : '#000000'
+      });
+
+      setProfileImage(fileUrl);
+      if (updateUser) {
+        updateUser({ ...authUser, equippedAvatar: fileUrl, profileImage: fileUrl });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', err.response?.data?.message || 'Failed to upload photo', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -85,9 +132,28 @@ const AdminProfile = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 flex items-center justify-center border-4 border-white dark:border-white/10 shadow-lg overflow-hidden">
-          <UserIcon size={32} />
+      <div className="flex items-center gap-6">
+        <div className="relative group/avatar shrink-0">
+          <div className="w-20 h-20 rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 flex items-center justify-center border-4 border-white dark:border-white/10 shadow-lg overflow-hidden relative">
+            {profileImage ? (
+              <img 
+                src={profileImage.startsWith('/uploads') ? `${import.meta.env.VITE_API_URL || ''}${profileImage}` : profileImage} 
+                alt="Admin Avatar" 
+                className="w-full h-full object-cover object-top"
+              />
+            ) : (
+               <UserIcon size={36} />
+            )}
+            {uploading && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <Loader2 className="animate-spin text-white" size={20} />
+              </div>
+            )}
+          </div>
+          <label className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center shadow-md cursor-pointer transition-colors border-2 border-white dark:border-slate-900">
+            <Camera size={14} />
+            <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+          </label>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Profile</h1>

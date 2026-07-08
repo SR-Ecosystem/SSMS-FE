@@ -896,7 +896,13 @@ const Layout = () => {
       setOnlineStudentsCount(onlineData.activeCount || 0);
 
       if (user?.role === 'admin') {
-        const { data } = await axios.get('/analytics/dashboard');
+        const [dashboardRes, gamificationRes] = await Promise.all([
+          axios.get('/analytics/dashboard'),
+          axios.get('/gamification/status').catch(e => ({ data: {} }))
+        ]);
+        const data = dashboardRes.data;
+        const gamification = gamificationRes.data;
+
         setPendingCount(data.pendingReviews || 0);
         setLeavesCount(data.pendingLeavesCount || 0);
         setJoinsCount(data.joinRequestsCount || 0);
@@ -906,6 +912,8 @@ const Layout = () => {
           soundManager.playNotification();
         }
         setNotifications(newNotifs);
+        setUserCoins(gamification.coins || 0);
+        setGamificationData(gamification);
       } else if (user?.role === 'student') {
         const [analyticsRes, gamificationRes] = await Promise.all([
           axios.get(`/analytics/student/${user._id}?mini=true`),
@@ -1130,7 +1138,8 @@ const Layout = () => {
       links: [
         { name: 'Student Directory', path: '/students', icon: <Users size={20} /> },
         { name: 'Task Tracker', path: '/batch-tracker', icon: <BookOpen size={20} /> },
-        { name: 'Gamification Shop', path: '/admin/gamification', icon: <Gamepad2 size={20} /> },
+        { name: 'Gamification Shop Management', path: '/admin/gamification', icon: <Gamepad2 size={20} /> },
+        { name: 'Gamification Hub (Free)', path: '/student/wardrobe', icon: <Gamepad2 size={20} /> },
       ]
     },
     {
