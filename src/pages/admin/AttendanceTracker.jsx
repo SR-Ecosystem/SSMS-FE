@@ -121,13 +121,20 @@ const AttendanceTracker = () => {
   // Determine all unique attendance dates (excludes future dates to prevent grid glitches)
   const uniqueAttendanceDates = useMemo(() => {
     const datesSet = new Set();
+    const currentBatch = batches.find(b => b._id === selectedBatch);
+    const batchStartStr = currentBatch?.startDate 
+      ? new Date(currentBatch.startDate).toISOString().split('T')[0] 
+      : null;
+
     attendanceData.forEach(log => {
       if (log.date && log.date <= todayStr) {
-        datesSet.add(log.date);
+        if (!batchStartStr || log.date >= batchStartStr) {
+          datesSet.add(log.date);
+        }
       }
     });
     return Array.from(datesSet).sort(); // Sort in ascending order
-  }, [attendanceData, todayStr]);
+  }, [attendanceData, todayStr, batches, selectedBatch]);
 
   // Overall Attendance % calculation (excludes today)
   const getAttendanceOverallPercentage = (studentId) => {
