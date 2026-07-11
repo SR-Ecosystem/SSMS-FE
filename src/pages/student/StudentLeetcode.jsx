@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { Code, Flame, CheckCircle, Clock, ExternalLink, Lock } from 'lucide-react';
+import { Code, Flame, CheckCircle, Clock, ExternalLink, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 import Swal from 'sweetalert2';
 
@@ -10,6 +10,7 @@ const StudentLeetcode = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEnrolled, setIsEnrolled] = useState(true); // default to true
+  const [isUpcomingExpanded, setIsUpcomingExpanded] = useState(false);
 
   // For active submissions directly from this page
   const [activeLinks, setActiveLinks] = useState({});
@@ -137,34 +138,53 @@ const StudentLeetcode = () => {
           <div className="space-y-8">
             {/* Scheduled & Locked (Upcoming) */}
             {history.filter(p => p.isLocked).length > 0 && (
-              <div>
-                <h3 className="text-md font-bold text-slate-700 dark:text-slate-300 mb-4 flex items-center gap-2">
-                  <Lock size={16} className="text-slate-400" />
-                  Upcoming Scheduled Challenges
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {history.filter(p => p.isLocked).map(problem => (
-                    <div key={problem._id} className="glass-panel overflow-hidden rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col justify-between bg-slate-50/50 dark:bg-slate-900/40 opacity-70">
-                      <div>
-                        <div className="p-4 text-white text-center flex items-center justify-between font-bold text-xs bg-gradient-to-r from-slate-650 to-slate-750">
-                          <span className="flex items-center gap-1.5"><Lock size={12} /> SCHEDULED & LOCKED</span>
-                          <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">UPCOMING</span>
-                        </div>
-                        
-                        <div className="p-6 space-y-4">
-                          <h3 className="font-extrabold text-slate-450 dark:text-slate-400 text-lg leading-snug">🔒 Scheduled Challenge</h3>
-                          <p className="text-xs text-slate-400 dark:text-slate-550">This problem has been scheduled by an admin and will unlock at the release time.</p>
-                        </div>
-                      </div>
-
-                      <div className="p-6 border-t border-slate-100 dark:border-slate-700/50 mt-auto bg-slate-100/50 dark:bg-slate-800/10">
-                        <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-extrabold text-sm">
-                          <Lock size={14} /> Unlocks: {new Date(problem.scheduledAt).toLocaleString()}
-                        </div>
-                      </div>
+              <div className="bg-slate-550/5 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 mb-6">
+                <button
+                  onClick={() => setIsUpcomingExpanded(!isUpcomingExpanded)}
+                  className="w-full flex items-center justify-between text-left font-bold text-slate-800 dark:text-white focus:outline-none"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-500">
+                      <Lock size={18} />
                     </div>
-                  ))}
-                </div>
+                    <div>
+                      <h3 className="text-base font-extrabold leading-tight">Upcoming Scheduled Challenges</h3>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">There are {history.filter(p => p.isLocked).length} upcoming challenges scheduled by the admin.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-805 dark:hover:bg-slate-700/80 px-3 py-1.5 rounded-xl transition-all select-none text-slate-600 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700 cursor-pointer">
+                      {isUpcomingExpanded ? 'Hide Scheduled' : `View Scheduled (${history.filter(p => p.isLocked).length})`}
+                    </span>
+                    {isUpcomingExpanded ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
+                  </div>
+                </button>
+
+                {isUpcomingExpanded && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 transition-all duration-300">
+                    {history.filter(p => p.isLocked).map(problem => (
+                      <div key={problem._id} className="relative rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-4 flex flex-col justify-between bg-slate-50/40 dark:bg-slate-900/30 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-750 transition-all text-left">
+                        <div className="flex justify-between items-start gap-2 mb-2">
+                          <div className="flex flex-col gap-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-black text-slate-500 dark:text-slate-450 truncate flex items-center gap-1.5">
+                                <Lock size={13} className="text-slate-400" /> 🔒 Scheduled Challenge
+                              </span>
+                              <span className="bg-slate-150 dark:bg-slate-800/80 text-slate-500 dark:text-slate-450 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">Upcoming</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/50 flex flex-col gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                          <div className="flex items-center justify-between gap-1 text-indigo-500 dark:text-indigo-400 font-semibold pt-1 border-dashed border-slate-200 dark:border-slate-800">
+                            <span className="flex items-center gap-1"><Lock size={10} /> Unlocks At:</span>
+                            <span className="font-bold">{new Date(problem.scheduledAt).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

@@ -4,7 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-import { Loader2, Upload, ExternalLink, Lock, Calendar, FileText as FileTextIcon, UploadCloud, Link as LinkIcon, AlignLeft, Download, CheckCircle } from 'lucide-react';
+import { Loader2, Upload, ExternalLink, Lock, Calendar, FileText as FileTextIcon, UploadCloud, Link as LinkIcon, AlignLeft, Download, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import SkeletonLoader from '../../components/SkeletonLoader';
 
 const formatDateTime = (dateString) => {
@@ -30,6 +30,7 @@ const MyTasks = () => {
   const [activeTask, setActiveTask] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [studentSubmittedLinks, setStudentSubmittedLinks] = useState([]);
+  const [isLockedExpanded, setIsLockedExpanded] = useState(false);
   const { themeColor, activeTheme } = useOutletContext();
   
   const [subData, setSubData] = useState({ 
@@ -360,50 +361,80 @@ const MyTasks = () => {
     );
   }
 
+  const lockedTasks = tasks.filter(task => task.isLocked);
+  const activeTasks = tasks.filter(task => !task.isLocked);
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Tasks</h1>
+
+      {/* Collapsible Locked Tasks Section */}
+      {lockedTasks.length > 0 && (
+        <div className="glass-panel overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 p-5 bg-slate-550/5 dark:bg-slate-900/20">
+          <button
+            onClick={() => setIsLockedExpanded(!isLockedExpanded)}
+            className="w-full flex items-center justify-between text-left font-bold text-slate-800 dark:text-white focus:outline-none"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-500">
+                <Lock size={18} />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold leading-tight">Scheduled & Locked Tasks</h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">There are {lockedTasks.length} upcoming tasks scheduled by the admin.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-805 dark:hover:bg-slate-700/80 px-3 py-1.5 rounded-xl transition-all select-none text-slate-600 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700 cursor-pointer">
+                {isLockedExpanded ? 'Hide Scheduled' : `View Scheduled (${lockedTasks.length})`}
+              </span>
+              {isLockedExpanded ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
+            </div>
+          </button>
+
+          {isLockedExpanded && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 transition-all duration-300">
+              {lockedTasks.map(task => (
+                <div key={task._id} className="relative rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-4 flex flex-col justify-between bg-slate-50/40 dark:bg-slate-900/30 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700 transition-all text-left">
+                  <div className="flex justify-between items-start gap-2 mb-2">
+                    <div className="flex flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-slate-500 dark:text-slate-450 truncate flex items-center gap-1.5">
+                          <Lock size={13} className="text-slate-400" /> 🔒 Scheduled Task
+                        </span>
+                        <span className="bg-slate-150 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">Locked</span>
+                      </div>
+                      <span className="text-[9px] bg-slate-100/80 dark:bg-slate-800/50 text-slate-450 dark:text-slate-450 px-2 py-0.5 rounded font-bold uppercase tracking-wider w-fit truncate max-w-full">
+                        {task.batchId?.batchName}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/50 flex flex-col gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Due Date:</span>
+                      <span className="font-bold text-slate-600 dark:text-slate-350">{new Date(task.dueDate).toLocaleDateString()}</span>
+                    </div>
+                    {task.maxMarks !== undefined && (
+                      <div className="flex items-center justify-between gap-1">
+                        <span>Max Marks:</span>
+                        <span className="font-bold text-slate-600 dark:text-slate-350">{task.maxMarks}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-1 text-indigo-500 dark:text-indigo-400 font-semibold pt-1.5 border-t border-dashed border-slate-200 dark:border-slate-800">
+                      <span className="flex items-center gap-1"><Lock size={10} /> Unlocks At:</span>
+                      <span className="font-bold">{new Date(task.scheduledAt).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {tasks.map(task => {
-          if (task.isLocked) {
-            return (
-              <div key={task._id} className="glass-panel overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between hover:-translate-y-0.5 active:translate-y-0 transition-all block relative text-left bg-slate-50/50 dark:bg-slate-900/40 opacity-70">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-500/5 rounded-full blur-2xl"></div>
-                
-                <div className="relative z-10 flex justify-between items-start mb-4">
-                  <div className="flex flex-col items-start gap-2">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="font-bold text-base text-slate-400 dark:text-slate-550 leading-tight flex items-center gap-2">
-                        <Lock size={16} /> 🔒 Scheduled Task
-                      </h3>
-                      <span className="bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200 dark:border-slate-700">Locked</span>
-                    </div>
-                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">{task.batchId?.batchName}</span>
-                  </div>
-                </div>
-
-                <div className="mb-6 flex flex-col gap-2 flex-1">
-                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500">This task is scheduled and locked. Description and submission actions are hidden.</p>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-700/50 pt-5 mt-auto">
-                  <div className="flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-lg border text-slate-500 bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700">
-                    <Calendar size={14} /> Due: {new Date(task.dueDate).toLocaleDateString()}
-                  </div>
-                  {task.maxMarks !== undefined && (
-                    <div className="text-xs font-bold text-slate-500">
-                      Marks: {task.maxMarks}
-                    </div>
-                  )}
-                  <span className="text-xs text-indigo-500 dark:text-indigo-400 font-bold flex items-center gap-1">
-                    <Lock size={12} /> Unlocks: {new Date(task.scheduledAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            );
-          }
-
+        {activeTasks.map(task => {
           const submission = submissions.find(s => s.taskId?._id === task._id || s.taskId === task._id);
           const isSubmitted = submission && submission.status !== 'resubmit';
           
