@@ -30,7 +30,6 @@ const MyTasks = () => {
   const [activeTask, setActiveTask] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [studentSubmittedLinks, setStudentSubmittedLinks] = useState([]);
-  const [isLockedExpanded, setIsLockedExpanded] = useState(false);
   const { themeColor, activeTheme } = useOutletContext();
   
   const [subData, setSubData] = useState({ 
@@ -364,72 +363,35 @@ const MyTasks = () => {
   const lockedTasks = tasks.filter(task => task.isLocked);
   const activeTasks = tasks.filter(task => !task.isLocked);
 
+  // Find next single locked task (unlocking earliest in the future)
+  const nextLockedTask = [...lockedTasks].sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt))[0];
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-900 dark:text-white">My Tasks</h1>
 
-      {/* Collapsible Locked Tasks Section */}
-      {lockedTasks.length > 0 && (
-        <div className="glass-panel overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 p-5 bg-slate-550/5 dark:bg-slate-900/20">
-          <button
-            onClick={() => setIsLockedExpanded(!isLockedExpanded)}
-            className="w-full flex items-center justify-between text-left font-bold text-slate-800 dark:text-white focus:outline-none"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-500">
-                <Lock size={18} />
+      {/* Next Scheduled Task Section */}
+      {nextLockedTask && (
+        <div className="glass-panel overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 p-5 bg-indigo-50/10 dark:bg-indigo-950/5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center text-indigo-500">
+                <Lock size={20} />
               </div>
               <div>
-                <h3 className="text-base font-extrabold leading-tight">Scheduled & Locked Tasks</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">There are {lockedTasks.length} upcoming tasks scheduled by the admin.</p>
+                <span className="text-xs font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-900/50 uppercase tracking-wide">Next Scheduled Work</span>
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-white leading-tight mt-0.5">🔒 Scheduled Task ({nextLockedTask.batchId?.batchName})</h3>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-slate-100 hover:bg-slate-200 dark:bg-slate-805 dark:hover:bg-slate-700/80 px-3 py-1.5 rounded-xl transition-all select-none text-slate-600 dark:text-slate-300 font-semibold border border-slate-200 dark:border-slate-700 cursor-pointer">
-                {isLockedExpanded ? 'Hide Scheduled' : `View Scheduled (${lockedTasks.length})`}
+            
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <span className="flex items-center gap-1.5"><Calendar size={13} className="text-slate-400" /> Due: {new Date(nextLockedTask.dueDate).toLocaleDateString()}</span>
+              {nextLockedTask.maxMarks !== undefined && <span>Marks: {nextLockedTask.maxMarks}</span>}
+              <span className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5">
+                <Lock size={12} /> Unlocks: {new Date(nextLockedTask.scheduledAt).toLocaleString()}
               </span>
-              {isLockedExpanded ? <ChevronUp size={18} className="text-slate-400" /> : <ChevronDown size={18} className="text-slate-400" />}
             </div>
-          </button>
-
-          {isLockedExpanded && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 transition-all duration-300">
-              {lockedTasks.map(task => (
-                <div key={task._id} className="relative rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-4 flex flex-col justify-between bg-slate-50/40 dark:bg-slate-900/30 opacity-80 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700 transition-all text-left">
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <div className="flex flex-col gap-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-black text-slate-500 dark:text-slate-450 truncate flex items-center gap-1.5">
-                          <Lock size={13} className="text-slate-400" /> 🔒 Scheduled Task
-                        </span>
-                        <span className="bg-slate-150 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 text-[9px] font-bold px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">Locked</span>
-                      </div>
-                      <span className="text-[9px] bg-slate-100/80 dark:bg-slate-800/50 text-slate-450 dark:text-slate-450 px-2 py-0.5 rounded font-bold uppercase tracking-wider w-fit truncate max-w-full">
-                        {task.batchId?.batchName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/50 flex flex-col gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="flex items-center gap-1"><Calendar size={12} className="text-slate-400" /> Due Date:</span>
-                      <span className="font-bold text-slate-600 dark:text-slate-350">{new Date(task.dueDate).toLocaleDateString()}</span>
-                    </div>
-                    {task.maxMarks !== undefined && (
-                      <div className="flex items-center justify-between gap-1">
-                        <span>Max Marks:</span>
-                        <span className="font-bold text-slate-600 dark:text-slate-350">{task.maxMarks}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between gap-1 text-indigo-500 dark:text-indigo-400 font-semibold pt-1.5 border-t border-dashed border-slate-200 dark:border-slate-800">
-                      <span className="flex items-center gap-1"><Lock size={10} /> Unlocks At:</span>
-                      <span className="font-bold">{new Date(task.scheduledAt).toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       )}
       
